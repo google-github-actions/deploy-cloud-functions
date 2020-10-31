@@ -24,7 +24,7 @@ jobs:
         name: cf-http-gcloud-${{ github.run_number }}
         runtime: nodejs10
         entry_point: helloWorld
-        source_dir: ./deploy-cloud-functions/tests/test-node-func/
+        source_dir: ./tests/test-node-func/
     - uses: actions/setup-node@master
       with:
         node-version: 12.x
@@ -55,7 +55,7 @@ jobs:
         name: cf-http-b64-${{ github.run_number }}
         runtime: nodejs10
         entry_point: helloWorld
-        source_dir: ./deploy-cloud-functions/tests/test-node-func/
+        source_dir: ./tests/test-node-func/
         credentials: ${{ secrets.DEPLOY_CF_SA_KEY_B64 }}
     - uses: actions/setup-node@master
       with:
@@ -92,7 +92,7 @@ jobs:
         name: cf-http-json-${{ github.run_number }}
         runtime: nodejs10
         entry_point: helloWorld
-        source_dir: ./deploy-cloud-functions/tests/test-node-func/
+        source_dir: ./tests/test-node-func/
         credentials: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
     - uses: actions/setup-node@master
       with:
