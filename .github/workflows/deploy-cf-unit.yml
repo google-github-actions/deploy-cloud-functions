@@ -1,14 +1,6 @@
 name: deploy-cloud-functions Unit
 
-on:
-  push:
-    paths:
-    - 'deploy-cloud-functions/**'
-    - '.github/workflows/deploy-cf**'
-  pull_request:
-    paths:
-    - 'deploy-cloud-functions/**'
-    - '.github/workflows/deploy-cf**'
+on: [push, pull_request]
 
 jobs:
   run:
