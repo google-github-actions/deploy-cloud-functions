@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master # Set up ADC for credentials
+    - uses: google-github-actions/setup-gcloud@master # Set up ADC for credentials
       with:
         service_account_email: ${{ secrets.DEPLOY_CF_SA_EMAIL }}
         service_account_key: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
@@ -61,7 +61,7 @@ jobs:
       with:
         node-version: 12.x
     - run: npm install
-    - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master # Set up ADC to make authenticated request to service
+    - uses: google-github-actions/setup-gcloud@master # Set up ADC to make authenticated request to service
       with:
         service_account_email: ${{ secrets.DEPLOY_CF_SA_EMAIL }}
         service_account_key: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
@@ -98,7 +98,7 @@ jobs:
       with:
         node-version: 12.x
     - run: npm install
-    - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master # Set up ADC to make authenticated request to service
+    - uses: google-github-actions/setup-gcloud@master # Set up ADC to make authenticated request to service
       with:
         service_account_email: ${{ secrets.DEPLOY_CF_SA_EMAIL }}
         service_account_key: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}

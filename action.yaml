@@ -17,7 +17,7 @@ description: |-
   Cloud Functions is a scalable Functions-as-a-Service (FaaS) to run your 
   code with zero server management. Use this action to deploy your function or
   update an existing Cloud Function.
-author: GoogleCloudPlatform
+author: Google LLC
 
 inputs:
   credentials:

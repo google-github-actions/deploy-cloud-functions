@@ -28,7 +28,7 @@
     "google cloud",
     "cloud function"
   ],
-  "author": "GoogleCloudPlatform",
+  "author": "Google LLC",
   "license": "Apache-2.0",
   "dependencies": {
     "@actions/core": "^1.2.6",
