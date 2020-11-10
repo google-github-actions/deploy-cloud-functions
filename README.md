@@ -51,7 +51,7 @@ steps:
 
 - `entry_point`: (Optional) Name of a function (as defined in source code) that will be executed. Defaults to the resource name suffix, if not specified. 
 
-- `region`: (Optional) Region in which the function should be deployed. Defaults to `us-central1`.
+- `region`: (Optional) [Region](https://cloud.google.com/functions/docs/locations) in which the function should be deployed. Defaults to `us-central1`.
 
 - `credentials`: (Optional) Service account key to use for authentication. This should be
   the JSON formatted private key which can be exported from the Cloud Console. The

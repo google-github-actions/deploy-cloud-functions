@@ -90,6 +90,7 @@ jobs:
       uses: ./
       with:
         name: cf-http-json-${{ github.run_number }}
+        region: us-east1
         runtime: nodejs10
         entry_point: helloWorld
         source_dir: ./tests/test-node-func/
@@ -111,5 +112,6 @@ jobs:
       run: npm run cleanup
       env:
         DEPLOY_CF_SA_KEY_JSON: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
-        CF_NAME: projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/cf-http-json-${{ github.run_number }}
+        CF_NAME: projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-east1/functions/cf-http-json-${{ github.run_number }}
+        CF_REGION: us-east1
 

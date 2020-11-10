@@ -42,6 +42,11 @@ inputs:
       Project to deploy the function in.
     required: false
 
+  region:
+    description: |-
+      Region to deploy the function in. Defaults to us-central1, if not specified.
+    required: false
+
   source_dir:
     description: |-
       Path to function deployment directory within the source repo.

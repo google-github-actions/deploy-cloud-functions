@@ -35,7 +35,8 @@ describe('CloudFunction', function () {
         'Cloud Function name, project id and credentials are required.',
       );
     }
-    const client = new CloudFunctionClient('us-central1', {
+    const region = process.env.CF_REGION || 'us-central1';
+    const client = new CloudFunctionClient(region, {
       projectId,
       credentials,
     });
