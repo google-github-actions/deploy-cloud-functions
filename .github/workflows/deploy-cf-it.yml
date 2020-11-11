@@ -115,3 +115,38 @@ jobs:
         CF_NAME: projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-east1/functions/cf-http-json-${{ github.run_number }}
         CF_REGION: us-east1
 
+  json-event-trigger:
+    name: test event trigger
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - id: build
+      name: Build dist
+      run: |-
+        npm install
+        npm run build
+    - id: deploy
+      uses: ./
+      with:
+        name: cf-event-json-${{ github.run_number }}
+        runtime: nodejs10
+        entry_point: helloWorld
+        source_dir: ./tests/test-node-func/
+        credentials: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
+        event_trigger_type: providers/cloud.pubsub/eventTypes/topic.publish
+        event_trigger_resource: ${{ secrets.DEPLOY_CF_EVENT_PUBSUB_TOPIC }}
+    - uses: actions/setup-node@master
+      with:
+        node-version: 12.x
+    - run: npm install
+    - uses: google-github-actions/setup-gcloud@master # Set up ADC to make authenticated request to service
+      with:
+        service_account_email: ${{ secrets.DEPLOY_CF_SA_EMAIL }}
+        service_account_key: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
+        export_default_credentials: true
+    - name: integration test clean up
+      run: npm run cleanup
+      env:
+        DEPLOY_CF_SA_KEY_JSON: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
+        CF_NAME: projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/cf-event-json-${{ github.run_number }}
+
