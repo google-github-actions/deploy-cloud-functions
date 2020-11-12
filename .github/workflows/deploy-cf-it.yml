@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 jobs:
   gcloud:
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name }}
     name: with setup-gcloud
     runs-on: ubuntu-latest
     steps:
@@ -40,6 +41,7 @@ jobs:
         CF_NAME: projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/cf-http-gcloud-${{ github.run_number }}
 
   b64_json:
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name }}
     name: with base64 json creds
     runs-on: ubuntu-latest
     steps:
@@ -77,6 +79,7 @@ jobs:
         CF_NAME: projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/cf-http-b64-${{ github.run_number }}
 
   json:
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name }}
     name: with json creds
     runs-on: ubuntu-latest
     steps:
@@ -116,6 +119,7 @@ jobs:
         CF_REGION: us-east1
 
   json-event-trigger:
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name }}
     name: test event trigger
     runs-on: ubuntu-latest
     steps:

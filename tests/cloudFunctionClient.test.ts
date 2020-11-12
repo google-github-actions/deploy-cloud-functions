@@ -29,6 +29,12 @@ describe('CloudFunction', function () {
   });
 
   it('initializes with ADC', async function () {
+    if (
+      !process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+      !process.env.GCLOUD_PROJECT
+    ) {
+      this.skip();
+    }
     const client = new CloudFunctionClient(region);
     expect(client.auth.jsonContent).eql(null);
     const auth = (await client.getAuthClient()) as JWT;
