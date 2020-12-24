@@ -40,4 +40,3 @@ jobs:
         runtime: python37
         entry_point: hello_world
         credentials: ${{ secrets.gcp_credentials }}
-        
