@@ -33,15 +33,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    # Setup gcloud CLI
-    - uses: google-github-actions/setup-gcloud@master
-      with:
-        service_account_key: ${{ secrets.GCP_SA_KEY }}
-        export_default_credentials: true
     - id: Deploy
       uses: google-github-actions/deploy-cloud-functions@main
       with:
         name: helloworld-python
         runtime: python37
         entry_point: hello_world
+        credentials: ${{ secrets.gcp_credentials }}
         

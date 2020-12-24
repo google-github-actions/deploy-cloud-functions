@@ -1,6 +1,6 @@
 # Cloud Functions - GitHub Actions
 
-An example workflow that uses [GitHub Actions][actions] to deploy a
+An example [workflow][.github/workflows/cloud-functions.yml] that uses [GitHub Actions][actions] to deploy a
 [Hello World Python app](main.py) to [Cloud Funtions][cloud-functions].
 
 This code is intended to be an _example_. You will likely need to change or
