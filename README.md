@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-# deploy-cloud-functions............
+# deploy-cloud-functions.................
 
 This action deploys your function source code to [Cloud Functions](cloud-functions) and makes the URL
 available to later build steps via outputs.
