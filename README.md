@@ -18,7 +18,7 @@ limitations under the License.
 This action deploys your function source code to [Cloud Functions](cloud-functions) and makes the URL
 available to later build steps via outputs.
 
-## Prerequisites
+## Prerequisites.......
 
 This action requires:
 
