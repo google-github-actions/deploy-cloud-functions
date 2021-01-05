@@ -27,7 +27,7 @@ Cloud Function. See the Authorization section below for more information.
 
 - [Enable the Cloud Functions API](http://console.cloud.google.com/apis/library/cloudfunctions.googleapis.com?_ga=2.267842766.1374248275.1591025444-475066991.1589991158)
 
-## Usage
+## Usage............
 
 ```yaml
 steps:
