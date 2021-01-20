@@ -29,6 +29,7 @@ export type EnvVar = {
  * @param envVars List of key-value pairs to set as environment variables.
  * @param entryPoint Name of function to execute.
  * @param runtime Runtime to use for the function.
+ * @param availableMemoryMb The amount of memory in MB available for a function.
  * @param vpcConnector The VPC Access connector that the function can connect to.
  * @param parent Parent of the form projects/${projectId}/locations/${region}.
  * @param serviceAccountEmail The email address of the IAM service account associated with the function at runtime.
@@ -46,6 +47,7 @@ export type CloudFunctionOptions = {
   envVars?: string;
   entryPoint?: string;
   runtime: string;
+  availableMemoryMb?: number;
   vpcConnector?: string;
   parent: string;
   serviceAccountEmail?: string;
@@ -102,6 +104,7 @@ export class CloudFunction {
     request.vpcConnector = opts?.vpcConnector ? opts.vpcConnector : null;
     request.timeout = opts?.timeout ? `${opts.timeout}s` : null;
     request.maxInstances = opts?.maxInstances ? opts.maxInstances : null;
+    request.availableMemoryMb = opts?.availableMemoryMb ? opts.availableMemoryMb : null;
 
     // Parse env vars
     let envVars;

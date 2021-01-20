@@ -66,6 +66,11 @@ inputs:
       Runtime to use for the function.
     required: true
 
+  memory_mb:
+    description: |-
+      The amount of memory in MB available for a function. Defaults to 256MB.
+    required: false
+
   vpc_connector:
     description: |-
       The VPC Access connector that the function can connect to.
