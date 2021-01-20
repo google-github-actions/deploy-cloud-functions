@@ -85,7 +85,7 @@ For pushes to the `main` branch, this workflow will:
 
 1.  Add the following secrets to your repository's secrets:
 
-    - `RUN_SA_KEY`: the content of the service account JSON file
+    - `gcp_credentials`: the content of the service account JSON file
 
 ## Run the workflow
 
