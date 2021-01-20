@@ -20,8 +20,6 @@ on:
     - main
 
 env:
-  # GCP_PROJECT is defined in service_account_key
-  PROJECT_ID: ${{ secrets.GCP_PROJECT }}
   FUNCTION_REGION: northamerica-northeast1
 
 jobs:
