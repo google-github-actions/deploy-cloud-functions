@@ -104,7 +104,9 @@ export class CloudFunction {
     request.vpcConnector = opts?.vpcConnector ? opts.vpcConnector : null;
     request.timeout = opts?.timeout ? `${opts.timeout}s` : null;
     request.maxInstances = opts?.maxInstances ? opts.maxInstances : null;
-    request.availableMemoryMb = opts?.availableMemoryMb ? opts.availableMemoryMb : null;
+    request.availableMemoryMb = opts?.availableMemoryMb
+      ? opts.availableMemoryMb
+      : null;
 
     // Parse env vars
     let envVars;
