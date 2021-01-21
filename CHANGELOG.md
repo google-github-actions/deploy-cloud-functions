@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.1.3](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.1.2...v0.1.3) (2021-01-21)
+
+
+### Bug Fixes
+
+* improve upload error handling ([#28](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/28)) ([2ee38a0](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/2ee38a0bf7722e3ee699188ece8ba82df1c5d320))
+
 ### [0.1.2](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.1.1...v0.1.2) (2020-11-13)
 
 
