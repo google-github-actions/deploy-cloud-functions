@@ -39,6 +39,7 @@ describe('CloudFunction', function () {
       serviceAccountEmail: 'foo@bar.com',
       timeout: '500',
       maxInstances: 10,
+      availableMemoryMb: 512,
     };
     const cf = new CloudFunction(funcOptions);
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
@@ -52,6 +53,7 @@ describe('CloudFunction', function () {
     );
     expect(cf.request.timeout).equal(`${funcOptions.timeout}s`);
     expect(cf.request.maxInstances).equal(funcOptions.maxInstances);
+    expect(cf.request.availableMemoryMb).equal(funcOptions.availableMemoryMb);
     expect(cf.request.httpsTrigger).not.to.be.null;
     expect(cf.request.environmentVariables?.KEY1).equal('VALUE1');
   });

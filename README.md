@@ -49,7 +49,9 @@ steps:
 
 - `runtime`: (Required) Runtime to use for the function. Possible options documented [here][runtimes].
 
-- `entry_point`: (Optional) Name of a function (as defined in source code) that will be executed. Defaults to the resource name suffix, if not specified. 
+- `entry_point`: (Optional) Name of a function (as defined in source code) that will be executed. Defaults to the resource name suffix, if not specified.
+
+- `memory_mb`: (Optional) The amount of memory in MB available for a function. Defaults to 256MB. 
 
 - `region`: (Optional) [Region](https://cloud.google.com/functions/docs/locations) in which the function should be deployed. Defaults to `us-central1`.
 

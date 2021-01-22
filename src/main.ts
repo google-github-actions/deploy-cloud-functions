@@ -25,6 +25,7 @@ async function run(): Promise<void> {
     const runtime = core.getInput('runtime', { required: true });
     const credentials = core.getInput('credentials');
     const projectId = core.getInput('project_id');
+    const availableMemoryMb = core.getInput('memory_mb');
     const region = core.getInput('region') || 'us-central1';
     const envVars = core.getInput('env_vars');
     const entryPoint = core.getInput('entry_point');
@@ -46,6 +47,7 @@ async function run(): Promise<void> {
       parent: client.parent,
       sourceDir,
       runtime,
+      availableMemoryMb: +availableMemoryMb,
       entryPoint,
       envVars,
       timeout,

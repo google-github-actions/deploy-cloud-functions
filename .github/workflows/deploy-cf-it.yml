@@ -96,6 +96,7 @@ jobs:
         region: us-east1
         runtime: nodejs10
         entry_point: helloWorld
+        memory_mb: 512
         source_dir: ./tests/test-node-func/
         credentials: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
     - uses: actions/setup-node@master

@@ -56,6 +56,7 @@ describe('CloudFunction', function () {
       runtime: 'nodejs10',
       envVars: 'KEY1=VALUE1,KEY2=VALUE2',
       entryPoint: 'helloWorld',
+      availableMemoryMb: 512,
     });
     const result = await client.deploy(newHttpFunc);
     // expect function to be deployed without error
