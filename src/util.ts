@@ -74,8 +74,8 @@ export async function uploadSource(
   zipPath: string,
 ): Promise<string> {
   const zipFile = fs.createReadStream(zipPath);
-  const client = new Gaxios();
-  client.request({
+  const client = new Gaxios({ retryConfig: { retry: 5 } });
+  const resp = await client.request({
     method: 'PUT',
     body: zipFile,
     url: uploadUrl,
@@ -84,5 +84,10 @@ export async function uploadSource(
       'x-goog-content-length-range': '0,104857600',
     },
   });
+  if (resp.status != 200) {
+    throw new Error(
+      `Failed to upload function source code: ${resp.statusText}`,
+    );
+  }
   return uploadUrl;
 }

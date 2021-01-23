@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.1.2...v0.2.0) (2021-01-22)
+
+
+### Features
+
+* Add optional memory input ([#27](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/27)) ([5d58680](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/5d586803b3bd3a70307a96a4e1d14f0ed766f280))
+
+
+### Bug Fixes
+
+* improve upload error handling ([#28](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/28)) ([2ee38a0](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/2ee38a0bf7722e3ee699188ece8ba82df1c5d320))
+
 ### [0.1.2](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.1.1...v0.1.2) (2020-11-13)
 
 
