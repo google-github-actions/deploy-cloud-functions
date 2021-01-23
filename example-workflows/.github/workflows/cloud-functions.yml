@@ -1,4 +1,4 @@
-# Copyright 2019 Google, LLC.
+# Copyright 2021 Google, LLC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,9 +19,6 @@ on:
     branches:
     - main
 
-env:
-  FUNCTION_REGION: northamerica-northeast1
-
 jobs:
   setup-build-deploy:
     name: Setup, Build, and Deploy
@@ -37,4 +34,7 @@ jobs:
         name: helloworld-python
         runtime: python37
         entry_point: hello_world
-        credentials: ${{ secrets.gcp_credentials }}
+        credentials: ${{ secrets.GCP_SA_KEY }}
+
+    - id: Test
+      run: curl "${{ steps.deploy.outputs.url }}"
