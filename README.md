@@ -61,7 +61,7 @@ steps:
   `setup-gcloud` action with exported credentials.
 
 - `env_vars`: (Optional) List of key-value pairs to set as environment variables in the format:
-  KEY1=VALUE1,KEY2=VALUE2. All existing environment variables will be
+  `KEY1=VALUE1,KEY2=VALUE2`. All existing environment variables will be
   removed first.
 
 - `source_dir`: (Optional) Source directory for the function. Defaults to current directory.
