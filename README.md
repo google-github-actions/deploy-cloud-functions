@@ -61,7 +61,7 @@ steps:
   `setup-gcloud` action with exported credentials.
 
 - `env_vars`: (Optional) List of key-value pairs to set as environment variables in the format:
-  KEY1=VALUE1,KEY2=VALUE2. All existing environment variables will be
+  `KEY1=VALUE1,KEY2=VALUE2`. All existing environment variables will be
   removed first.
 
 - `source_dir`: (Optional) Source directory for the function. Defaults to current directory.
@@ -167,4 +167,4 @@ Credentials.
 [sa]: https://cloud.google.com/iam/docs/creating-managing-service-accounts
 [gh-runners]: https://help.github.com/en/actions/hosting-your-own-runners/about-self-hosted-runners
 [gh-secret]: https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
-[setup-gcloud]: ../setup-gcloud
+[setup-gcloud]: https://github.com/google-github-actions/setup-gcloud
