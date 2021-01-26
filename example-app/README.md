@@ -39,7 +39,7 @@ For pushes to the `main` branch, this workflow will:
 ## Setup
 
 1.  Create a new Google Cloud Project (or select an existing project) and
-    [enable the Cloud Functions APIs](https://console.cloud.google.com/flows/enableapi?apiid=cloudbuild.googleapis.com).
+    [enable the Cloud Functions and Cloud Build APIs](https://console.cloud.google.com/flows/enableapi?apiid=cloudfunctions,cloudbuild.googleapis.com).
 
 1.  [Create a Google Cloud service account][create-sa] if one does not already
     exist.
