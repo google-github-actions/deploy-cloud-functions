@@ -64,6 +64,8 @@ steps:
   KEY1=VALUE1,KEY2=VALUE2. All existing environment variables will be
   removed first.
 
+- `env_vars_file`: (Optional) Path to a local YAML file with definitions for all environment variables. Only one of env_vars or env_vars_file can be specified.
+
 - `source_dir`: (Optional) Source directory for the function. Defaults to current directory.
 
 - `project_id`: (Optional) ID of the Google Cloud project. If provided, this
