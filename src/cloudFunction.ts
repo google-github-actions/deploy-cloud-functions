@@ -15,6 +15,8 @@
  */
 
 import { cloudfunctions_v1 } from 'googleapis';
+import fs from 'fs';
+import YAML from 'yaml';
 
 export type EnvVar = {
   [key: string]: string;
@@ -45,6 +47,7 @@ export type CloudFunctionOptions = {
   description?: string;
   sourceDir?: string;
   envVars?: string;
+  envVarsFile?: string;
   entryPoint?: string;
   runtime: string;
   availableMemoryMb?: number;
@@ -108,12 +111,24 @@ export class CloudFunction {
       ? opts.availableMemoryMb
       : null;
 
+    // Only one of  envVars and envVarsFile should be set
+    if (opts?.envVars && opts?.envVarsFile) {
+      throw new Error(
+        'Only one of env_vars or env_vars_file can be specified.',
+      );
+    }
+
     // Parse env vars
     let envVars;
     if (opts?.envVars) {
       envVars = this.parseEnvVars(opts.envVars);
       request.environmentVariables = envVars;
     }
+    if (opts?.envVarsFile) {
+      envVars = this.parseEnvVarsFile(opts.envVarsFile);
+      request.environmentVariables = envVars;
+    }
+    console.log(envVars);
 
     this.request = request;
     this.name = opts.name;
@@ -148,5 +163,24 @@ export class CloudFunction {
       envVars[keyValue[0]] = keyValue[1];
     });
     return envVars;
+  }
+
+  /**
+   * Read and parse an env var file.
+   *
+   * @param envVarsFile env var file path.
+   * @returns map of type {KEY1:VALUE1}
+   */
+  protected parseEnvVarsFile(envVarFilePath: string): EnvVar {
+    const content = fs.readFileSync(envVarFilePath, 'utf-8');
+    const yamlContent = YAML.parse(content) as EnvVar;
+    for (const [key, val] of Object.entries(yamlContent)) {
+      if (typeof key !== 'string' || typeof val !== 'string') {
+        throw new Error(
+          `env_vars_file yaml must contain only key/value pair of strings. Error parsing key ${key} of type ${typeof key} with value ${val} of type ${typeof val}`,
+        );
+      }
+    }
+    return yamlContent;
   }
 }

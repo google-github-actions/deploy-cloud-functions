@@ -78,6 +78,40 @@ describe('CloudFunction', function () {
     );
   });
 
+  it('creates a http function with envVarsFile', function () {
+    const envVarsFile = 'tests/env-var-files/test.good.yaml';
+    const cf = new CloudFunction({ name, runtime, parent, envVarsFile });
+    expect(cf.request.name).equal(`${parent}/functions/${name}`);
+    expect(cf.request.environmentVariables?.KEY1).equal('VALUE1');
+    expect(cf.request.environmentVariables?.KEY2).equal('VALUE2');
+  });
+
+  it('throws an error with bad envVarsFile', function () {
+    const envVarsFile = 'tests/env-var-files/test.bad.yaml';
+    expect(function () {
+      new CloudFunction({ name, runtime, parent, envVarsFile });
+    }).to.throw(
+      'env_vars_file yaml must contain only key/value pair of strings. Error parsing key KEY2 of type string with value VALUE2,VALUE3 of type object',
+    );
+  });
+
+  it('throws an error with nonexistent envVarsFile', function () {
+    const envVarsFile = 'tests/env-var-files/test.nonexistent.yaml';
+    expect(function () {
+      new CloudFunction({ name, runtime, parent, envVarsFile });
+    }).to.throw(
+      "ENOENT: no such file or directory, open 'tests/env-var-files/test.nonexistent.yaml",
+    );
+  });
+
+  it('throws an error with both envVarsFile and envVars specified', function () {
+    const envVarsFile = 'tests/env-var-files/test.good.yaml';
+    const envVars = 'KEY1=VALUE1,KEY2=VALUE2';
+    expect(function () {
+      new CloudFunction({ name, runtime, parent, envVarsFile, envVars });
+    }).to.throw('Only one of env_vars or env_vars_file can be specified.');
+  });
+
   it('creates an event function', function () {
     const eventTriggerType = 'fooType';
     const eventTriggerResource = 'barResource';

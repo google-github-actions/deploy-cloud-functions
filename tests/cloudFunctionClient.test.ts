@@ -141,4 +141,34 @@ describe('CloudFunction', function () {
     const deleteFunc = await client.delete(updatedHttpFunc.functionPath);
     expect(deleteFunc.done).to.eq(true);
   });
+
+  it('can deploy CF with envVarFile', async function () {
+    if (!credentials) {
+      this.skip();
+    }
+    const client = new CloudFunctionClient(region, {
+      credentials: credentials,
+      projectId: project,
+    });
+    const newHttpFunc = new CloudFunction({
+      name: `http-envfile-${name}`,
+      parent: client.parent,
+      sourceDir: testNodeFuncDir,
+      runtime: 'nodejs10',
+      envVarsFile: 'tests/env-var-files/test.good.yaml',
+      entryPoint: 'helloWorld',
+    });
+    const result = await client.deploy(newHttpFunc);
+    // expect function to be deployed without error
+    expect(result).to.not.eql(null);
+    expect(result.done).to.eq(true);
+    expect(result).to.not.have.property('error');
+    expect(result.response?.httpsTrigger.url).to.not.be.null;
+    // expect to have the correct env vars from env var file
+    expect(result.response?.environmentVariables.KEY1).to.eq('VALUE1');
+    expect(result.response?.environmentVariables.KEY2).to.eq('VALUE2');
+    // expect function to be deleted without error
+    const deleteFunc = await client.delete(newHttpFunc.functionPath);
+    expect(deleteFunc.done).to.eq(true);
+  });
 });
