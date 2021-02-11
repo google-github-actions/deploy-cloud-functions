@@ -140,6 +140,7 @@ jobs:
         credentials: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
         event_trigger_type: providers/cloud.pubsub/eventTypes/topic.publish
         event_trigger_resource: ${{ secrets.DEPLOY_CF_EVENT_PUBSUB_TOPIC }}
+        env_vars_file: './tests/env-var-files/test.good.yaml'
     - uses: actions/setup-node@master
       with:
         node-version: 12.x
