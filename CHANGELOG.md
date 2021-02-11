@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.2.0...v0.3.0) (2021-02-11)
+
+
+### Features
+
+* add env var file support ([#34](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/34)) ([6513a6e](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/6513a6e5f0f53eeec94f324ed9c02ab56eab852d))
+
 ## [0.2.0](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.1.2...v0.2.0) (2021-01-22)
 
 
