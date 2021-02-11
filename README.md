@@ -31,6 +31,7 @@ Cloud Function. See the Authorization section below for more information.
 
 ```yaml
 steps:
+- uses: actions/checkout@v2
 - id: deploy
   uses: google-github-actions/deploy-cloud-functions@main
   with:
@@ -62,7 +63,7 @@ steps:
 
 - `env_vars`: (Optional) List of key-value pairs to set as environment variables in the format:
   `KEY1=VALUE1,KEY2=VALUE2`. All existing environment variables will be
-  removed first.
+  removed, even if this parameter is not passed.
 
 - `source_dir`: (Optional) Source directory for the function. Defaults to current directory.
 
@@ -120,6 +121,7 @@ You can provide credentials using the [setup-gcloud][setup-gcloud] action:
   with:
     service_account_key: ${{ secrets.GCP_SA_KEY }}
     export_default_credentials: true
+- uses: actions/checkout@v2
 - id: Deploy
   uses: google-github-actions/deploy-cloud-functions@main
   with:
@@ -135,6 +137,7 @@ Secret][gh-secret] that contains the JSON content, then import it into the
 action:
 
 ```yaml
+- uses: actions/checkout@v2
 - id: Deploy
   uses: google-github-actions/deploy-cloud-functions@main
   with:
@@ -151,6 +154,7 @@ authenticate requests as the service account attached to the instance. **This
 only works using a custom runner hosted on GCP.**
 
 ```yaml
+- uses: actions/checkout@v2
 - id: Deploy
   uses: google-github-actions/deploy-cloud-functions@main
   with:
