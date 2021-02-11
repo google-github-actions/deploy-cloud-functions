@@ -128,7 +128,6 @@ export class CloudFunction {
       envVars = this.parseEnvVarsFile(opts.envVarsFile);
       request.environmentVariables = envVars;
     }
-    console.log(envVars);
 
     this.request = request;
     this.name = opts.name;

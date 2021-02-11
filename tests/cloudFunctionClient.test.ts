@@ -167,6 +167,9 @@ describe('CloudFunction', function () {
     // expect to have the correct env vars from env var file
     expect(result.response?.environmentVariables.KEY1).to.eq('VALUE1');
     expect(result.response?.environmentVariables.KEY2).to.eq('VALUE2');
+    expect(result.response?.environmentVariables.JSONKEY).to.eq(
+      '{"bar":"baz"}',
+    );
     // expect function to be deleted without error
     const deleteFunc = await client.delete(newHttpFunc.functionPath);
     expect(deleteFunc.done).to.eq(true);

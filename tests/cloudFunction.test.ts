@@ -84,6 +84,7 @@ describe('CloudFunction', function () {
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
     expect(cf.request.environmentVariables?.KEY1).equal('VALUE1');
     expect(cf.request.environmentVariables?.KEY2).equal('VALUE2');
+    expect(cf.request.environmentVariables?.JSONKEY).equal('{"bar":"baz"}');
   });
 
   it('throws an error with bad envVarsFile', function () {
