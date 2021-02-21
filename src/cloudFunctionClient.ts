@@ -238,6 +238,8 @@ export class CloudFunctionClient {
       const awaitUpdate = await this.pollOperation(
         updateFunctionResponse.data,
         'Updating function deployment',
+        2,
+        150,
       );
       core.info('Function deployment updated');
       return awaitUpdate;
@@ -255,6 +257,8 @@ export class CloudFunctionClient {
       const awaitCreate = await this.pollOperation(
         createFunctionResponse.data,
         'Creating function deployment',
+        2,
+        150,
       );
       core.info('Function deployment created');
       return awaitCreate;
