@@ -157,7 +157,7 @@ jobs:
         CF_NAME: projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/cf-event-json-${{ github.run_number }}
   b64_json_invalid_src:
     if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name }}
-    name: with base64 json creds
+    name: with invalid source dir
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
