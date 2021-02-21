@@ -15,6 +15,7 @@
  */
 
 import * as fs from 'fs';
+import * as core from '@actions/core';
 import { Gaxios } from 'gaxios';
 import * as Archiver from 'archiver';
 
@@ -24,22 +25,40 @@ import * as Archiver from 'archiver';
  * @param dirPath Directory to zip.
  * @returns filepath of the created zip file.
  */
-export async function zipDir(dirPath: string): Promise<string> {
+export async function zipDir(
+  dirPath: string,
+  outputPath: string,
+): Promise<string> {
   // Check dirpath
   if (!fs.existsSync(dirPath)) {
     throw new Error(`Unable to find ${dirPath}`);
   }
-  // Create output file stream
-  const outputPath = `./cfsrc-${Math.floor(Math.random() * 100000)}.zip`;
-  const output = fs.createWriteStream(outputPath);
-  // Init archive
-  const archive = Archiver.create('zip');
-  archive.pipe(output);
-  // Add dir to root of archive
-  archive.directory(dirPath, false);
-  // Finish writing files
-  archive.finalize();
-  return outputPath;
+  return new Promise((resolve, reject) => {
+    // Create output file stream
+    const output = fs.createWriteStream(outputPath);
+    output.on('finish', () => {
+      resolve(outputPath);
+    });
+    // Init archive
+    const archive = Archiver.create('zip');
+    // log archive warnings
+    archive.on('warning', (err: Archiver.ArchiverError) => {
+      if (err.code === 'ENOENT') {
+        core.info(err.message);
+      } else {
+        reject(err);
+      }
+    });
+    // listen for all archive data to be written
+    output.on('close', function () {
+      core.info(`function source zipfile created: ${archive.pointer()} bytes`);
+    });
+    archive.pipe(output);
+    // Add dir to root of archive
+    archive.directory(dirPath, false);
+    // Finish writing files
+    archive.finalize();
+  });
 }
 
 /**

@@ -155,4 +155,26 @@ jobs:
       env:
         DEPLOY_CF_SA_KEY_JSON: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
         CF_NAME: projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/cf-event-json-${{ github.run_number }}
-
+  b64_json_invalid_src:
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name }}
+    name: with base64 json creds
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - id: build
+      name: Build dist
+      run: |-
+        npm install
+        npm run build
+    - id: deploy
+      uses: ./
+      continue-on-error: true
+      with:
+        name: cf-http-invalid-${{ github.run_number }}
+        runtime: nodejs10
+        entry_point: helloWorld
+        source_dir: ./foo/bar # invalid source dir
+        credentials: ${{ secrets.DEPLOY_CF_SA_KEY_B64 }}
+    - name: Catch failure
+      run: |-
+        if [ ${{ steps.deploy.outcome }} != 'failure' ]; then exit 1; fi
