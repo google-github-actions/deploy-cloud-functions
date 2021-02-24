@@ -37,6 +37,7 @@ export async function zipDir(
     // Create output file stream
     const output = fs.createWriteStream(outputPath);
     output.on('finish', () => {
+      core.info(`zip file ${outputPath} created successfully`);
       resolve(outputPath);
     });
     // Init archive
@@ -108,5 +109,6 @@ export async function uploadSource(
       `Failed to upload function source code: ${resp.statusText}`,
     );
   }
+  core.info(`zip file ${zipPath} uploaded successfully`);
   return uploadUrl;
 }
