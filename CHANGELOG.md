@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.3.0...v0.4.0) (2021-02-25)
+
+
+### Features
+
+* fix zip file creation, improve logs ([#48](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/48)) ([c084c5e](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/c084c5e00e731bf0c3bf97ac62ba6d2859564812))
+
+
+### Bug Fixes
+
+* Increase deploy create/update timeout ([#46](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/46)) ([f63fa6d](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/f63fa6d271b3a9b596ff9f9726176e6d1d7b1283))
+
 ## [0.3.0](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.2.0...v0.3.0) (2021-02-11)
 
 
