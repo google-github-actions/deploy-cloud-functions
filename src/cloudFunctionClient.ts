@@ -15,6 +15,8 @@
  */
 
 import * as core from '@actions/core';
+import * as path from 'path';
+import * as os from 'os';
 import { GaxiosResponse } from 'gaxios';
 import { CloudFunction } from './cloudFunction';
 import { uploadSource, zipDir, deleteZipFile } from './util';
@@ -196,13 +198,25 @@ export class CloudFunctionClient {
   async deploy(cf: CloudFunction): Promise<cloudfunctions_v1.Schema$Operation> {
     const authClient = await this.getAuthClient();
     const deployedFunctions = await this.listFunctions();
-    const zipPath = await zipDir(cf.sourceDir);
+    const zipPath = path.join(
+      os.tmpdir(),
+      `cfsrc-${Math.floor(Math.random() * 100000)}.zip`,
+    );
+    try {
+      await zipDir(cf.sourceDir, zipPath);
+    } catch (err) {
+      throw new Error(`Zip file ${zipPath} creation failed: ${err}`);
+    }
     const uploadUrl = await this.getUploadUrl();
     if (!uploadUrl.uploadUrl) {
       throw new Error('Unable to generate signed Url');
     }
     // Upload source code
-    await uploadSource(uploadUrl.uploadUrl, zipPath);
+    try {
+      await uploadSource(uploadUrl.uploadUrl, zipPath);
+    } catch (err) {
+      throw new Error(`Zip file upload failed: ${err}`);
+    }
     // Delete temp zip file after upload
     await deleteZipFile(zipPath);
     cf.setSourceUrl(uploadUrl.uploadUrl);
