@@ -119,7 +119,7 @@ one of the methods found in [Configuring Ownership and access to a service accou
 You can provide credentials using the [setup-gcloud][setup-gcloud] action:
 
 ```yaml
-- uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+- uses: google-github-actions/setup-gcloud@master
   with:
     service_account_key: ${{ secrets.GCP_SA_KEY }}
     export_default_credentials: true
