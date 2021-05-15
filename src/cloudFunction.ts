@@ -40,6 +40,7 @@ export type EnvVar = {
  * @param eventTriggerType Specifies which action should trigger the function.
  * @param eventTriggerResource Specifies which resource from eventTrigger is observed.
  * @param eventTriggerService The hostname of the service that should be observed.
+ * @param labels List of key-value pairs to set as function labels.
  */
 
 export type CloudFunctionOptions = {
@@ -59,6 +60,7 @@ export type CloudFunctionOptions = {
   eventTriggerType?: string;
   eventTriggerResource?: string;
   eventTriggerService?: string;
+  labels?: string;
 };
 
 /**
@@ -129,6 +131,10 @@ export class CloudFunction {
       request.environmentVariables = envVars;
     }
 
+    if (opts?.labels) {
+      request.labels = this.parseEnvVars(opts.labels);
+    }
+
     this.request = request;
     this.name = opts.name;
     this.sourceDir = opts.sourceDir ? opts.sourceDir : './';
@@ -155,7 +161,7 @@ export class CloudFunction {
     envVarList.forEach((envVar) => {
       if (!envVar.includes('=')) {
         throw new TypeError(
-          `Env Vars must be in "KEY1=VALUE1,KEY2=VALUE2" format, received ${envVar}`,
+          `Env Vars and/or Labels must be in "KEY1=VALUE1,KEY2=VALUE2" format, received ${envVar}`,
         );
       }
       const keyValue = envVar.split('=');
