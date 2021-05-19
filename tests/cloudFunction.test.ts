@@ -96,7 +96,16 @@ describe('CloudFunction', function () {
     expect(function () {
       new CloudFunction({ name, runtime, parent, envVars });
     }).to.throw(
-      'Env Vars and/or Labels must be in "KEY1=VALUE1,KEY2=VALUE2" format, received KEY1',
+      'The expected data format should be "KEY1=VALUE1", got "KEY1" while parsing "KEY1,VALUE1"',
+    );
+  });
+
+  it('throws an error with bad labels', function () {
+    const envVars = 'label1=value1,label2';
+    expect(function () {
+      new CloudFunction({ name, runtime, parent, envVars });
+    }).to.throw(
+      'The expected data format should be "KEY1=VALUE1", got "label2" while parsing "label1=value1,label2"',
     );
   });
 
