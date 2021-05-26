@@ -25,7 +25,7 @@ inputs:
       formatted private key which can be exported from the Cloud Console. The
       value can be raw or base64-encoded.
     required: false
-    
+
   name:
     description: |-
       Name of the Cloud Function.
@@ -55,15 +55,20 @@ inputs:
     description: |-
       List of key-value pairs to set as environment variables in the form KEY1=VALUE1,KEY2=VALUE2. Only one of env_vars or env_vars_file can be specified.
     required: false
-  
+
   env_vars_file:
     description: |-
       Path to a local YAML file with definitions for all environment variables. Only one of env_vars or env_vars_file can be specified.
     required: false
 
+  labels:
+    description: |-
+      List of key-value pairs to set as function labels in the form label1=VALUE1,label2=VALUE2.
+    required: false
+
   entry_point:
     description: |-
-      Name of a function (as defined in source code) that will be executed. Defaults to the resource name suffix, if not specified. 
+      Name of a function (as defined in source code) that will be executed. Defaults to the resource name suffix, if not specified.
     required: false
 
   runtime:

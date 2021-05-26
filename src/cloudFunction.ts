@@ -18,7 +18,7 @@ import { cloudfunctions_v1 } from 'googleapis';
 import fs from 'fs';
 import YAML from 'yaml';
 
-export type EnvVar = {
+export type KVPair = {
   [key: string]: string;
 };
 
@@ -40,6 +40,7 @@ export type EnvVar = {
  * @param eventTriggerType Specifies which action should trigger the function.
  * @param eventTriggerResource Specifies which resource from eventTrigger is observed.
  * @param eventTriggerService The hostname of the service that should be observed.
+ * @param labels List of key-value pairs to set as function labels.
  */
 
 export type CloudFunctionOptions = {
@@ -59,6 +60,7 @@ export type CloudFunctionOptions = {
   eventTriggerType?: string;
   eventTriggerResource?: string;
   eventTriggerService?: string;
+  labels?: string;
 };
 
 /**
@@ -121,12 +123,16 @@ export class CloudFunction {
     // Parse env vars
     let envVars;
     if (opts?.envVars) {
-      envVars = this.parseEnvVars(opts.envVars);
+      envVars = this.parseKVPairs(opts.envVars);
       request.environmentVariables = envVars;
     }
     if (opts?.envVarsFile) {
       envVars = this.parseEnvVarsFile(opts.envVarsFile);
       request.environmentVariables = envVars;
+    }
+
+    if (opts?.labels) {
+      request.labels = this.parseKVPairs(opts.labels);
     }
 
     this.request = request;
@@ -144,24 +150,24 @@ export class CloudFunction {
   }
 
   /**
-   * Parses a string of the format `KEY1=VALUE1`.
+   * Parses a string of the format `KEY1=VALUE1,KEY2=VALUE2`.
    *
-   * @param envVarInput Env var string to parse.
+   * @param values String with key/value pairs to parse.
    * @returns map of type {KEY1:VALUE1}
    */
-  protected parseEnvVars(envVarInput: string): EnvVar {
-    const envVarList = envVarInput.split(',');
-    const envVars: EnvVar = {};
-    envVarList.forEach((envVar) => {
-      if (!envVar.includes('=')) {
+  protected parseKVPairs(values: string): KVPair {
+    const valuePairs = values.split(',');
+    const kvPairs: KVPair = {};
+    valuePairs.forEach((pair) => {
+      if (!pair.includes('=')) {
         throw new TypeError(
-          `Env Vars must be in "KEY1=VALUE1,KEY2=VALUE2" format, received ${envVar}`,
+          `The expected data format should be "KEY1=VALUE1", got "${pair}" while parsing "${values}"`,
         );
       }
-      const keyValue = envVar.split('=');
-      envVars[keyValue[0]] = keyValue[1];
+      const keyValue = pair.split('=');
+      kvPairs[keyValue[0]] = keyValue[1];
     });
-    return envVars;
+    return kvPairs;
   }
 
   /**
@@ -170,9 +176,9 @@ export class CloudFunction {
    * @param envVarsFile env var file path.
    * @returns map of type {KEY1:VALUE1}
    */
-  protected parseEnvVarsFile(envVarFilePath: string): EnvVar {
+  protected parseEnvVarsFile(envVarFilePath: string): KVPair {
     const content = fs.readFileSync(envVarFilePath, 'utf-8');
-    const yamlContent = YAML.parse(content) as EnvVar;
+    const yamlContent = YAML.parse(content) as KVPair;
     for (const [key, val] of Object.entries(yamlContent)) {
       if (typeof key !== 'string' || typeof val !== 'string') {
         throw new Error(
