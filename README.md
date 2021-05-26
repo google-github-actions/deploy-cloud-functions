@@ -112,7 +112,7 @@ with the following roles:
 This service account needs to be a member of the `App Engine default service account`
 `(PROJECT_ID@appspot.gserviceaccount.com)`, with role
 `Service Account User` (`roles/iam.serviceAccountUser`). See [Additional configuration for deployment](https://cloud.google.com/functions/docs/reference/iam/roles#additional-configuration) 
-for step-by-step instructions if you don't know how.
+for additional instructions.
 
 ### Used with `setup-gcloud`
 
