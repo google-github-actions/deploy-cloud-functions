@@ -67,6 +67,8 @@ steps:
 
 - `env_vars_file`: (Optional) Path to a local YAML file with definitions for all environment variables. An example env_vars_file can be found [here](tests/env-var-files/test.good.yaml). Only one of env_vars or env_vars_file can be specified.
 
+- `labels`: (Optional) List of key-value pairs to set as function labels in the form label1=VALUE1,label2=VALUE2.
+
 - `source_dir`: (Optional) Source directory for the function. Defaults to current directory.
 
 - `project_id`: (Optional) ID of the Google Cloud project. If provided, this
