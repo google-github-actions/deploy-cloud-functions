@@ -238,6 +238,7 @@ export class CloudFunctionClient {
         'eventTrigger.eventType',
         'eventTrigger.resource',
         'eventTrigger.service',
+        'labels',
       ];
       const updateFunctionRequest: cloudfunctions_v1.Params$Resource$Projects$Locations$Functions$Patch = {
         updateMask: updateMasks.join(','),

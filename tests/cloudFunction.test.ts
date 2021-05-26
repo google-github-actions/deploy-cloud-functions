@@ -25,8 +25,28 @@ describe('CloudFunction', function () {
     expect(cf.request.environmentVariables?.KEY1).equal('VALUE1');
   });
 
+  it('creates an http function with one label', function () {
+    const labels = 'label1=value1';
+    const cf = new CloudFunction({ name, runtime, parent, labels });
+    expect(cf.request.name).equal(`${parent}/functions/${name}`);
+    expect(cf.request.runtime).equal(runtime);
+    expect(cf.request.httpsTrigger).not.to.be.null;
+    expect(cf.request.labels?.label1).equal('value1');
+  });
+
+  it('creates an http function with two labels', function () {
+    const labels = 'label1=value1,label2=value2';
+    const cf = new CloudFunction({ name, runtime, parent, labels });
+    expect(cf.request.name).equal(`${parent}/functions/${name}`);
+    expect(cf.request.runtime).equal(runtime);
+    expect(cf.request.httpsTrigger).not.to.be.null;
+    expect(cf.request.labels?.label1).equal('value1');
+    expect(cf.request.labels?.label2).equal('value2');
+  });
+
   it('creates a http function with optionals', function () {
     const envVars = 'KEY1=VALUE1';
+    const labels = 'label1=value1';
     const funcOptions = {
       name: name,
       description: 'foo',
@@ -40,6 +60,7 @@ describe('CloudFunction', function () {
       timeout: '500',
       maxInstances: 10,
       availableMemoryMb: 512,
+      labels: labels,
     };
     const cf = new CloudFunction(funcOptions);
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
@@ -56,6 +77,7 @@ describe('CloudFunction', function () {
     expect(cf.request.availableMemoryMb).equal(funcOptions.availableMemoryMb);
     expect(cf.request.httpsTrigger).not.to.be.null;
     expect(cf.request.environmentVariables?.KEY1).equal('VALUE1');
+    expect(cf.request.labels?.label1).equal('value1');
   });
 
   it('creates a http function with three envVars', function () {
@@ -74,7 +96,16 @@ describe('CloudFunction', function () {
     expect(function () {
       new CloudFunction({ name, runtime, parent, envVars });
     }).to.throw(
-      'Env Vars must be in "KEY1=VALUE1,KEY2=VALUE2" format, received KEY1',
+      'The expected data format should be "KEY1=VALUE1", got "KEY1" while parsing "KEY1,VALUE1"',
+    );
+  });
+
+  it('throws an error with bad labels', function () {
+    const envVars = 'label1=value1,label2';
+    expect(function () {
+      new CloudFunction({ name, runtime, parent, envVars });
+    }).to.throw(
+      'The expected data format should be "KEY1=VALUE1", got "label2" while parsing "label1=value1,label2"',
     );
   });
 

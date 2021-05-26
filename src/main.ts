@@ -38,6 +38,7 @@ async function run(): Promise<void> {
     const eventTriggerType = core.getInput('event_trigger_type');
     const eventTriggerResource = core.getInput('event_trigger_resource');
     const eventTriggerService = core.getInput('event_trigger_service');
+    const labels = core.getInput('labels');
 
     // Create Cloud Functions client
     const client = new CloudFunctionClient(region, { projectId, credentials });
@@ -59,6 +60,7 @@ async function run(): Promise<void> {
       eventTriggerService,
       vpcConnector,
       serviceAccountEmail,
+      labels,
     });
 
     // Deploy function
