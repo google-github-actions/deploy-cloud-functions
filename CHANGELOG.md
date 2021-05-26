@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.4.0...v0.5.0) (2021-05-26)
+
+
+### Features
+
+* add function labels support ([#60](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/60)) ([#62](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/62)) ([9f988bd](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/9f988bd980b153cced94fea8580557d6f24a5ba4))
+
 ## [0.4.0](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.3.0...v0.4.0) (2021-02-25)
 
 
