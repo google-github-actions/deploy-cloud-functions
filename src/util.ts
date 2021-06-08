@@ -71,7 +71,6 @@ export async function zipDir(
 }
 
 /**
- * 
  * @param dir dir to collect files from
  * @returns list of files that are not ignored
  */
@@ -82,7 +81,6 @@ export function getFiles(dir: string): string[] {
 }
 
 /**
- * 
  * @param dir dir which may contain .gcloudignore file
  * @returns list of ignores in .gcloudignore if present
  */
