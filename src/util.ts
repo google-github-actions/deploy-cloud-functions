@@ -18,7 +18,7 @@ import * as fs from 'fs';
 import * as core from '@actions/core';
 import { Gaxios } from 'gaxios';
 import * as Archiver from 'archiver';
-import { join } from 'path';
+import * as path from 'path';
 import ignore from 'ignore';
 import fg from 'fast-glob';
 
@@ -85,7 +85,7 @@ export function getFiles(dir: string): string[] {
  * @returns list of ignores in .gcloudignore if present
  */
 export function getGcloudIgnores(dir: string): string[] {
-  const gcloudIgnorePath = join(dir, '.gcloudignore');
+  const gcloudIgnorePath = path.posix.join(dir, '.gcloudignore');
   if (!fs.existsSync(gcloudIgnorePath)) {
     return [];
   }

@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import os from 'os';
 import * as fs from 'fs';
 import 'mocha';
-import { join, relative } from 'path';
+import * as path from 'path';
 import { zipDir } from '../src/util';
 import StreamZip from 'node-stream-zip';
 
@@ -12,7 +12,10 @@ const testDirNodeIgnore = 'tests/test-func-ignore-node';
 const name = `zip-${Math.round(Math.random() * 100000)}`;
 describe('Zip', function () {
   it('creates a zipfile with correct files without gcloudignore', async function () {
-    const zf = await zipDir(testDirNoIgnore, join(os.tmpdir(), name));
+    const zf = await zipDir(
+      testDirNoIgnore,
+      path.posix.join(os.tmpdir(), name),
+    );
     const uzf = new StreamZip.async({ file: zf });
     const filesInsideZip = await uzf.entries();
     const expectedFiles = getNonIgnoredFiles(testDirNoIgnore, testDirNoIgnore);
@@ -23,7 +26,10 @@ describe('Zip', function () {
   });
 
   it('creates a zipfile with correct files with simple gcloudignore', async function () {
-    const zf = await zipDir(testDirSimpleIgnore, join(os.tmpdir(), name));
+    const zf = await zipDir(
+      testDirSimpleIgnore,
+      path.posix.join(os.tmpdir(), name),
+    );
     const uzf = new StreamZip.async({ file: zf });
     const filesInsideZip = await uzf.entries();
     const expectedFiles = getNonIgnoredFiles(
@@ -38,7 +44,10 @@ describe('Zip', function () {
   });
 
   it('creates a zipfile with correct files with dir gcloudignore', async function () {
-    const zf = await zipDir(testDirNodeIgnore, join(os.tmpdir(), name));
+    const zf = await zipDir(
+      testDirNodeIgnore,
+      path.posix.join(os.tmpdir(), name),
+    );
     const uzf = new StreamZip.async({ file: zf });
     const filesInsideZip = await uzf.entries();
     const expectedFiles = getNonIgnoredFiles(
@@ -65,16 +74,19 @@ function getNonIgnoredFiles(
 ): string[] {
   const items = fs.readdirSync(directory);
   for (const item of items) {
-    const stat = fs.statSync(join(directory, item));
+    const stat = fs.statSync(path.posix.join(directory, item));
     if (stat.isDirectory())
       fileList = getNonIgnoredFiles(
         parentDir,
-        join(directory, item),
+        path.posix.join(directory, item),
         ignore,
         fileList,
       );
     else {
-      const fPath = relative(parentDir, join(directory, item));
+      const fPath = path.posix.relative(
+        parentDir,
+        path.posix.join(directory, item),
+      );
       if (!ignore.has(fPath)) fileList.push(fPath);
     }
   }
