@@ -18,6 +18,9 @@ import * as fs from 'fs';
 import * as core from '@actions/core';
 import { Gaxios } from 'gaxios';
 import * as Archiver from 'archiver';
+import * as path from 'path';
+import ignore from 'ignore';
+import fg from 'fast-glob';
 
 /**
  * Zip a directory.
@@ -56,10 +59,42 @@ export async function zipDir(
     });
     archive.pipe(output);
     // Add dir to root of archive
-    archive.directory(dirPath, false);
+    getFiles(dirPath).forEach((filepath) => {
+      archive.glob(filepath, {
+        cwd: dirPath,
+        noglobstar: true,
+      });
+    });
     // Finish writing files
     archive.finalize();
   });
+}
+
+/**
+ * @param dir dir to collect files from
+ * @returns list of files that are not ignored
+ */
+export function getFiles(dir: string): string[] {
+  const files = fg.sync(['**'], { cwd: dir });
+  // return list of files that are not ignored
+  return ignore().add(getGcloudIgnores(dir)).filter(files);
+}
+
+/**
+ * @param dir dir which may contain .gcloudignore file
+ * @returns list of ignores in .gcloudignore if present
+ */
+export function getGcloudIgnores(dir: string): string[] {
+  const gcloudIgnorePath = path.posix.join(dir, '.gcloudignore');
+  if (!fs.existsSync(gcloudIgnorePath)) {
+    return [];
+  }
+  // read .gcloudignore, split on newline
+  return fs
+    .readFileSync(gcloudIgnorePath, { encoding: 'utf-8' })
+    .toString()
+    .split(/\r?\n/)
+    .map((s) => s.trim());
 }
 
 /**
