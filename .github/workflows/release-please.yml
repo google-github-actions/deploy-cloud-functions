@@ -13,7 +13,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: install
-        run: npm install
+        run: npm ci
       - name: build
         run: npm run build
       - name: commit
