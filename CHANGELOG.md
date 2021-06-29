@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.5.0...v0.6.0) (2021-06-29)
+
+
+### Features
+
+* support gcloudignore ([#65](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/65)) ([bc4a13e](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/bc4a13eb460adf9045c2b9a4450acb06c25cb0a1))
+
 ## [0.5.0](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.4.0...v0.5.0) (2021-05-26)
 
 
