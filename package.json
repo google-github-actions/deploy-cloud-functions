@@ -37,7 +37,7 @@
     "fast-glob": "^3.2.5",
     "fs": "0.0.1-security",
     "gaxios": "^3.1.0",
-    "google-auth-library": "^6.0.6",
+    "google-auth-library": "^7.2.0",
     "googleapis": "^58.0.0",
     "ignore": "^5.1.8",
     "yaml": "^1.10.0"
