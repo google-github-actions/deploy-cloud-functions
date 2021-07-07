@@ -43,7 +43,7 @@
     "yaml": "^1.10.0"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.12",
+    "@types/chai": "^4.2.20",
     "@types/lodash": "^4.14.159",
     "@types/mocha": "^8.0.1",
     "@types/node": "^14.0.27",
@@ -57,7 +57,7 @@
     "eslint-plugin-prettier": "^3.1.4",
     "mocha": "^9.0.2",
     "node-stream-zip": "^1.13.4",
-    "prettier": "^2.0.5",
+    "prettier": "^2.3.2",
     "ts-node": "^10.0.0",
     "typescript": "^3.9.7"
   }
