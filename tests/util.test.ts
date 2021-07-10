@@ -16,13 +16,11 @@ describe('Zip', function () {
       testDirNoIgnore,
       path.posix.join(os.tmpdir(), name),
     );
-    const uzf = new StreamZip.async({ file: zf });
-    const filesInsideZip = await uzf.entries();
+    const filesInsideZip = await getFilesInZip(zf);
     const expectedFiles = getNonIgnoredFiles(testDirNoIgnore, testDirNoIgnore);
-    expect(await uzf.entriesCount).equal(expectedFiles.length);
-    for (const entry of Object.values(filesInsideZip)) {
-      expect(expectedFiles).to.be.include(entry.name);
-    }
+
+    expect(await filesInsideZip.length).equal(expectedFiles.length);
+    filesInsideZip.forEach((f) => expect(expectedFiles).to.include(f));
   });
 
   it('creates a zipfile with correct files with simple gcloudignore', async function () {
@@ -30,17 +28,15 @@ describe('Zip', function () {
       testDirSimpleIgnore,
       path.posix.join(os.tmpdir(), name),
     );
-    const uzf = new StreamZip.async({ file: zf });
-    const filesInsideZip = await uzf.entries();
+    const filesInsideZip = await getFilesInZip(zf);
     const expectedFiles = getNonIgnoredFiles(
       testDirSimpleIgnore,
       testDirSimpleIgnore,
       new Set(['ignore.txt', '.gcloudignore']),
     );
-    expect(await uzf.entriesCount).equal(expectedFiles.length);
-    for (const entry of Object.values(filesInsideZip)) {
-      expect(expectedFiles).to.be.include(entry.name);
-    }
+
+    expect(await filesInsideZip.length).equal(expectedFiles.length);
+    filesInsideZip.forEach((f) => expect(expectedFiles).to.include(f));
   });
 
   it('creates a zipfile with correct files with dir gcloudignore', async function () {
@@ -48,23 +44,34 @@ describe('Zip', function () {
       testDirNodeIgnore,
       path.posix.join(os.tmpdir(), name),
     );
-    const uzf = new StreamZip.async({ file: zf });
-    const filesInsideZip = await uzf.entries();
+    const filesInsideZip = await getFilesInZip(zf);
     const expectedFiles = getNonIgnoredFiles(
       testDirNodeIgnore,
       testDirNodeIgnore,
-      new Set([
-        'node_modules/foo/foo.txt',
-        'node_modules/bar/bar.txt',
-        '.gcloudignore',
-      ]),
+      new Set(['bar/bar.txt', 'bar/baz/baz.txt']),
     );
-    expect(await uzf.entriesCount).equal(expectedFiles.length);
-    for (const entry of Object.values(filesInsideZip)) {
-      expect(expectedFiles).to.be.include(entry.name);
-    }
+
+    expect(await filesInsideZip.length).equal(expectedFiles.length);
+    filesInsideZip.forEach((f) => expect(expectedFiles).to.include(f));
   });
 });
+
+/**
+ *
+ * @param zipFile path to zipfile
+ * @returns list of files within zipfile
+ */
+async function getFilesInZip(zipFilePath: string): Promise<string[]> {
+  const uzf = new StreamZip.async({ file: zipFilePath });
+  const zipEntries = await uzf.entries();
+  const filesInsideZip: string[] = [];
+  for (const k in zipEntries) {
+    if (zipEntries[k].isFile) {
+      filesInsideZip.push(zipEntries[k].name);
+    }
+  }
+  return filesInsideZip;
+}
 
 function getNonIgnoredFiles(
   parentDir: string,
