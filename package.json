@@ -44,7 +44,7 @@
   },
   "devDependencies": {
     "@types/chai": "^4.2.20",
-    "@types/lodash": "^4.14.159",
+    "@types/lodash": "^4.14.171",
     "@types/mocha": "^8.0.1",
     "@types/node": "^16.0.0",
     "@types/uuid": "^8.3.1",
