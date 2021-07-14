@@ -132,14 +132,16 @@ export class CloudFunctionClient {
     functionPath: string,
   ): Promise<cloudfunctions_v1.Schema$CloudFunction> {
     const authClient = await this.getAuthClient();
-    const getRequest: cloudfunctions_v1.Params$Resource$Projects$Locations$Functions$Get = {
-      name: functionPath,
-      auth: authClient,
-    };
-    const currentFunctionResponse: GaxiosResponse<cloudfunctions_v1.Schema$CloudFunction> = await this.gcf.projects.locations.functions.get(
-      getRequest,
-      this.methodOptions,
-    );
+    const getRequest: cloudfunctions_v1.Params$Resource$Projects$Locations$Functions$Get =
+      {
+        name: functionPath,
+        auth: authClient,
+      };
+    const currentFunctionResponse: GaxiosResponse<cloudfunctions_v1.Schema$CloudFunction> =
+      await this.gcf.projects.locations.functions.get(
+        getRequest,
+        this.methodOptions,
+      );
     return currentFunctionResponse.data;
   }
 
@@ -150,14 +152,16 @@ export class CloudFunctionClient {
    */
   async listFunctions(): Promise<string[]> {
     const authClient = await this.getAuthClient();
-    const getRequest: cloudfunctions_v1.Params$Resource$Projects$Locations$Functions$List = {
-      parent: this.parent,
-      auth: authClient,
-    };
-    const currentFunctionsResponse: GaxiosResponse<cloudfunctions_v1.Schema$ListFunctionsResponse> = await this.gcf.projects.locations.functions.list(
-      getRequest,
-      this.methodOptions,
-    );
+    const getRequest: cloudfunctions_v1.Params$Resource$Projects$Locations$Functions$List =
+      {
+        parent: this.parent,
+        auth: authClient,
+      };
+    const currentFunctionsResponse: GaxiosResponse<cloudfunctions_v1.Schema$ListFunctionsResponse> =
+      await this.gcf.projects.locations.functions.list(
+        getRequest,
+        this.methodOptions,
+      );
     const currentFunctions: cloudfunctions_v1.Schema$ListFunctionsResponse =
       currentFunctionsResponse.data;
     let currentFunctionsNames: string[] = [];
@@ -174,18 +178,18 @@ export class CloudFunctionClient {
    *
    * @returns signed url.
    */
-  async getUploadUrl(): Promise<
-    cloudfunctions_v1.Schema$GenerateUploadUrlResponse
-  > {
+  async getUploadUrl(): Promise<cloudfunctions_v1.Schema$GenerateUploadUrlResponse> {
     const authClient = await this.getAuthClient();
-    const getRequest: cloudfunctions_v1.Params$Resource$Projects$Locations$Functions$Generateuploadurl = {
-      parent: this.parent,
-      auth: authClient,
-    };
-    const uploadUrlResponse: GaxiosResponse<cloudfunctions_v1.Schema$GenerateUploadUrlResponse> = await this.gcf.projects.locations.functions.generateUploadUrl(
-      getRequest,
-      this.methodOptions,
-    );
+    const getRequest: cloudfunctions_v1.Params$Resource$Projects$Locations$Functions$Generateuploadurl =
+      {
+        parent: this.parent,
+        auth: authClient,
+      };
+    const uploadUrlResponse: GaxiosResponse<cloudfunctions_v1.Schema$GenerateUploadUrlResponse> =
+      await this.gcf.projects.locations.functions.generateUploadUrl(
+        getRequest,
+        this.methodOptions,
+      );
     return uploadUrlResponse.data;
   }
 
@@ -240,16 +244,18 @@ export class CloudFunctionClient {
         'eventTrigger.service',
         'labels',
       ];
-      const updateFunctionRequest: cloudfunctions_v1.Params$Resource$Projects$Locations$Functions$Patch = {
-        updateMask: updateMasks.join(','),
-        name: cf.functionPath,
-        auth: authClient,
-        requestBody: cf.request,
-      };
-      const updateFunctionResponse = await this.gcf.projects.locations.functions.patch(
-        updateFunctionRequest,
-        this.methodOptions,
-      );
+      const updateFunctionRequest: cloudfunctions_v1.Params$Resource$Projects$Locations$Functions$Patch =
+        {
+          updateMask: updateMasks.join(','),
+          name: cf.functionPath,
+          auth: authClient,
+          requestBody: cf.request,
+        };
+      const updateFunctionResponse =
+        await this.gcf.projects.locations.functions.patch(
+          updateFunctionRequest,
+          this.methodOptions,
+        );
       const awaitUpdate = await this.pollOperation(
         updateFunctionResponse.data,
         'Updating function deployment',
@@ -260,15 +266,17 @@ export class CloudFunctionClient {
       return awaitUpdate;
     } else {
       core.info('Creating a new function deployment');
-      const createFunctionRequest: cloudfunctions_v1.Params$Resource$Projects$Locations$Functions$Create = {
-        location: this.parent,
-        auth: authClient,
-        requestBody: cf.request,
-      };
-      const createFunctionResponse = await this.gcf.projects.locations.functions.create(
-        createFunctionRequest,
-        this.methodOptions,
-      );
+      const createFunctionRequest: cloudfunctions_v1.Params$Resource$Projects$Locations$Functions$Create =
+        {
+          location: this.parent,
+          auth: authClient,
+          requestBody: cf.request,
+        };
+      const createFunctionResponse =
+        await this.gcf.projects.locations.functions.create(
+          createFunctionRequest,
+          this.methodOptions,
+        );
       const awaitCreate = await this.pollOperation(
         createFunctionResponse.data,
         'Creating function deployment',
@@ -289,14 +297,16 @@ export class CloudFunctionClient {
     functionPath: string,
   ): Promise<cloudfunctions_v1.Schema$Operation> {
     const authClient = await this.getAuthClient();
-    const deleteFunctionRequest: cloudfunctions_v1.Params$Resource$Projects$Locations$Functions$Delete = {
-      name: functionPath,
-      auth: authClient,
-    };
-    const deleteFunctionResponse = await this.gcf.projects.locations.functions.delete(
-      deleteFunctionRequest,
-      this.methodOptions,
-    );
+    const deleteFunctionRequest: cloudfunctions_v1.Params$Resource$Projects$Locations$Functions$Delete =
+      {
+        name: functionPath,
+        auth: authClient,
+      };
+    const deleteFunctionResponse =
+      await this.gcf.projects.locations.functions.delete(
+        deleteFunctionRequest,
+        this.methodOptions,
+      );
     const awaitDelete = await this.pollOperation(
       deleteFunctionResponse.data,
       'Deleting function deployment',
@@ -349,10 +359,11 @@ export class CloudFunctionClient {
       throw new Error('Invalid operation');
     }
     const authClient = await this.getAuthClient();
-    const checkOperationRequest: cloudfunctions_v1.Params$Resource$Operations$Get = {
-      name: op.name,
-      auth: authClient,
-    };
+    const checkOperationRequest: cloudfunctions_v1.Params$Resource$Operations$Get =
+      {
+        name: op.name,
+        auth: authClient,
+      };
     const checkOperationResponse = await this.gcf.operations.get(
       checkOperationRequest,
       this.methodOptions,
