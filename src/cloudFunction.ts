@@ -33,6 +33,7 @@ export type KVPair = {
  * @param runtime Runtime to use for the function.
  * @param availableMemoryMb The amount of memory in MB available for a function.
  * @param vpcConnector The VPC Access connector that the function can connect to.
+ * @param vpcConnectorEgressSettings The VPC Access connector egress settings.
  * @param parent Parent of the form projects/${projectId}/locations/${region}.
  * @param serviceAccountEmail The email address of the IAM service account associated with the function at runtime.
  * @param timeout The function execution timeout.
@@ -53,6 +54,7 @@ export type CloudFunctionOptions = {
   runtime: string;
   availableMemoryMb?: number;
   vpcConnector?: string;
+  vpcConnectorEgressSettings?: string;
   parent: string;
   serviceAccountEmail?: string;
   timeout?: string;
@@ -107,6 +109,9 @@ export class CloudFunction {
       ? opts.serviceAccountEmail
       : null;
     request.vpcConnector = opts?.vpcConnector ? opts.vpcConnector : null;
+    request.vpcConnectorEgressSettings = opts?.vpcConnectorEgressSettings
+      ? opts.vpcConnectorEgressSettings
+      : null;
     request.timeout = opts?.timeout ? `${opts.timeout}s` : null;
     request.maxInstances = opts?.maxInstances ? opts.maxInstances : null;
     request.availableMemoryMb = opts?.availableMemoryMb
