@@ -237,6 +237,7 @@ export class CloudFunctionClient {
         'runtime',
         'vpcConnector',
         'vpcConnectorEgressSettings',
+        'ingressSettings',
         'serviceAccountEmail',
         'timeout',
         'maxInstances',
