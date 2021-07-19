@@ -33,3 +33,5 @@ jobs:
         DEPLOY_CF_SA_KEY_JSON: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
         GCLOUD_PROJECT: ${{ secrets.DEPLOY_CF_PROJECT_ID }}
         DEPLOY_CF_EVENT_PUBSUB_TOPIC: ${{ secrets.DEPLOY_CF_EVENT_PUBSUB_TOPIC }}
+    - name: npm build
+      run: npm run build
