@@ -109,6 +109,16 @@ describe('CloudFunction', function () {
     );
   });
 
+  it('creates a http function with two envVars containing equals character', function () {
+    const envVars = 'KEY1=VALUE=1,KEY2=VALUE=2';
+    const cf = new CloudFunction({ name, runtime, parent, envVars });
+    expect(cf.request.name).equal(`${parent}/functions/${name}`);
+    expect(cf.request.runtime).equal(runtime);
+    expect(cf.request.httpsTrigger).not.to.be.null;
+    expect(cf.request.environmentVariables?.KEY1).equal('VALUE=1');
+    expect(cf.request.environmentVariables?.KEY2).equal('VALUE=2');
+  });
+
   it('creates a http function with envVarsFile', function () {
     const envVarsFile = 'tests/env-var-files/test.good.yaml';
     const cf = new CloudFunction({ name, runtime, parent, envVarsFile });

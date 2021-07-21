@@ -164,8 +164,10 @@ export class CloudFunction {
           `The expected data format should be "KEY1=VALUE1", got "${pair}" while parsing "${values}"`,
         );
       }
-      const keyValue = pair.split('=');
-      kvPairs[keyValue[0]] = keyValue[1];
+      // Split on the first delimiter only
+      const name = pair.substring(0, pair.indexOf('='));
+      const value = pair.substring(pair.indexOf('=') + 1);
+      kvPairs[name] = value;
     });
     return kvPairs;
   }
