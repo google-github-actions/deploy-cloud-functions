@@ -90,6 +90,8 @@ steps:
 
 - `event_trigger_service`: (Optional) The hostname of the service that should be observed.
 
+- `deploy_timeout`: (Optional) The function deployment timeout in seconds. Defaults to 300.
+
 ## Allow unauthenticated requests
 
 A Cloud Functions product recommendation is that CI/CD systems not set or change
