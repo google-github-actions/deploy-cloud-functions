@@ -20,7 +20,6 @@ import { Gaxios } from 'gaxios';
 import * as Archiver from 'archiver';
 import * as path from 'path';
 import ignore from 'ignore';
-import fg from 'fast-glob';
 
 /**
  * Zip a directory.
@@ -58,26 +57,23 @@ export async function zipDir(
       core.info(`function source zipfile created: ${archive.pointer()} bytes`);
     });
     archive.pipe(output);
-    // Add dir to root of archive
-    getFiles(dirPath).forEach((filepath) => {
-      archive.glob(filepath, {
-        cwd: dirPath,
-        noglobstar: true,
-      });
-    });
+
+    // gcloudignore
+    let gIgnoreF = undefined;
+    if (getGcloudIgnores(dirPath).length > 0) {
+      const gIgnore = ignore().add(getGcloudIgnores(dirPath));
+      gIgnoreF = function (
+        file: Archiver.EntryData,
+      ): false | Archiver.EntryData {
+        return !gIgnore.ignores(file.name) ? file : false;
+      };
+    }
+
+    // Add files in dir to archive iff file not ignored
+    archive.directory(dirPath, false, gIgnoreF);
     // Finish writing files
     archive.finalize();
   });
-}
-
-/**
- * @param dir dir to collect files from
- * @returns list of files that are not ignored
- */
-export function getFiles(dir: string): string[] {
-  const files = fg.sync(['**'], { cwd: dir });
-  // return list of files that are not ignored
-  return ignore().add(getGcloudIgnores(dir)).filter(files);
 }
 
 /**
