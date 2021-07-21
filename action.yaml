@@ -116,6 +116,11 @@ inputs:
       The hostname of the service that should be observed.
     required: false
 
+  deploy_timeout:
+    description: |-
+      The function deployment timeout in seconds.
+    required: false
+
 outputs:
   url:
     description: The URL of your Cloud Function. Only available with HTTP Trigger.
