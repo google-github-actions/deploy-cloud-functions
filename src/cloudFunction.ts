@@ -40,6 +40,7 @@ export type KVPair = {
  * @param eventTriggerType Specifies which action should trigger the function.
  * @param eventTriggerResource Specifies which resource from eventTrigger is observed.
  * @param eventTriggerService The hostname of the service that should be observed.
+ * @param deployTimeout The function deployment timeout in seconds.
  * @param labels List of key-value pairs to set as function labels.
  */
 
@@ -60,6 +61,7 @@ export type CloudFunctionOptions = {
   eventTriggerType?: string;
   eventTriggerResource?: string;
   eventTriggerService?: string;
+  deployTimeout?: string;
   labels?: string;
 };
 
@@ -74,6 +76,8 @@ export class CloudFunction {
   readonly name: string;
   readonly sourceDir: string;
   readonly functionPath: string;
+  readonly deployTimeout: number;
+
   constructor(opts: CloudFunctionOptions) {
     this.functionPath = `${opts.parent}/functions/${opts.name}`;
 
@@ -138,6 +142,9 @@ export class CloudFunction {
     this.request = request;
     this.name = opts.name;
     this.sourceDir = opts.sourceDir ? opts.sourceDir : './';
+    this.deployTimeout = opts.deployTimeout
+      ? parseInt(opts.deployTimeout)
+      : 300;
   }
 
   /**
