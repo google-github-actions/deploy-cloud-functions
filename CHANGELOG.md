@@ -1,5 +1,13 @@
 # Changelog
 
+### [0.6.1](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.6.0...v0.6.1) (2021-07-21)
+
+
+### Bug Fixes
+
+* improve archive performance ([#101](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/101)) ([bdd610a](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/bdd610a0768d530458fa2dbcf4b0a8ef1b4e85af))
+* improve env var parsing behaviour ([#122](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/122)) ([#126](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/126)) ([199d134](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/199d134e25ce4d245f4e6a2b9cef23c06ec4f35a))
+
 ## [0.6.0](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.5.0...v0.6.0) (2021-06-29)
 
 
