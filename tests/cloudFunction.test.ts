@@ -146,12 +146,38 @@ describe('CloudFunction', function () {
     );
   });
 
-  it('throws an error with both envVarsFile and envVars specified', function () {
+  it('Merge envVars and envVarsFile if both specified', function () {
     const envVarsFile = 'tests/env-var-files/test.good.yaml';
-    const envVars = 'KEY1=VALUE1,KEY2=VALUE2';
-    expect(function () {
-      new CloudFunction({ name, runtime, parent, envVarsFile, envVars });
-    }).to.throw('Only one of env_vars or env_vars_file can be specified.');
+    const envVars = 'KEY3=VALUE3,KEY4=VALUE4';
+    const cf = new CloudFunction({
+      name,
+      runtime,
+      parent,
+      envVarsFile,
+      envVars,
+    });
+    expect(cf.request.name).equal(`${parent}/functions/${name}`);
+    expect(cf.request.environmentVariables?.KEY1).equal('VALUE1');
+    expect(cf.request.environmentVariables?.KEY2).equal('VALUE2');
+    expect(cf.request.environmentVariables?.JSONKEY).equal('{"bar":"baz"}');
+    expect(cf.request.environmentVariables?.KEY3).equal('VALUE3');
+    expect(cf.request.environmentVariables?.KEY4).equal('VALUE4');
+  });
+
+  it('Merge envVars and envVarsFile if both specified, with same key name. envVars will erase the value in envVarsFile', function () {
+    const envVarsFile = 'tests/env-var-files/test.good.yaml';
+    const envVars = 'KEY1=NEWVALUE1,KEY2=NEWVALUE2';
+    const cf = new CloudFunction({
+      name,
+      runtime,
+      parent,
+      envVarsFile,
+      envVars,
+    });
+    expect(cf.request.name).equal(`${parent}/functions/${name}`);
+    expect(cf.request.environmentVariables?.KEY1).equal('NEWVALUE1');
+    expect(cf.request.environmentVariables?.KEY2).equal('NEWVALUE2');
+    expect(cf.request.environmentVariables?.JSONKEY).equal('{"bar":"baz"}');
   });
 
   it('creates an event function', function () {
