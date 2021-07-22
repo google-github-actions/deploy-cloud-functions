@@ -55,6 +55,8 @@ describe('CloudFunction', function () {
       entryPoint: 'bazFunction',
       runtime: runtime,
       vpcConnector: 'projects/foo/locations/bar/connectors/baz',
+      vpcConnectorEgressSettings: 'ALL_TRAFFIC',
+      ingressSettings: 'ALLOW_INTERNAL_ONLY',
       parent: parent,
       serviceAccountEmail: 'foo@bar.com',
       timeout: '500',
@@ -69,6 +71,10 @@ describe('CloudFunction', function () {
     expect(cf.sourceDir).equal(funcOptions.sourceDir);
     expect(cf.request.entryPoint).equal(funcOptions.entryPoint);
     expect(cf.request.vpcConnector).equal(funcOptions.vpcConnector);
+    expect(cf.request.vpcConnectorEgressSettings).equal(
+      funcOptions.vpcConnectorEgressSettings,
+    );
+    expect(cf.request.ingressSettings).equal(funcOptions.ingressSettings);
     expect(cf.request.serviceAccountEmail).equal(
       funcOptions.serviceAccountEmail,
     );

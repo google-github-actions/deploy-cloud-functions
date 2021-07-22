@@ -32,6 +32,10 @@ async function run(): Promise<void> {
     const entryPoint = core.getInput('entry_point');
     const sourceDir = core.getInput('source_dir');
     const vpcConnector = core.getInput('vpc_connector');
+    const vpcConnectorEgressSettings = core.getInput(
+      'vpc_connector_egress_settings',
+    );
+    const ingressSettings = core.getInput('ingress_settings');
     const serviceAccountEmail = core.getInput('service_account_email');
     const timeout = core.getInput('timeout');
     const maxInstances = core.getInput('max_instances');
@@ -61,6 +65,8 @@ async function run(): Promise<void> {
       eventTriggerService,
       deployTimeout,
       vpcConnector,
+      vpcConnectorEgressSettings,
+      ingressSettings,
       serviceAccountEmail,
       labels,
     });

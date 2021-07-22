@@ -86,6 +86,16 @@ inputs:
       The VPC Access connector that the function can connect to.
     required: false
 
+  vpc_connector_egress_settings:
+    description: |-
+      The egress settings for the connector, controlling what traffic is diverted through it.
+    required: false
+
+  ingress_settings:
+    description: |-
+      The ingress settings for the function, controlling what traffic can reach it.
+    required: false
+
   service_account_email:
     description: |-
       The email address of the IAM service account associated with the function at runtime.
