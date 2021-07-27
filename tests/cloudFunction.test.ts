@@ -97,13 +97,14 @@ describe('CloudFunction', function () {
     expect(cf.request.environmentVariables?.KEY3).equal('VALUE3');
   });
 
-  it('creates a http function with quoted envVars', function () {
-    const envVars = 'KEY1="VALUE1.1,VALUE1.2",KEY2=VALUE2,KEY3=VALUE3';
+  it('creates a http function with some quoted and some unquoted envVars', function () {
+    const obj = {foo: "bar", baz: "foo"};
+    const envVars = `KEY1="${JSON.stringify(obj)}",KEY2=VALUE2,KEY3=VALUE3`;
     const cf = new CloudFunction({ name, runtime, parent, envVars });
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
     expect(cf.request.runtime).equal(runtime);
     expect(cf.request.httpsTrigger).not.to.be.null;
-    expect(cf.request.environmentVariables?.KEY1).equal('VALUE1.1,VALUE1.2');
+    expect(JSON.parse(cf.request.environmentVariables?.KEY1 || "{}")).deep.equals(obj);
     expect(cf.request.environmentVariables?.KEY2).equal('VALUE2');
     expect(cf.request.environmentVariables?.KEY3).equal('VALUE3');
   });
