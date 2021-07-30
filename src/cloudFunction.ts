@@ -118,6 +118,9 @@ export class CloudFunction {
       ? opts.availableMemoryMb
       : null;
 
+    // Check if `envVars` or `envVarsFile` are set.
+    // If two var keys are the same between `envVars` and `envVarsFile`
+    // `envVars` will override the one on `envVarsFile`
     if (opts?.envVars || opts?.envVarsFile) {
       let envVars;
 
