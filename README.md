@@ -52,7 +52,7 @@ steps:
 
 - `entry_point`: (Optional) Name of a function (as defined in source code) that will be executed. Defaults to the resource name suffix, if not specified.
 
-- `memory_mb`: (Optional) The amount of memory in MB available for a function. Defaults to 256MB. 
+- `memory_mb`: (Optional) The amount of memory in MB available for a function. Defaults to 256MB.
 
 - `region`: (Optional) [Region](https://cloud.google.com/functions/docs/locations) in which the function should be deployed. Defaults to `us-central1`.
 
@@ -77,6 +77,10 @@ steps:
 - `description`: (Optional) Description for the Cloud Function.
 
 - `vpc_connector`: (Optional) The VPC Access connector that the function can connect to..
+
+- `vpc_connector_egress_settings`: (Optional) The egress settings for the connector, controlling what traffic is diverted through it.
+
+- `ingress_settings`: (Optional) The ingress settings for the function, controlling what traffic can reach it.
 
 - `service_account_email`: (Optional) The email address of the IAM service account associated with the function at runtime.
 
@@ -115,7 +119,7 @@ with the following roles:
 
 This service account needs to be a member of the `App Engine default service account`
 `(PROJECT_ID@appspot.gserviceaccount.com)`, with role
-`Service Account User` (`roles/iam.serviceAccountUser`). See [additional configuration for deployment](https://cloud.google.com/functions/docs/reference/iam/roles#additional-configuration) 
+`Service Account User` (`roles/iam.serviceAccountUser`). See [additional configuration for deployment](https://cloud.google.com/functions/docs/reference/iam/roles#additional-configuration)
 for further instructions.
 
 ### Used with `setup-gcloud`
