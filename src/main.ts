@@ -42,6 +42,7 @@ async function run(): Promise<void> {
     const eventTriggerType = core.getInput('event_trigger_type');
     const eventTriggerResource = core.getInput('event_trigger_resource');
     const eventTriggerService = core.getInput('event_trigger_service');
+    const deployTimeout = core.getInput('deploy_timeout');
     const labels = core.getInput('labels');
 
     // Create Cloud Functions client
@@ -62,6 +63,7 @@ async function run(): Promise<void> {
       eventTriggerType,
       eventTriggerResource,
       eventTriggerService,
+      deployTimeout,
       vpcConnector,
       vpcConnectorEgressSettings,
       ingressSettings,

@@ -19,12 +19,12 @@ import * as path from 'path';
 import * as os from 'os';
 import { GaxiosResponse } from 'gaxios';
 import { CloudFunction } from './cloudFunction';
-import { uploadSource, zipDir, deleteZipFile } from './util';
-import { google, cloudfunctions_v1 } from 'googleapis';
+import { deleteZipFile, uploadSource, zipDir } from './util';
+import { cloudfunctions_v1, google } from 'googleapis';
 import {
+  Compute,
   GoogleAuth,
   JWT,
-  Compute,
   UserRefreshClient,
 } from 'google-auth-library';
 
@@ -100,6 +100,7 @@ export class CloudFunctionClient {
 
     this.parent = `projects/${projectId}/locations/${region}`;
   }
+
   /**
    * Retrieves the auth client for authenticating requests.
    *
@@ -262,7 +263,7 @@ export class CloudFunctionClient {
         updateFunctionResponse.data,
         'Updating function deployment',
         2,
-        150,
+        cf.deployTimeout / 2,
       );
       core.info('Function deployment updated');
       return awaitUpdate;
@@ -289,6 +290,7 @@ export class CloudFunctionClient {
       return awaitCreate;
     }
   }
+
   /**
    * Delete a Cloud Function.
    *
