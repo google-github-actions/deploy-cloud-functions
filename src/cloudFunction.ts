@@ -17,6 +17,7 @@
 import { cloudfunctions_v1 } from 'googleapis';
 import fs from 'fs';
 import YAML from 'yaml';
+import { env } from 'process';
 
 export type KVPair = {
   [key: string]: string;
@@ -127,21 +128,23 @@ export class CloudFunction {
       ? opts.availableMemoryMb
       : null;
 
-    // Only one of  envVars and envVarsFile should be set
-    if (opts?.envVars && opts?.envVarsFile) {
-      throw new Error(
-        'Only one of env_vars or env_vars_file can be specified.',
-      );
-    }
+    // Check if `envVars` or `envVarsFile` are set.
+    // If two var keys are the same between `envVars` and `envVarsFile`
+    // `envVars` will override the one on `envVarsFile`
+    if (opts?.envVars || opts?.envVarsFile) {
+      let envVars;
 
-    // Parse env vars
-    let envVars;
-    if (opts?.envVars) {
-      envVars = this.parseKVPairs(opts.envVars);
-      request.environmentVariables = envVars;
-    }
-    if (opts?.envVarsFile) {
-      envVars = this.parseEnvVarsFile(opts.envVarsFile);
+      if (opts?.envVarsFile) {
+        envVars = this.parseEnvVarsFile(opts.envVarsFile);
+      }
+
+      if (opts?.envVars) {
+        envVars = {
+          ...envVars,
+          ...this.parseKVPairs(opts.envVars),
+        };
+      }
+
       request.environmentVariables = envVars;
     }
 
