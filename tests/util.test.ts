@@ -3,7 +3,7 @@ import os from 'os';
 import * as fs from 'fs';
 import 'mocha';
 import * as path from 'path';
-import { zipDir } from '../src/util';
+import { zipDir, parseKVPairs, parseEnvVarsFile } from '../src/util';
 import StreamZip from 'node-stream-zip';
 
 const testDirNoIgnore = 'tests/test-node-func';
@@ -53,6 +53,85 @@ describe('Zip', function () {
 
     expect(await filesInsideZip.length).equal(expectedFiles.length);
     filesInsideZip.forEach((f) => expect(expectedFiles).to.include(f));
+  });
+});
+
+describe('Parse KV pairs', function () {
+  it('parse single unquoted envVar', async function () {
+    const envVar = 'KEY1=VALUE1';
+    const pairs = parseKVPairs(envVar);
+    expect(pairs).deep.equal({ KEY1: 'VALUE1' });
+  });
+  it('parse single quoted envVar', async function () {
+    const envVar = 'KEY1="VALUE1"';
+    const pairs = parseKVPairs(envVar);
+    expect(pairs).deep.equal({ KEY1: 'VALUE1' });
+  });
+  it('parse multiple unquoted envVars', async function () {
+    const envVars = 'KEY1=VALUE1,KEY2=VALUE2';
+    const pairs = parseKVPairs(envVars);
+    expect(pairs).deep.equal({ KEY1: 'VALUE1', KEY2: 'VALUE2' });
+  });
+  it('parse multiple quoted envVars', async function () {
+    const envVars = 'KEY1="VALUE1",KEY2="VALUE2"';
+    const pairs = parseKVPairs(envVars);
+    expect(pairs).deep.equal({ KEY1: 'VALUE1', KEY2: 'VALUE2' });
+  });
+  it('parse mix of quoted and unquoted envVars', async function () {
+    const envVars = 'KEY1=VALUE1,KEY2="VALUE2"';
+    const pairs = parseKVPairs(envVars);
+    expect(pairs).deep.equal({ KEY1: 'VALUE1', KEY2: 'VALUE2' });
+  });
+  it('parse envVars with multiple = characters', async function () {
+    const envVars = 'KEY1=VALUE=1,KEY2=VALUE=2';
+    const pairs = parseKVPairs(envVars);
+    expect(pairs).deep.equal({ KEY1: 'VALUE=1', KEY2: 'VALUE=2' });
+  });
+  it('throws an error if envVars is malformed', async function () {
+    const envVars = 'KEY1,VALUE1';
+    expect(function () {
+      parseKVPairs(envVars);
+    }).to.throw(
+      'The expected data format should be "KEY1=VALUE1", got "KEY1" while parsing "KEY1,VALUE1"',
+    );
+  });
+  it('throws an error if envVars are not quoted correctly', async function () {
+    const envVars = 'KEY1="VALUE1.1,VALUE1.2,KEY2="VALUE2"';
+    expect(function () {
+      parseKVPairs(envVars);
+    }).to.throw(
+      `The expected data format should be "KEY1=VALUE1", got "VALUE1.2" while parsing "KEY1="VALUE1.1,VALUE1.2,KEY2="VALUE2""`,
+    );
+  });
+});
+
+describe('Parse envVars file', function () {
+  it('creates a http function with envVarsFile', function () {
+    const envVarsFile = 'tests/env-var-files/test.good.yaml';
+    const pairs = parseEnvVarsFile(envVarsFile);
+    expect(pairs).to.deep.equal({
+      KEY1: 'VALUE1',
+      KEY2: 'VALUE2',
+      JSONKEY: '{"bar":"baz"}',
+    });
+  });
+
+  it('throws an error with bad envVarsFile', function () {
+    const envVarsFile = 'tests/env-var-files/test.bad.yaml';
+    expect(function () {
+      parseEnvVarsFile(envVarsFile);
+    }).to.throw(
+      'env_vars_file yaml must contain only key/value pair of strings. Error parsing key KEY2 of type string with value VALUE2,VALUE3 of type object',
+    );
+  });
+
+  it('throws an error with nonexistent envVarsFile', function () {
+    const envVarsFile = 'tests/env-var-files/test.nonexistent.yaml';
+    expect(function () {
+      parseEnvVarsFile(envVarsFile);
+    }).to.throw(
+      "ENOENT: no such file or directory, open 'tests/env-var-files/test.nonexistent.yaml",
+    );
   });
 });
 

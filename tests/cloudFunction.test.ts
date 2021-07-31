@@ -98,13 +98,15 @@ describe('CloudFunction', function () {
   });
 
   it('creates a http function with some quoted and some unquoted envVars', function () {
-    const obj = {foo: "bar", baz: "foo"};
+    const obj = { foo: 'bar', baz: 'foo' };
     const envVars = `KEY1="${JSON.stringify(obj)}",KEY2=VALUE2,KEY3=VALUE3`;
     const cf = new CloudFunction({ name, runtime, parent, envVars });
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
     expect(cf.request.runtime).equal(runtime);
     expect(cf.request.httpsTrigger).not.to.be.null;
-    expect(JSON.parse(cf.request.environmentVariables?.KEY1 || "{}")).deep.equals(obj);
+    expect(
+      JSON.parse(cf.request.environmentVariables?.KEY1 || '{}'),
+    ).deep.equals(obj);
     expect(cf.request.environmentVariables?.KEY2).equal('VALUE2');
     expect(cf.request.environmentVariables?.KEY3).equal('VALUE3');
   });
@@ -124,43 +126,6 @@ describe('CloudFunction', function () {
       new CloudFunction({ name, runtime, parent, envVars });
     }).to.throw(
       'The expected data format should be "KEY1=VALUE1", got "label2" while parsing "label1=value1,label2"',
-    );
-  });
-
-  it('creates a http function with two envVars containing equals character', function () {
-    const envVars = 'KEY1=VALUE=1,KEY2=VALUE=2';
-    const cf = new CloudFunction({ name, runtime, parent, envVars });
-    expect(cf.request.name).equal(`${parent}/functions/${name}`);
-    expect(cf.request.runtime).equal(runtime);
-    expect(cf.request.httpsTrigger).not.to.be.null;
-    expect(cf.request.environmentVariables?.KEY1).equal('VALUE=1');
-    expect(cf.request.environmentVariables?.KEY2).equal('VALUE=2');
-  });
-
-  it('creates a http function with envVarsFile', function () {
-    const envVarsFile = 'tests/env-var-files/test.good.yaml';
-    const cf = new CloudFunction({ name, runtime, parent, envVarsFile });
-    expect(cf.request.name).equal(`${parent}/functions/${name}`);
-    expect(cf.request.environmentVariables?.KEY1).equal('VALUE1');
-    expect(cf.request.environmentVariables?.KEY2).equal('VALUE2');
-    expect(cf.request.environmentVariables?.JSONKEY).equal('{"bar":"baz"}');
-  });
-
-  it('throws an error with bad envVarsFile', function () {
-    const envVarsFile = 'tests/env-var-files/test.bad.yaml';
-    expect(function () {
-      new CloudFunction({ name, runtime, parent, envVarsFile });
-    }).to.throw(
-      'env_vars_file yaml must contain only key/value pair of strings. Error parsing key KEY2 of type string with value VALUE2,VALUE3 of type object',
-    );
-  });
-
-  it('throws an error with nonexistent envVarsFile', function () {
-    const envVarsFile = 'tests/env-var-files/test.nonexistent.yaml';
-    expect(function () {
-      new CloudFunction({ name, runtime, parent, envVarsFile });
-    }).to.throw(
-      "ENOENT: no such file or directory, open 'tests/env-var-files/test.nonexistent.yaml",
     );
   });
 

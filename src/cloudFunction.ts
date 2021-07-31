@@ -15,13 +15,8 @@
  */
 
 import { cloudfunctions_v1 } from 'googleapis';
-import fs from 'fs';
-import YAML from 'yaml';
 import { env } from 'process';
-
-export type KVPair = {
-  [key: string]: string;
-};
+import { parseEnvVarsFile, parseKVPairs } from './util';
 
 /**
  * Available options to create the cloudFunction.
@@ -135,21 +130,20 @@ export class CloudFunction {
       let envVars;
 
       if (opts?.envVarsFile) {
-        envVars = this.parseEnvVarsFile(opts.envVarsFile);
+        envVars = parseEnvVarsFile(opts.envVarsFile);
       }
 
       if (opts?.envVars) {
         envVars = {
           ...envVars,
-          ...this.parseKVPairs(opts.envVars),
+          ...parseKVPairs(opts.envVars),
         };
       }
-
       request.environmentVariables = envVars;
     }
 
     if (opts?.labels) {
-      request.labels = this.parseKVPairs(opts.labels);
+      request.labels = parseKVPairs(opts.labels);
     }
 
     this.request = request;
@@ -167,64 +161,5 @@ export class CloudFunction {
    */
   setSourceUrl(sourceUrl: string): void {
     this.request.sourceUploadUrl = sourceUrl;
-  }
-
-  /**
-   * Parses a string of the format `KEY1=VALUE1,KEY2=VALUE2`.
-   *
-   * @param values String with key/value pairs to parse.
-   * @returns map of type {KEY1:VALUE1}
-   */
-  protected parseKVPairs(values: string): KVPair {
-    /**
-     * Regex to split on ',' while ignoring commas in double quotes
-     * /,             // Match a `,`
-     *   (?=          // Positive lookahead after the `,`
-     *      (?:       // Not capturing group since we don't actually want to extract the values
-     *        [^\"]*  // Any number of non `"` characters 
-     *        \"      // Match a `"`
-     *        [^\"]   // Any number of non `"` characters
-     *        *\"     // Match a `"`
-     *      )*        // Capture as many times as needed
-     *      [^\"]     // End with any number of non `"` characters
-     *   *$)          // Ensure we are at the end of the line
-     * /g             // Match all
-     */
-    const valuePairs = values.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/g); 
-    const kvPairs: KVPair = {};
-    valuePairs.forEach((pair) => {
-      if (!pair.includes('=')) {
-        throw new TypeError(
-          `The expected data format should be "KEY1=VALUE1", got "${pair}" while parsing "${values}"`,
-        );
-      }
-      // Split on the first delimiter only
-      const name = pair.substring(0, pair.indexOf('='));
-      let value = pair.substring(pair.indexOf('=') + 1);
-      if (value.match(/\".*\"/)) { // If our value includes quotes (Ex. '"foo"'), we should ignore the outer quotes
-        value = value.slice(1, -1);
-      }
-      kvPairs[name] = value;
-    });
-    return kvPairs;
-  }
-
-  /**
-   * Read and parse an env var file.
-   *
-   * @param envVarsFile env var file path.
-   * @returns map of type {KEY1:VALUE1}
-   */
-  protected parseEnvVarsFile(envVarFilePath: string): KVPair {
-    const content = fs.readFileSync(envVarFilePath, 'utf-8');
-    const yamlContent = YAML.parse(content) as KVPair;
-    for (const [key, val] of Object.entries(yamlContent)) {
-      if (typeof key !== 'string' || typeof val !== 'string') {
-        throw new Error(
-          `env_vars_file yaml must contain only key/value pair of strings. Error parsing key ${key} of type ${typeof key} with value ${val} of type ${typeof val}`,
-        );
-      }
-    }
-    return yamlContent;
   }
 }
