@@ -57,51 +57,68 @@ describe('Zip', function () {
 });
 
 describe('Parse KV pairs', function () {
-  it('parse single unquoted envVar', async function () {
-    const envVar = 'KEY1=VALUE1';
-    const pairs = parseKVPairs(envVar);
-    expect(pairs).deep.equal({ KEY1: 'VALUE1' });
+  describe('Positive parsing tests', () => {
+    const positiveParsingTests = [
+      {
+        name: 'parse single unquoted envVar',
+        input: 'KEY1=VALUE1',
+        output: { KEY1: 'VALUE1' },
+      },
+      {
+        name: 'parse single quoted envVar',
+        input: 'KEY1="VALUE1"',
+        output: { KEY1: 'VALUE1' },
+      },
+      {
+        name: 'parse multiple unquoted envVars',
+        input: 'KEY1=VALUE1,KEY2=VALUE2',
+        output: { KEY1: 'VALUE1', KEY2: 'VALUE2' },
+      },
+      {
+        name: 'parse multiple quoted envVars',
+        input: 'KEY1="VALUE1",KEY2="VALUE2"',
+        output: { KEY1: 'VALUE1', KEY2: 'VALUE2' },
+      },
+      {
+        name: 'parse mix of quoted and unquoted envVars',
+        input: 'KEY1=VALUE1,KEY2="VALUE2"',
+        output: { KEY1: 'VALUE1', KEY2: 'VALUE2' },
+      },
+      {
+        name: 'parse envVars with multiple = characters',
+        input: 'KEY1=VALUE=1,KEY2=VALUE=2',
+        output: { KEY1: 'VALUE=1', KEY2: 'VALUE=2' },
+      },
+    ];
+
+    positiveParsingTests.forEach((test) => {
+      it(test.name, () => {
+        expect(parseKVPairs(test.input)).to.deep.equal(test.output);
+      });
+    });
   });
-  it('parse single quoted envVar', async function () {
-    const envVar = 'KEY1="VALUE1"';
-    const pairs = parseKVPairs(envVar);
-    expect(pairs).deep.equal({ KEY1: 'VALUE1' });
-  });
-  it('parse multiple unquoted envVars', async function () {
-    const envVars = 'KEY1=VALUE1,KEY2=VALUE2';
-    const pairs = parseKVPairs(envVars);
-    expect(pairs).deep.equal({ KEY1: 'VALUE1', KEY2: 'VALUE2' });
-  });
-  it('parse multiple quoted envVars', async function () {
-    const envVars = 'KEY1="VALUE1",KEY2="VALUE2"';
-    const pairs = parseKVPairs(envVars);
-    expect(pairs).deep.equal({ KEY1: 'VALUE1', KEY2: 'VALUE2' });
-  });
-  it('parse mix of quoted and unquoted envVars', async function () {
-    const envVars = 'KEY1=VALUE1,KEY2="VALUE2"';
-    const pairs = parseKVPairs(envVars);
-    expect(pairs).deep.equal({ KEY1: 'VALUE1', KEY2: 'VALUE2' });
-  });
-  it('parse envVars with multiple = characters', async function () {
-    const envVars = 'KEY1=VALUE=1,KEY2=VALUE=2';
-    const pairs = parseKVPairs(envVars);
-    expect(pairs).deep.equal({ KEY1: 'VALUE=1', KEY2: 'VALUE=2' });
-  });
-  it('throws an error if envVars is malformed', async function () {
-    const envVars = 'KEY1,VALUE1';
-    expect(function () {
-      parseKVPairs(envVars);
-    }).to.throw(
-      'The expected data format should be "KEY1=VALUE1", got "KEY1" while parsing "KEY1,VALUE1"',
-    );
-  });
-  it('throws an error if envVars are not quoted correctly', async function () {
-    const envVars = 'KEY1="VALUE1.1,VALUE1.2,KEY2="VALUE2"';
-    expect(function () {
-      parseKVPairs(envVars);
-    }).to.throw(
-      `The expected data format should be "KEY1=VALUE1", got "VALUE1.2" while parsing "KEY1="VALUE1.1,VALUE1.2,KEY2="VALUE2""`,
-    );
+  describe('Negative parsing tests', () => {
+    const negativeParsingTests = [
+      {
+        name: 'throws an error if envVars is malformed',
+        input: 'KEY1,VALUE1',
+        error:
+          'The expected data format should be "KEY1=VALUE1", got "KEY1" while parsing "KEY1,VALUE1"',
+      },
+      {
+        name: 'throws an error if envVars are not quoted correctly',
+        input: 'KEY1="VALUE1.1,VALUE1.2,KEY2="VALUE2"',
+        error:
+          'The expected data format should be "KEY1=VALUE1", got "VALUE1.2" while parsing "KEY1="VALUE1.1,VALUE1.2,KEY2="VALUE2""',
+      },
+    ];
+    negativeParsingTests.forEach((test) => {
+      it(test.name, () => {
+        expect(function () {
+          parseKVPairs(test.input);
+        }).to.throw(test.error);
+      });
+    });
   });
 });
 
