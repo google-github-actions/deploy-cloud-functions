@@ -101,11 +101,20 @@ describe('Parse KV pairs', function () {
         delimiter: '|',
         output: { KEY1: '{"foo":"v1,v2","bar":"v3"}', KEY2: 'FOO' },
       },
+      {
+        name: 'parse envVars that are delimited by newline',
+        input: `KEY1={"foo":"v1,v2","bar":"v3"}
+KEY2=FOO`,
+        delimiter: '\n',
+        output: { KEY1: '{"foo":"v1,v2","bar":"v3"}', KEY2: 'FOO' },
+      },
     ];
 
     positiveParsingTests.forEach((test) => {
       it(test.name, () => {
-        expect(parseKVPairs(test.input, test.delimiter)).to.deep.equal(test.output);
+        expect(parseKVPairs(test.input, test.delimiter)).to.deep.equal(
+          test.output,
+        );
       });
     });
   });

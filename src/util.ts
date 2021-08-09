@@ -157,7 +157,7 @@ export async function uploadSource(
  * @returns map of type {KEY1:VALUE1}
  */
 export function parseKVPairs(values: string, delimiter: string): KVPair {
-  const valuePairs = values.split(delimiter).filter(x => x !== "");
+  const valuePairs = values.split(delimiter).filter((x) => x !== '');
   const kvPairs: KVPair = {};
   valuePairs.forEach((pair) => {
     if (!pair.includes('=')) {
@@ -167,7 +167,7 @@ export function parseKVPairs(values: string, delimiter: string): KVPair {
     }
     // Split on the first delimiter only
     const name = pair.substring(0, pair.indexOf('='));
-    let value = pair.substring(pair.indexOf('=') + 1);
+    const value = pair.substring(pair.indexOf('=') + 1);
     kvPairs[name] = value;
   });
   return kvPairs;
