@@ -26,6 +26,8 @@ import {
   GoogleAuth,
   JWT,
   UserRefreshClient,
+  Impersonated,
+  BaseExternalAccountClient,
 } from 'google-auth-library';
 
 /**
@@ -58,7 +60,13 @@ export class CloudFunctionClient {
   private gcf = google.cloudfunctions('v1');
   readonly auth: GoogleAuth;
   readonly parent: string;
-  authClient: JWT | Compute | UserRefreshClient | undefined;
+  authClient:
+    | JWT
+    | Compute
+    | UserRefreshClient
+    | Impersonated
+    | BaseExternalAccountClient
+    | undefined;
 
   constructor(region: string, opts?: ClientOptions) {
     let projectId = opts?.projectId;
@@ -74,7 +82,7 @@ export class CloudFunctionClient {
     // Instantiate Auth Client
     // This method looks for the GCLOUD_PROJECT and GOOGLE_APPLICATION_CREDENTIALS
     // environment variables.
-    this.auth = new google.auth.GoogleAuth({
+    this.auth = new GoogleAuth({
       scopes: ['https://www.googleapis.com/auth/cloud-platform'],
     });
     // Set credentials, if any.
@@ -104,9 +112,11 @@ export class CloudFunctionClient {
   /**
    * Retrieves the auth client for authenticating requests.
    *
-   * @returns JWT | Compute | UserRefreshClient.
+   * @returns JWT | Compute | UserRefreshClient | Impersonated | BaseExternalAccountClient.
    */
-  async getAuthClient(): Promise<JWT | Compute | UserRefreshClient> {
+  async getAuthClient(): Promise<
+    JWT | Compute | UserRefreshClient | Impersonated | BaseExternalAccountClient
+  > {
     if (!this.authClient) {
       this.authClient = await this.auth.getClient();
     }
