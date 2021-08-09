@@ -150,27 +150,14 @@ export async function uploadSource(
 }
 
 /**
- * Parses a string of the format `KEY1=VALUE1,KEY2=VALUE2`.
+ * Parses a string of the format `KEY1=VALUE1<delimiter>KEY2=VALUE2`.
  *
  * @param values String with key/value pairs to parse.
+ * @param delimiter String on which to split the values.
  * @returns map of type {KEY1:VALUE1}
  */
-export function parseKVPairs(values: string): KVPair {
-  /**
-   * Regex to split on ',' while ignoring commas in double quotes
-   * /,             // Match a `,`
-   *   (?=          // Positive lookahead after the `,`
-   *      (?:       // Not capturing group since we don't actually want to extract the values
-   *        [^\"]*  // Any number of non `"` characters
-   *        \"      // Match a `"`
-   *        [^\"]   // Any number of non `"` characters
-   *        *\"     // Match a `"`
-   *      )*        // Capture as many times as needed
-   *      [^\"]     // End with any number of non `"` characters
-   *   *$)          // Ensure we are at the end of the line
-   * /g             // Match all
-   */
-  const valuePairs = values.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/g);
+export function parseKVPairs(values: string, delimiter: string): KVPair {
+  const valuePairs = values.split(delimiter).filter(x => x !== "");
   const kvPairs: KVPair = {};
   valuePairs.forEach((pair) => {
     if (!pair.includes('=')) {
@@ -181,10 +168,6 @@ export function parseKVPairs(values: string): KVPair {
     // Split on the first delimiter only
     const name = pair.substring(0, pair.indexOf('='));
     let value = pair.substring(pair.indexOf('=') + 1);
-    if (value.match(/".*"/)) {
-      // If our value includes quotes (Ex. '"foo"'), we should ignore the outer quotes
-      value = value.slice(1, -1);
-    }
     kvPairs[name] = value;
   });
   return kvPairs;

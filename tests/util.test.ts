@@ -62,38 +62,50 @@ describe('Parse KV pairs', function () {
       {
         name: 'parse single unquoted envVar',
         input: 'KEY1=VALUE1',
+        delimiter: ',',
         output: { KEY1: 'VALUE1' },
       },
       {
         name: 'parse single quoted envVar',
         input: 'KEY1="VALUE1"',
-        output: { KEY1: 'VALUE1' },
+        delimiter: ',',
+        output: { KEY1: '"VALUE1"' },
       },
       {
         name: 'parse multiple unquoted envVars',
         input: 'KEY1=VALUE1,KEY2=VALUE2',
+        delimiter: ',',
         output: { KEY1: 'VALUE1', KEY2: 'VALUE2' },
       },
       {
         name: 'parse multiple quoted envVars',
         input: 'KEY1="VALUE1",KEY2="VALUE2"',
-        output: { KEY1: 'VALUE1', KEY2: 'VALUE2' },
+        delimiter: ',',
+        output: { KEY1: '"VALUE1"', KEY2: '"VALUE2"' },
       },
       {
         name: 'parse mix of quoted and unquoted envVars',
         input: 'KEY1=VALUE1,KEY2="VALUE2"',
-        output: { KEY1: 'VALUE1', KEY2: 'VALUE2' },
+        delimiter: ',',
+        output: { KEY1: 'VALUE1', KEY2: '"VALUE2"' },
       },
       {
         name: 'parse envVars with multiple = characters',
         input: 'KEY1=VALUE=1,KEY2=VALUE=2',
+        delimiter: ',',
         output: { KEY1: 'VALUE=1', KEY2: 'VALUE=2' },
+      },
+      {
+        name: 'parse envVars that are quoted JSON',
+        input: 'KEY1={"foo":"v1,v2","bar":"v3"}|KEY2=FOO',
+        delimiter: '|',
+        output: { KEY1: '{"foo":"v1,v2","bar":"v3"}', KEY2: 'FOO' },
       },
     ];
 
     positiveParsingTests.forEach((test) => {
       it(test.name, () => {
-        expect(parseKVPairs(test.input)).to.deep.equal(test.output);
+        expect(parseKVPairs(test.input, test.delimiter)).to.deep.equal(test.output);
       });
     });
   });
@@ -102,12 +114,14 @@ describe('Parse KV pairs', function () {
       {
         name: 'throws an error if envVars is malformed',
         input: 'KEY1,VALUE1',
+        delimiter: ',',
         error:
           'The expected data format should be "KEY1=VALUE1", got "KEY1" while parsing "KEY1,VALUE1"',
       },
       {
         name: 'throws an error if envVars are not quoted correctly',
         input: 'KEY1="VALUE1.1,VALUE1.2,KEY2="VALUE2"',
+        delimiter: ',',
         error:
           'The expected data format should be "KEY1=VALUE1", got "VALUE1.2" while parsing "KEY1="VALUE1.1,VALUE1.2,KEY2="VALUE2""',
       },
@@ -115,7 +129,7 @@ describe('Parse KV pairs', function () {
     negativeParsingTests.forEach((test) => {
       it(test.name, () => {
         expect(function () {
-          parseKVPairs(test.input);
+          parseKVPairs(test.input, test.delimiter);
         }).to.throw(test.error);
       });
     });

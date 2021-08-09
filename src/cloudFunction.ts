@@ -48,6 +48,7 @@ export type CloudFunctionOptions = {
   sourceDir?: string;
   envVars?: string;
   envVarsFile?: string;
+  envVarsDelimiter?: string;
   entryPoint?: string;
   runtime: string;
   availableMemoryMb?: number;
@@ -123,11 +124,16 @@ export class CloudFunction {
       ? opts.availableMemoryMb
       : null;
 
+    let envVarsDelimiter = ','; // Default delimiter is `,`
+
     // Check if `envVars` or `envVarsFile` are set.
     // If two var keys are the same between `envVars` and `envVarsFile`
     // `envVars` will override the one on `envVarsFile`
     if (opts?.envVars || opts?.envVarsFile) {
       let envVars;
+      if (opts?.envVarsDelimiter) {
+        envVarsDelimiter = opts.envVarsDelimiter;
+      }
 
       if (opts?.envVarsFile) {
         envVars = parseEnvVarsFile(opts.envVarsFile);
@@ -136,14 +142,14 @@ export class CloudFunction {
       if (opts?.envVars) {
         envVars = {
           ...envVars,
-          ...parseKVPairs(opts.envVars),
+          ...parseKVPairs(opts.envVars, envVarsDelimiter),
         };
       }
       request.environmentVariables = envVars;
     }
 
     if (opts?.labels) {
-      request.labels = parseKVPairs(opts.labels);
+      request.labels = parseKVPairs(opts.labels, envVarsDelimiter);
     }
 
     this.request = request;
