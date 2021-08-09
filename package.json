@@ -52,7 +52,7 @@
     "@vercel/ncc": "^0.24.1",
     "chai": "^4.3.4",
     "eslint": "^7.30.0",
-    "eslint-config-prettier": "^6.11.0",
+    "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.1.4",
     "mocha": "^9.0.2",
     "node-stream-zip": "^1.13.6",
