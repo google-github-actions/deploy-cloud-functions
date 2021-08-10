@@ -17,7 +17,6 @@
 import { cloudfunctions_v1 } from 'googleapis';
 import fs from 'fs';
 import YAML from 'yaml';
-import { env } from 'process';
 
 export type KVPair = {
   [key: string]: string;
