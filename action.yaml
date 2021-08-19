@@ -53,12 +53,22 @@ inputs:
 
   env_vars:
     description: |-
-      List of key-value pairs to set as environment variables in the form KEY1=VALUE1,KEY2=VALUE2. Only one of env_vars or env_vars_file can be specified.
+      List of key-value pairs to set as environment variables in the form KEY1=VALUE1,KEY2=VALUE2.
     required: false
 
   env_vars_file:
     description: |-
-      Path to a local YAML file with definitions for all environment variables. Only one of env_vars or env_vars_file can be specified.
+      Path to a local YAML file with definitions for environment variables.
+    required: false
+
+  build_env_vars:
+    description: |-
+      List of key-value pairs to set as build time environment variables in the form KEY1=VALUE1,KEY2=VALUE2.
+    required: false
+
+  build_env_vars_file:
+    description: |-
+      Path to a local YAML file with definitions for build time environment variables.
     required: false
 
   labels:

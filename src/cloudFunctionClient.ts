@@ -244,6 +244,7 @@ export class CloudFunctionClient {
         'sourceUploadUrl',
         'name',
         'environmentVariables',
+        'buildEnvironmentVariables',
         'entryPoint',
         'runtime',
         'vpcConnector',

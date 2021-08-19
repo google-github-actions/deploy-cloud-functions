@@ -29,6 +29,8 @@ async function run(): Promise<void> {
     const region = core.getInput('region') || 'us-central1';
     const envVars = core.getInput('env_vars');
     const envVarsFile = core.getInput('env_vars_file');
+    const buildEnvVars = core.getInput('build_env_vars');
+    const buildEnvVarsFile = core.getInput('build_env_vars_file');
     const entryPoint = core.getInput('entry_point');
     const sourceDir = core.getInput('source_dir');
     const vpcConnector = core.getInput('vpc_connector');
@@ -58,6 +60,8 @@ async function run(): Promise<void> {
       entryPoint,
       envVars,
       envVarsFile,
+      buildEnvVars,
+      buildEnvVarsFile,
       timeout,
       maxInstances: +maxInstances,
       eventTriggerType,

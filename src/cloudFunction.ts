@@ -29,6 +29,9 @@ export type KVPair = {
  * @param description Description for the Cloud Function.
  * @param sourceDir Path to function deployment directory within the source repo.
  * @param envVars List of key-value pairs to set as environment variables.
+ * @param envVarsFile Path to a YAML file with definitions for environment variables.
+ * @param buildEnvVars List of key-value pairs to set as build time environment variables.
+ * @param buildEnvVarsFile Path to a YAML file with definitions for build time environment variables.
  * @param entryPoint Name of function to execute.
  * @param runtime Runtime to use for the function.
  * @param availableMemoryMb The amount of memory in MB available for a function.
@@ -52,6 +55,8 @@ export type CloudFunctionOptions = {
   sourceDir?: string;
   envVars?: string;
   envVarsFile?: string;
+  buildEnvVars?: string;
+  buildEnvVarsFile?: string;
   entryPoint?: string;
   runtime: string;
   availableMemoryMb?: number;
@@ -147,6 +152,26 @@ export class CloudFunction {
       request.environmentVariables = envVars;
     }
 
+    if (opts?.buildEnvVars || opts?.buildEnvVarsFile) {
+      let buildEnvVars;
+
+      if (opts?.buildEnvVarsFile) {
+        buildEnvVars = this.parseEnvVarsFile(
+          opts.buildEnvVarsFile,
+          'build_env_vars_file',
+        );
+      }
+
+      if (opts?.buildEnvVars) {
+        buildEnvVars = {
+          ...buildEnvVars,
+          ...this.parseKVPairs(opts.buildEnvVars),
+        };
+      }
+
+      request.buildEnvironmentVariables = buildEnvVars;
+    }
+
     if (opts?.labels) {
       request.labels = this.parseKVPairs(opts.labels);
     }
@@ -197,13 +222,16 @@ export class CloudFunction {
    * @param envVarsFile env var file path.
    * @returns map of type {KEY1:VALUE1}
    */
-  protected parseEnvVarsFile(envVarFilePath: string): KVPair {
+  protected parseEnvVarsFile(
+    envVarFilePath: string,
+    optionName = 'env_vars_file',
+  ): KVPair {
     const content = fs.readFileSync(envVarFilePath, 'utf-8');
     const yamlContent = YAML.parse(content) as KVPair;
     for (const [key, val] of Object.entries(yamlContent)) {
       if (typeof key !== 'string' || typeof val !== 'string') {
         throw new Error(
-          `env_vars_file yaml must contain only key/value pair of strings. Error parsing key ${key} of type ${typeof key} with value ${val} of type ${typeof val}`,
+          `${optionName} yaml must contain only key/value pair of strings. Error parsing key ${key} of type ${typeof key} with value ${val} of type ${typeof val}`,
         );
       }
     }
