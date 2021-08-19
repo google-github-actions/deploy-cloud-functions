@@ -55,6 +55,7 @@ describe('CloudFunction', function () {
       sourceDir: testNodeFuncDir,
       runtime: 'nodejs10',
       envVars: 'KEY1=VALUE1,KEY2=VALUE2',
+      buildEnvVars: 'KEY1=VALUE1,KEY2=VALUE2',
       entryPoint: 'helloWorld',
       availableMemoryMb: 512,
     });
@@ -84,6 +85,7 @@ describe('CloudFunction', function () {
       sourceDir: testNodeFuncDir,
       runtime: 'nodejs10',
       envVars: 'KEY1=VALUE1,KEY2=VALUE2',
+      buildEnvVars: 'KEY1=VALUE1,KEY2=VALUE2',
       entryPoint: 'helloWorld',
       eventTriggerType: eventTriggerType,
       eventTriggerResource: pubsubTopicFQN,
@@ -116,6 +118,7 @@ describe('CloudFunction', function () {
       sourceDir: testNodeFuncDir,
       runtime: 'nodejs10',
       envVars: 'KEY1=VALUE1,KEY2=VALUE2',
+      buildEnvVars: 'KEY1=VALUE1,KEY2=VALUE2',
       entryPoint: 'helloWorld',
     });
     await client.deploy(firstHttpFunc);
@@ -125,6 +128,7 @@ describe('CloudFunction', function () {
       sourceDir: testNodeFuncDir,
       runtime: 'nodejs10',
       envVars: 'KEY1=VALUE1,KEY2=VALUE2,KEY3=VALUE3',
+      buildEnvVars: 'KEY1=VALUE1,KEY2=VALUE2,KEY3=VALUE3',
       entryPoint: 'helloWorld',
     });
     const result = await client.deploy(updatedHttpFunc);
@@ -137,12 +141,13 @@ describe('CloudFunction', function () {
     expect(result.response?.versionId).to.eq('2');
     // expect to have the correct update
     expect(result.response?.environmentVariables.KEY3).to.eq('VALUE3');
+    expect(result.response?.buildEnvironmentVariables.KEY3).to.eq('VALUE3');
     // expect function to be deleted without error
     const deleteFunc = await client.delete(updatedHttpFunc.functionPath);
     expect(deleteFunc.done).to.eq(true);
   });
 
-  it('can deploy CF with envVarFile', async function () {
+  it('can deploy CF with envVarsFile and buildEnvVarsFile', async function () {
     if (!credentials) {
       this.skip();
     }
@@ -156,6 +161,7 @@ describe('CloudFunction', function () {
       sourceDir: testNodeFuncDir,
       runtime: 'nodejs10',
       envVarsFile: 'tests/env-var-files/test.good.yaml',
+      buildEnvVarsFile: 'tests/env-var-files/test.good.yaml',
       entryPoint: 'helloWorld',
     });
     const result = await client.deploy(newHttpFunc);
@@ -168,6 +174,11 @@ describe('CloudFunction', function () {
     expect(result.response?.environmentVariables.KEY1).to.eq('VALUE1');
     expect(result.response?.environmentVariables.KEY2).to.eq('VALUE2');
     expect(result.response?.environmentVariables.JSONKEY).to.eq(
+      '{"bar":"baz"}',
+    );
+    expect(result.response?.buildEnvironmentVariables.KEY1).to.eq('VALUE1');
+    expect(result.response?.buildEnvironmentVariables.KEY2).to.eq('VALUE2');
+    expect(result.response?.buildEnvironmentVariables.JSONKEY).to.eq(
       '{"bar":"baz"}',
     );
     // expect function to be deleted without error
