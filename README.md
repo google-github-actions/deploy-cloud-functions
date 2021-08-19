@@ -65,7 +65,13 @@ steps:
   `KEY1=VALUE1,KEY2=VALUE2`. All existing environment variables will be
   removed, even if this parameter is not passed.
 
-- `env_vars_file`: (Optional) Path to a local YAML file with definitions for all environment variables. An example env_vars_file can be found [here](tests/env-var-files/test.good.yaml). Only one of env_vars or env_vars_file can be specified.
+- `env_vars_file`: (Optional) Path to a local YAML file with definitions for environment variables. An example env_vars_file can be found [here](tests/env-var-files/test.good.yaml).
+
+- `build_env_vars`: (Optional) List of key-value pairs to set as build time environment variables in the format:
+  `KEY1=VALUE1,KEY2=VALUE2`. All existing build time environment variables will be
+  removed, even if this parameter is not passed.
+
+- `build_env_vars_file`: (Optional) Path to a local YAML file with definitions for build time environment variables.
 
 - `labels`: (Optional) List of key-value pairs to set as function labels in the form label1=VALUE1,label2=VALUE2.
 
