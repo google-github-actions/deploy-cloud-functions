@@ -39,7 +39,7 @@
     "google-auth-library": "^7.6.2",
     "googleapis": "^84.0.0",
     "ignore": "^5.1.8",
-    "yaml": "^1.10.0"
+    "yaml": "^1.10.2"
   },
   "devDependencies": {
     "@types/chai": "^4.2.20",
