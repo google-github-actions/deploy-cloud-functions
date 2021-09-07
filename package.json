@@ -37,7 +37,7 @@
     "fs": "0.0.1-security",
     "gaxios": "^4.3.0",
     "google-auth-library": "^7.6.2",
-    "googleapis": "^84.0.0",
+    "googleapis": "^85.0.0",
     "ignore": "^5.1.8",
     "yaml": "^1.10.2"
   },
