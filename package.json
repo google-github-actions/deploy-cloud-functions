@@ -55,7 +55,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "mocha": "^9.1.1",
-    "node-stream-zip": "^1.14.0",
+    "node-stream-zip": "^1.15.0",
     "prettier": "^2.3.2",
     "ts-node": "^10.2.0",
     "typescript": "^4.3.5"
