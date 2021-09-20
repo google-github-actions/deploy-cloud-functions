@@ -35,7 +35,7 @@
     "@types/archiver": "^5.1.1",
     "archiver": "^5.3.0",
     "fs": "0.0.1-security",
-    "gaxios": "^4.3.0",
+    "gaxios": "^4.3.2",
     "google-auth-library": "^7.6.2",
     "googleapis": "^85.0.0",
     "ignore": "^5.1.8",
