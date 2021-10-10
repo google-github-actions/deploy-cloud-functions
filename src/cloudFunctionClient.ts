@@ -256,6 +256,8 @@ export class CloudFunctionClient {
         'eventTrigger.resource',
         'eventTrigger.service',
         'labels',
+        'secretEnvironmentVariables',
+        'secretVolumes',
       ];
       const updateFunctionRequest: cloudfunctions_v1.Params$Resource$Projects$Locations$Functions$Patch =
         {

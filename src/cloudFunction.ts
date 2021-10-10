@@ -22,6 +22,22 @@ export type KVPair = {
   [key: string]: string;
 };
 
+type SecretPaths = {
+  mountPath: string;
+  secretPath: string;
+};
+
+type SecretRef = {
+  projectId?: string;
+  secret?: string;
+  version?: string;
+};
+
+export type Secrets = {
+  envVars: cloudfunctions_v1.Schema$SecretEnvVar[];
+  volumes: cloudfunctions_v1.Schema$SecretVolume[];
+};
+
 /**
  * Available options to create the cloudFunction.
  *
@@ -44,6 +60,7 @@ export type KVPair = {
  * @param eventTriggerService The hostname of the service that should be observed.
  * @param deployTimeout The function deployment timeout in seconds.
  * @param labels List of key-value pairs to set as function labels.
+ * @param secrets List of key-value pairs to set secrets as environment variables or mounted files.
  */
 
 export type CloudFunctionOptions = {
@@ -67,6 +84,7 @@ export type CloudFunctionOptions = {
   eventTriggerService?: string;
   deployTimeout?: string;
   labels?: string;
+  secrets?: string;
 };
 
 /**
@@ -147,6 +165,12 @@ export class CloudFunction {
       request.environmentVariables = envVars;
     }
 
+    if (opts?.secrets) {
+      const { envVars, volumes } = this.parseSecrets(opts.secrets);
+      request.secretEnvironmentVariables = envVars;
+      request.secretVolumes = volumes;
+    }
+
     if (opts?.labels) {
       request.labels = this.parseKVPairs(opts.labels);
     }
@@ -208,5 +232,96 @@ export class CloudFunction {
       }
     }
     return yamlContent;
+  }
+
+  /**
+   * Parses a string of the secret.
+   *
+   * @param values String that secret to parse.
+   * @returns map of type {KEY1:VALUE1}
+   */
+  protected parseSecrets(values: string): Secrets {
+    const secrets = values.split('\n');
+    const envVars: Secrets['envVars'] = [];
+    const volumes: Secrets['volumes'] = [];
+    secrets.forEach((value) => {
+      if (!value.includes('=')) {
+        throw new TypeError(
+          `The expected data format should be "ENV_VAR=SECRET_REF" or "/SECRET_PATH=SECRET_REF", got "${value}" while parsing "${values}"`,
+        );
+      }
+
+      // Split on the first delimiter only
+      const secretKey = value.substring(0, value.indexOf('='));
+      const secretRef = value.substring(value.indexOf('=') + 1);
+
+      const { projectId, secret, version } = this.parseSecretRef(secretRef);
+
+      const secretPathPattern =
+        /^(\/+[a-zA-Z0-9-_.]*[a-zA-Z0-9-_]+)+((\/*:(\/*[a-zA-Z0-9-_.]*[a-zA-Z0-9-_]+)+)|(\/+[a-zA-Z0-9-_.]*[a-zA-Z0-9-_]+))$/;
+
+      if (secretPathPattern.test(secretKey)) {
+        const { mountPath, secretPath } = this.parseSecretPath(secretKey);
+        const volume = {
+          mountPath,
+          projectId,
+          secret,
+          versions: [{ path: secretPath, version }],
+        };
+        volumes.push(volume);
+      } else {
+        const envVar = { key: secretKey, projectId, secret, version };
+        envVars.push(envVar);
+      }
+    });
+    return { envVars, volumes };
+  }
+
+  private parseSecretRef(secretRef: string): SecretRef {
+    const allowedPatterns = [
+      /^(?<secret>[a-zA-Z0-9-_]+):(?<version>[1-9][0-9]*|latest)$/,
+      /^projects\/(?<project>[^/]+)\/secrets\/(?<secret>[a-zA-Z0-9-_]+)\/versions\/(?<version>[1-9][0-9]*|latest)$/,
+      /^projects\/(?<project>[^/]+)\/secrets\/(?<secret>[a-zA-Z0-9-_]+):(?<version>[1-9][0-9]*|latest)$/,
+    ];
+
+    for (const pattern of allowedPatterns) {
+      const matches = pattern.exec(secretRef);
+
+      if (!matches) {
+        continue;
+      }
+
+      const projectId = matches.groups?.project;
+      const secret = matches.groups?.secret;
+      const version = matches.groups?.version;
+      return { projectId, secret, version };
+    }
+
+    throw new TypeError(
+      `The expected secrets value format must match the pattern "SECRET:VERSION", "projects/PROJECT/secrets/SECRET:VERSION" or "projects/PROJECT/secrets/SECRET/versions/VERSION", got "${secretRef}"`,
+    );
+  }
+
+  private parseSecretPath(path: string): SecretPaths {
+    const canonicalized = path.replace(/\/+/g, '/');
+
+    let mountPath, secretPath;
+    if (canonicalized.includes(':')) {
+      mountPath = canonicalized.substring(0, canonicalized.indexOf(':'));
+      secretPath = canonicalized.substring(canonicalized.indexOf(':') + 1);
+    } else {
+      mountPath = canonicalized.substring(0, canonicalized.lastIndexOf('/'));
+      secretPath = canonicalized.substring(canonicalized.lastIndexOf('/'));
+    }
+
+    if (mountPath.endsWith('/')) {
+      mountPath = mountPath.slice(0, 1);
+    }
+
+    if (!secretPath.startsWith('/')) {
+      secretPath = '/' + secretPath;
+    }
+
+    return { mountPath, secretPath };
   }
 }

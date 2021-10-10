@@ -44,6 +44,7 @@ async function run(): Promise<void> {
     const eventTriggerService = core.getInput('event_trigger_service');
     const deployTimeout = core.getInput('deploy_timeout');
     const labels = core.getInput('labels');
+    const secrets = core.getInput('secrets');
 
     // Create Cloud Functions client
     const client = new CloudFunctionClient(region, { projectId, credentials });
@@ -69,6 +70,7 @@ async function run(): Promise<void> {
       ingressSettings,
       serviceAccountEmail,
       labels,
+      secrets,
     });
 
     // Deploy function

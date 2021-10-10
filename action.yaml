@@ -131,6 +131,12 @@ inputs:
       The function deployment timeout in seconds.
     required: false
 
+  secrets:
+    description: |-
+      List of key-value pairs to set secrets as environment variables or mounted files, delimited by line breaks.
+      The form of each line must be ENV_VAR_OR_SECRET_PATH=SECRET_REF.
+    required: false
+
 outputs:
   url:
     description: The URL of your Cloud Function. Only available with HTTP Trigger.
