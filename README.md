@@ -96,6 +96,8 @@ steps:
 
 - `deploy_timeout`: (Optional) The function deployment timeout in seconds. Defaults to 300.
 
+- `secrets`: (Optional) List of key-value pairs to set secrets as environment variables or mounted files, delimited by line breaks. Format of expression can be found [here](https://cloud.google.com/sdk/gcloud/reference/beta/functions/deploy#--set-secrets).
+
 ## Allow unauthenticated requests
 
 A Cloud Functions product recommendation is that CI/CD systems not set or change
