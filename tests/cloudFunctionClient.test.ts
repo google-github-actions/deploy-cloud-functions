@@ -55,6 +55,8 @@ describe('CloudFunction', function () {
       sourceDir: testNodeFuncDir,
       runtime: 'nodejs10',
       envVars: 'KEY1=VALUE1,KEY2=VALUE2',
+      secrets: `ENV_VAR1=DEPLOY_CF_SECRET:1
+/MOUNT_PATH2:/SECRET_PATH2=projects/${project}/secrets/DEPLOY_CF_SECRET:latest`,
       entryPoint: 'helloWorld',
       availableMemoryMb: 512,
     });
@@ -84,6 +86,8 @@ describe('CloudFunction', function () {
       sourceDir: testNodeFuncDir,
       runtime: 'nodejs10',
       envVars: 'KEY1=VALUE1,KEY2=VALUE2',
+      secrets: `ENV_VAR1=DEPLOY_CF_SECRET:1
+  /MOUNT_PATH2:/SECRET_PATH2=projects/${project}/secrets/DEPLOY_CF_SECRET:latest`,
       entryPoint: 'helloWorld',
       eventTriggerType: eventTriggerType,
       eventTriggerResource: pubsubTopicFQN,
@@ -116,6 +120,8 @@ describe('CloudFunction', function () {
       sourceDir: testNodeFuncDir,
       runtime: 'nodejs10',
       envVars: 'KEY1=VALUE1,KEY2=VALUE2',
+      secrets: `ENV_VAR1=DEPLOY_CF_SECRET:1
+/MOUNT_PATH2:/SECRET_PATH2=projects/${project}/secrets/DEPLOY_CF_SECRET:latest`,
       entryPoint: 'helloWorld',
     });
     await client.deploy(firstHttpFunc);
@@ -125,6 +131,10 @@ describe('CloudFunction', function () {
       sourceDir: testNodeFuncDir,
       runtime: 'nodejs10',
       envVars: 'KEY1=VALUE1,KEY2=VALUE2,KEY3=VALUE3',
+      secrets: `ENV_VAR1=DEPLOY_CF_SECRET:1
+/MOUNT_PATH2:/SECRET_PATH2=projects/${project}/secrets/DEPLOY_CF_SECRET:latest
+ENV_VAR3=projects/${project}/secrets/DEPLOY_CF_SECRET:latest
+/etc/secrets/SECRET_PATH4=projects/${project}/secrets/DEPLOY_CF_SECRET/versions/1`,
       entryPoint: 'helloWorld',
     });
     const result = await client.deploy(updatedHttpFunc);
