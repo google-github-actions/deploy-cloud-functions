@@ -53,6 +53,7 @@ async function run(): Promise<void> {
     const newFunc = new CloudFunction({
       name: name,
       parent: client.parent,
+      projectId: client.projectId,
       sourceDir,
       runtime,
       availableMemoryMb: +availableMemoryMb,

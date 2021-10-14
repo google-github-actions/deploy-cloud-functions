@@ -59,6 +59,7 @@ describe('CloudFunction', function () {
 /MOUNT_PATH2:/SECRET_PATH2=projects/${project}/secrets/DEPLOY_CF_SECRET:latest`,
       entryPoint: 'helloWorld',
       availableMemoryMb: 512,
+      projectId: client.projectId,
     });
     const result = await client.deploy(newHttpFunc);
     // expect function to be deployed without error
@@ -91,6 +92,7 @@ describe('CloudFunction', function () {
       entryPoint: 'helloWorld',
       eventTriggerType: eventTriggerType,
       eventTriggerResource: pubsubTopicFQN,
+      projectId: client.projectId,
     });
 
     const result = await client.deploy(newEventFunc);
@@ -123,6 +125,7 @@ describe('CloudFunction', function () {
       secrets: `ENV_VAR1=DEPLOY_CF_SECRET:1
 /MOUNT_PATH2:/SECRET_PATH2=projects/${project}/secrets/DEPLOY_CF_SECRET:latest`,
       entryPoint: 'helloWorld',
+      projectId: client.projectId,
     });
     await client.deploy(firstHttpFunc);
     const updatedHttpFunc = new CloudFunction({
@@ -136,6 +139,7 @@ describe('CloudFunction', function () {
 ENV_VAR3=projects/${project}/secrets/DEPLOY_CF_SECRET:latest
 /etc/secrets/SECRET_PATH4=projects/${project}/secrets/DEPLOY_CF_SECRET/versions/1`,
       entryPoint: 'helloWorld',
+      projectId: client.projectId,
     });
     const result = await client.deploy(updatedHttpFunc);
     // expect function to be deployed without error
@@ -167,6 +171,7 @@ ENV_VAR3=projects/${project}/secrets/DEPLOY_CF_SECRET:latest
       runtime: 'nodejs10',
       envVarsFile: 'tests/env-var-files/test.good.yaml',
       entryPoint: 'helloWorld',
+      projectId: client.projectId,
     });
     const result = await client.deploy(newHttpFunc);
     // expect function to be deployed without error

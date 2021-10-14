@@ -60,6 +60,7 @@ export class CloudFunctionClient {
   private gcf = google.cloudfunctions('v1');
   readonly auth: GoogleAuth;
   readonly parent: string;
+  readonly projectId: string;
   authClient:
     | JWT
     | Compute
@@ -106,6 +107,7 @@ export class CloudFunctionClient {
       throw new Error('No project Id found. Set project Id in this action.');
     }
 
+    this.projectId = projectId || '';
     this.parent = `projects/${projectId}/locations/${region}`;
   }
 

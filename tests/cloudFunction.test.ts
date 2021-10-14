@@ -6,10 +6,11 @@ import { CloudFunction } from '../src/cloudFunction';
 const name = 'fooFunction';
 const runtime = 'fooRunTime';
 const parent = 'projects/fooProject/locations/fooRegion';
+const projectId = 'fooProject';
 
 describe('CloudFunction', function () {
   it('creates a http function', function () {
-    const cf = new CloudFunction({ name, runtime, parent });
+    const cf = new CloudFunction({ name, runtime, parent, projectId });
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
     expect(cf.request.runtime).equal(runtime);
     expect(cf.request.httpsTrigger).not.to.be.null;
@@ -18,7 +19,7 @@ describe('CloudFunction', function () {
 
   it('creates a http function with one envVar', function () {
     const envVars = 'KEY1=VALUE1';
-    const cf = new CloudFunction({ name, runtime, parent, envVars });
+    const cf = new CloudFunction({ name, runtime, parent, projectId, envVars });
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
     expect(cf.request.runtime).equal(runtime);
     expect(cf.request.httpsTrigger).not.to.be.null;
@@ -27,7 +28,7 @@ describe('CloudFunction', function () {
 
   it('creates an http function with one label', function () {
     const labels = 'label1=value1';
-    const cf = new CloudFunction({ name, runtime, parent, labels });
+    const cf = new CloudFunction({ name, runtime, parent, projectId, labels });
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
     expect(cf.request.runtime).equal(runtime);
     expect(cf.request.httpsTrigger).not.to.be.null;
@@ -36,7 +37,7 @@ describe('CloudFunction', function () {
 
   it('creates an http function with two labels', function () {
     const labels = 'label1=value1,label2=value2';
-    const cf = new CloudFunction({ name, runtime, parent, labels });
+    const cf = new CloudFunction({ name, runtime, parent, projectId, labels });
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
     expect(cf.request.runtime).equal(runtime);
     expect(cf.request.httpsTrigger).not.to.be.null;
@@ -67,6 +68,7 @@ describe('CloudFunction', function () {
       availableMemoryMb: 512,
       labels: labels,
       secrets: secrets,
+      projectId: projectId,
     };
     const cf = new CloudFunction(funcOptions);
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
@@ -100,7 +102,7 @@ describe('CloudFunction', function () {
 
   it('creates a http function with three envVars', function () {
     const envVars = 'KEY1=VALUE1,KEY2=VALUE2,KEY3=VALUE3';
-    const cf = new CloudFunction({ name, runtime, parent, envVars });
+    const cf = new CloudFunction({ name, runtime, parent, projectId, envVars });
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
     expect(cf.request.runtime).equal(runtime);
     expect(cf.request.httpsTrigger).not.to.be.null;
@@ -112,7 +114,7 @@ describe('CloudFunction', function () {
   it('throws an error with bad envVars', function () {
     const envVars = 'KEY1,VALUE1';
     expect(function () {
-      new CloudFunction({ name, runtime, parent, envVars });
+      new CloudFunction({ name, runtime, parent, projectId, envVars });
     }).to.throw(
       'The expected data format should be "KEY1=VALUE1", got "KEY1" while parsing "KEY1,VALUE1"',
     );
@@ -121,7 +123,7 @@ describe('CloudFunction', function () {
   it('throws an error with bad labels', function () {
     const envVars = 'label1=value1,label2';
     expect(function () {
-      new CloudFunction({ name, runtime, parent, envVars });
+      new CloudFunction({ name, runtime, parent, projectId, envVars });
     }).to.throw(
       'The expected data format should be "KEY1=VALUE1", got "label2" while parsing "label1=value1,label2"',
     );
@@ -129,7 +131,7 @@ describe('CloudFunction', function () {
 
   it('creates a http function with two envVars containing equals character', function () {
     const envVars = 'KEY1=VALUE=1,KEY2=VALUE=2';
-    const cf = new CloudFunction({ name, runtime, parent, envVars });
+    const cf = new CloudFunction({ name, runtime, parent, projectId, envVars });
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
     expect(cf.request.runtime).equal(runtime);
     expect(cf.request.httpsTrigger).not.to.be.null;
@@ -139,7 +141,13 @@ describe('CloudFunction', function () {
 
   it('creates a http function with envVarsFile', function () {
     const envVarsFile = 'tests/env-var-files/test.good.yaml';
-    const cf = new CloudFunction({ name, runtime, parent, envVarsFile });
+    const cf = new CloudFunction({
+      name,
+      runtime,
+      parent,
+      projectId,
+      envVarsFile,
+    });
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
     expect(cf.request.environmentVariables?.KEY1).equal('VALUE1');
     expect(cf.request.environmentVariables?.KEY2).equal('VALUE2');
@@ -149,7 +157,7 @@ describe('CloudFunction', function () {
   it('throws an error with bad envVarsFile', function () {
     const envVarsFile = 'tests/env-var-files/test.bad.yaml';
     expect(function () {
-      new CloudFunction({ name, runtime, parent, envVarsFile });
+      new CloudFunction({ name, runtime, parent, projectId, envVarsFile });
     }).to.throw(
       'env_vars_file yaml must contain only key/value pair of strings. Error parsing key KEY2 of type string with value VALUE2,VALUE3 of type object',
     );
@@ -158,7 +166,7 @@ describe('CloudFunction', function () {
   it('throws an error with nonexistent envVarsFile', function () {
     const envVarsFile = 'tests/env-var-files/test.nonexistent.yaml';
     expect(function () {
-      new CloudFunction({ name, runtime, parent, envVarsFile });
+      new CloudFunction({ name, runtime, parent, projectId, envVarsFile });
     }).to.throw(
       "ENOENT: no such file or directory, open 'tests/env-var-files/test.nonexistent.yaml",
     );
@@ -171,6 +179,7 @@ describe('CloudFunction', function () {
       name,
       runtime,
       parent,
+      projectId,
       envVarsFile,
       envVars,
     });
@@ -189,6 +198,7 @@ describe('CloudFunction', function () {
       name,
       runtime,
       parent,
+      projectId,
       envVarsFile,
       envVars,
     });
@@ -200,7 +210,7 @@ describe('CloudFunction', function () {
 
   it('creates an http function with one secret environment variable', function () {
     const secrets = 'ENV_VAR1=SECRET1:1';
-    const cf = new CloudFunction({ name, runtime, parent, secrets });
+    const cf = new CloudFunction({ name, runtime, parent, projectId, secrets });
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
     expect(cf.request.runtime).equal(runtime);
     expect(cf.request.httpsTrigger).not.to.be.null;
@@ -212,7 +222,7 @@ describe('CloudFunction', function () {
   it('creates an http function with one secret volume', function () {
     const secrets =
       '/etc/secrets/PATH1=projects/PROJECT1/secrets/SECRET1:latest';
-    const cf = new CloudFunction({ name, runtime, parent, secrets });
+    const cf = new CloudFunction({ name, runtime, parent, projectId, secrets });
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
     expect(cf.request.runtime).equal(runtime);
     expect(cf.request.httpsTrigger).not.to.be.null;
@@ -226,7 +236,7 @@ describe('CloudFunction', function () {
   it('creates an http function with one secret volume', function () {
     const secrets =
       '/MOUNT_PATH1:/SECRET_PATH1=projects/PROJECT1/secrets/SECRET1/versions/1';
-    const cf = new CloudFunction({ name, runtime, parent, secrets });
+    const cf = new CloudFunction({ name, runtime, parent, projectId, secrets });
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
     expect(cf.request.runtime).equal(runtime);
     expect(cf.request.httpsTrigger).not.to.be.null;
@@ -244,7 +254,7 @@ describe('CloudFunction', function () {
       'ENV_VAR1=SECRET1:1\n' +
       '/etc/secrets/PATH2=projects/PROJECT2/secrets/SECRET2:latest\n' +
       '/MOUNT_PATH3:/SECRET_PATH3=projects/PROJECT3/secrets/SECRET3/versions/3';
-    const cf = new CloudFunction({ name, runtime, parent, secrets });
+    const cf = new CloudFunction({ name, runtime, parent, projectId, secrets });
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
     expect(cf.request.runtime).equal(runtime);
     expect(cf.request.httpsTrigger).not.to.be.null;
@@ -268,7 +278,7 @@ describe('CloudFunction', function () {
   it('throws an error with bad secrets', function () {
     const secrets = 'ENV_VAR1=SECRET1:latest\nSECRET2';
     expect(function () {
-      new CloudFunction({ name, runtime, parent, secrets });
+      new CloudFunction({ name, runtime, parent, projectId, secrets });
     }).to.throw(
       'The expected data format should be "ENV_VAR=SECRET_REF" or "/SECRET_PATH=SECRET_REF", got "SECRET2" while parsing "ENV_VAR1=SECRET1:latest\nSECRET2"',
     );
@@ -279,7 +289,7 @@ describe('CloudFunction', function () {
       '/etc/secrets/PATH2=projects/PROJECT2/secrets/SECRET2:latest\n' +
       '/MOUNT_PATH3:/SECRET_PATH3=SECRET3';
     expect(function () {
-      new CloudFunction({ name, runtime, parent, secrets });
+      new CloudFunction({ name, runtime, parent, projectId, secrets });
     }).to.throw(
       'The expected secrets value format must match the pattern "SECRET:VERSION", "projects/PROJECT/secrets/SECRET:VERSION" or "projects/PROJECT/secrets/SECRET/versions/VERSION", got "SECRET3"',
     );
@@ -292,6 +302,7 @@ describe('CloudFunction', function () {
       name,
       runtime,
       parent,
+      projectId,
       eventTriggerType,
       eventTriggerResource,
     });
@@ -313,6 +324,7 @@ describe('CloudFunction', function () {
       runtime,
       envVars,
       parent,
+      projectId,
       eventTriggerType,
       eventTriggerResource,
     });
@@ -333,6 +345,7 @@ describe('CloudFunction', function () {
         name,
         runtime,
         parent,
+        projectId,
         eventTriggerResource,
       });
     }).to.throw(

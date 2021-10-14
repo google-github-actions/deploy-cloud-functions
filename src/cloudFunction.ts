@@ -28,7 +28,7 @@ type SecretPaths = {
 };
 
 type SecretRef = {
-  projectId?: string;
+  projectId?: string | null;
   secret?: string;
   version?: string;
 };
@@ -84,6 +84,7 @@ export type CloudFunctionOptions = {
   eventTriggerService?: string;
   deployTimeout?: string;
   labels?: string;
+  projectId: string;
   secrets?: string;
 };
 
@@ -102,6 +103,7 @@ export class CloudFunction {
 
   constructor(opts: CloudFunctionOptions) {
     this.functionPath = `${opts.parent}/functions/${opts.name}`;
+    const projectId = opts.projectId;
 
     const request: cloudfunctions_v1.Schema$CloudFunction = {
       name: this.functionPath,
@@ -166,7 +168,7 @@ export class CloudFunction {
     }
 
     if (opts?.secrets) {
-      const { envVars, volumes } = this.parseSecrets(opts.secrets);
+      const { envVars, volumes } = this.parseSecrets(opts.secrets, projectId);
       request.secretEnvironmentVariables = envVars;
       request.secretVolumes = volumes;
     }
@@ -238,9 +240,10 @@ export class CloudFunction {
    * Parses a string of the secret.
    *
    * @param values String that secret to parse.
+   * @param projectId identifier of function's project
    * @returns map of type {KEY1:VALUE1}
    */
-  protected parseSecrets(values: string): Secrets {
+  protected parseSecrets(values: string, functionProjectId: string): Secrets {
     const secrets = values.split('\n');
     const envVars: Secrets['envVars'] = [];
     const volumes: Secrets['volumes'] = [];
@@ -255,7 +258,11 @@ export class CloudFunction {
       const secretKey = value.substring(0, value.indexOf('='));
       const secretRef = value.substring(value.indexOf('=') + 1);
 
-      const { projectId, secret, version } = this.parseSecretRef(secretRef);
+      const {
+        projectId = functionProjectId,
+        secret,
+        version,
+      } = this.parseSecretRef(secretRef);
 
       const secretPathPattern =
         /^(\/+[a-zA-Z0-9-_.]*[a-zA-Z0-9-_]+)+((\/*:(\/*[a-zA-Z0-9-_.]*[a-zA-Z0-9-_]+)+)|(\/+[a-zA-Z0-9-_.]*[a-zA-Z0-9-_]+))$/;
