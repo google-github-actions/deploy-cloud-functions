@@ -253,7 +253,8 @@ describe('CloudFunction', function () {
     const secrets =
       'ENV_VAR1=SECRET1:1\n' +
       '/etc/secrets/PATH2=projects/PROJECT2/secrets/SECRET2:latest\n' +
-      '/MOUNT_PATH3:/SECRET_PATH3=projects/PROJECT3/secrets/SECRET3/versions/3';
+      '/MOUNT_PATH3:/SECRET_PATH3=projects/PROJECT3/secrets/SECRET3/versions/3\n' +
+      '/etc/secrets/SECRET_PATH4=projects/PROJECT2/secrets/SECRET2/versions/4';
     const cf = new CloudFunction({ name, runtime, parent, projectId, secrets });
     expect(cf.request.name).equal(`${parent}/functions/${name}`);
     expect(cf.request.runtime).equal(runtime);
@@ -266,6 +267,10 @@ describe('CloudFunction', function () {
     expect(cf.request.secretVolumes?.[0].secret).equal('SECRET2');
     expect(cf.request.secretVolumes?.[0].versions?.[0].path).equal('/PATH2');
     expect(cf.request.secretVolumes?.[0].versions?.[0].version).equal('latest');
+    expect(cf.request.secretVolumes?.[0].versions?.[1].path).equal(
+      '/SECRET_PATH4',
+    );
+    expect(cf.request.secretVolumes?.[0].versions?.[1].version).equal('4');
     expect(cf.request.secretVolumes?.[1].mountPath).equal('/MOUNT_PATH3');
     expect(cf.request.secretVolumes?.[1].projectId).equal('PROJECT3');
     expect(cf.request.secretVolumes?.[1].secret).equal('SECRET3');

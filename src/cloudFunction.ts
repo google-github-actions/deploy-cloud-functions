@@ -269,13 +269,22 @@ export class CloudFunction {
 
       if (secretPathPattern.test(secretKey)) {
         const { mountPath, secretPath } = this.parseSecretPath(secretKey);
-        const volume = {
-          mountPath,
-          projectId,
-          secret,
-          versions: [{ path: secretPath, version }],
-        };
-        volumes.push(volume);
+        const volume = volumes.find(
+          (v) =>
+            v.mountPath === mountPath &&
+            v.projectId == projectId &&
+            v.secret === secret,
+        );
+        if (!volume) {
+          volumes.push({
+            mountPath,
+            projectId,
+            secret,
+            versions: [{ path: secretPath, version }],
+          });
+        } else {
+          volume.versions?.push({ path: secretPath, version });
+        }
       } else {
         const envVar = { key: secretKey, projectId, secret, version };
         envVars.push(envVar);
