@@ -16,6 +16,7 @@
 
 import { cloudfunctions_v1 } from 'googleapis';
 import fs from 'fs';
+import path from 'path';
 import YAML from 'yaml';
 
 export type KVPair = {
@@ -156,10 +157,7 @@ export class CloudFunction {
       let buildEnvVars;
 
       if (opts?.buildEnvVarsFile) {
-        buildEnvVars = this.parseEnvVarsFile(
-          opts.buildEnvVarsFile,
-          'build_env_vars_file',
-        );
+        buildEnvVars = this.parseEnvVarsFile(opts.buildEnvVarsFile);
       }
 
       if (opts?.buildEnvVars) {
@@ -222,16 +220,14 @@ export class CloudFunction {
    * @param envVarsFile env var file path.
    * @returns map of type {KEY1:VALUE1}
    */
-  protected parseEnvVarsFile(
-    envVarFilePath: string,
-    optionName = 'env_vars_file',
-  ): KVPair {
+  protected parseEnvVarsFile(envVarFilePath: string): KVPair {
     const content = fs.readFileSync(envVarFilePath, 'utf-8');
     const yamlContent = YAML.parse(content) as KVPair;
     for (const [key, val] of Object.entries(yamlContent)) {
       if (typeof key !== 'string' || typeof val !== 'string') {
+        const basename = path.basename(envVarFilePath);
         throw new Error(
-          `${optionName} yaml must contain only key/value pair of strings. Error parsing key ${key} of type ${typeof key} with value ${val} of type ${typeof val}`,
+          `${basename} yaml must contain only key/value pair of strings. Error parsing key ${key} of type ${typeof key} with value ${val} of type ${typeof val}`,
         );
       }
     }
