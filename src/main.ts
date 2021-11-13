@@ -45,6 +45,15 @@ async function run(): Promise<void> {
     const deployTimeout = core.getInput('deploy_timeout');
     const labels = core.getInput('labels');
 
+    // Add warning if using credentials
+    if (credentials) {
+      core.warning(
+        '"credentials" input has been deprecated. ' +
+          'Please switch to using google-github-actions/auth which supports both Workload Identity Federation and JSON Key authentication. ' +
+          'For more details, see https://github.com/google-github-actions/deploy-cloud-functions#authorization',
+      );
+    }
+
     // Create Cloud Functions client
     const client = new CloudFunctionClient(region, { projectId, credentials });
 

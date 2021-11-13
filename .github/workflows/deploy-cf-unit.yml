@@ -2,6 +2,10 @@ name: deploy-cloud-functions Unit
 
 on: [push, pull_request]
 
+concurrency:
+  group: '${{ github.head_ref || github.ref }}-unit'
+  cancel-in-progress: true
+
 jobs:
   run:
     name: test
