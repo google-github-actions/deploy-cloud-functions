@@ -32,12 +32,16 @@ Cloud Function. See the Authorization section below for more information.
 ```yaml
 steps:
 - uses: actions/checkout@v2
+- id: auth
+  uses: google-github-actions/auth@v0.4.0
+  with:
+    workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
+    service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 - id: deploy
-  uses: google-github-actions/deploy-cloud-functions@main
+  uses: google-github-actions/deploy-cloud-functions@v0.6.0
   with:
     name: my-function
     runtime: nodejs10
-    credentials: ${{ secrets.gcp_credentials }}
 
 # Example of using the output
 - id: test
@@ -55,11 +59,6 @@ steps:
 - `memory_mb`: (Optional) The amount of memory in MB available for a function. Defaults to 256MB.
 
 - `region`: (Optional) [Region](https://cloud.google.com/functions/docs/locations) in which the function should be deployed. Defaults to `us-central1`.
-
-- `credentials`: (Optional) Service account key to use for authentication. This should be
-  the JSON formatted private key which can be exported from the Cloud Console. The
-  value can be raw or base64-encoded. Required if not using a the
-  `setup-gcloud` action with exported credentials.
 
 - `env_vars`: (Optional) List of key-value pairs to set as environment variables in the format:
   `KEY1=VALUE1,KEY2=VALUE2`. All existing environment variables will be
@@ -98,6 +97,11 @@ steps:
 
 - `secrets`: (Optional) List of key-value pairs to set secrets as environment variables or mounted files, delimited by line breaks. Format of expression can be found [here](https://cloud.google.com/sdk/gcloud/reference/beta/functions/deploy#--set-secrets).
 
+- `credentials`: (**Deprecated**) This input is deprecated. See [auth section](https://github.com/google-github-actions/deploy-cloud-functions#via-google-github-actionsauth) for more details.
+  Service account key to use for authentication. This should be
+  the JSON formatted private key which can be exported from the Cloud Console. The
+  value can be raw or base64-encoded.
+
 ## Allow unauthenticated requests
 
 A Cloud Functions product recommendation is that CI/CD systems not set or change
@@ -124,36 +128,40 @@ This service account needs to be a member of the `App Engine default service acc
 `Service Account User` (`roles/iam.serviceAccountUser`). See [additional configuration for deployment](https://cloud.google.com/functions/docs/reference/iam/roles#additional-configuration)
 for further instructions.
 
-### Used with `setup-gcloud`
+### Via google-github-actions/auth
 
-You can provide credentials using the [setup-gcloud][setup-gcloud] action:
+Use [google-github-actions/auth](https://github.com/google-github-actions/auth) to authenticate the action. You can use [Workload Identity Federation][wif] or traditional [Service Account Key JSON][sa] authentication.
+by specifying the `credentials` input. This Action supports both the recommended [Workload Identity Federation][wif] based authentication and the traditional [Service Account Key JSON][sa] based auth.
+
+See [usage](https://github.com/google-github-actions/auth#usage) for more details.
+
+#### Authenticating via Workload Identity Federation
 
 ```yaml
-- uses: google-github-actions/setup-gcloud@master
-  with:
-    service_account_key: ${{ secrets.GCP_SA_KEY }}
-    export_default_credentials: true
 - uses: actions/checkout@v2
-- id: Deploy
-  uses: google-github-actions/deploy-cloud-functions@main
+- id: auth
+  uses: google-github-actions/auth@v0.4.0
+  with:
+    workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
+    service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
+- id: deploy
+  uses: google-github-actions/deploy-cloud-functions@v0.6.0
   with:
     name: my-function
     runtime: nodejs10
 ```
 
-### Via Credentials
-
-You can provide [Google Cloud Service Account JSON][sa] directly to the action
-by specifying the `credentials` input. First, create a [GitHub
-Secret][gh-secret] that contains the JSON content, then import it into the
-action:
+#### Authenticating via Service Account Key JSON
 
 ```yaml
 - uses: actions/checkout@v2
-- id: Deploy
-  uses: google-github-actions/deploy-cloud-functions@main
+- id: auth
+  uses: google-github-actions/auth@v0.4.0
   with:
-    credentials: ${{ secrets.GCP_SA_KEY }}
+    credentials_json: ${{ secrets.gcp_credentials }}
+- id: deploy
+  uses: google-github-actions/deploy-cloud-functions@v0.6.0
+  with:
     name: my-function
     runtime: nodejs10
 ```
@@ -168,7 +176,7 @@ only works using a custom runner hosted on GCP.**
 ```yaml
 - uses: actions/checkout@v2
 - id: Deploy
-  uses: google-github-actions/deploy-cloud-functions@main
+  uses: google-github-actions/deploy-cloud-functions@v0.6.0
   with:
     name: my-function
     runtime: nodejs10
@@ -180,6 +188,7 @@ Credentials.
 [cloud-functions]: https://cloud.google.com/functions
 [runtimes]: https://cloud.google.com/sdk/gcloud/reference/functions/deploy#--runtime
 [sm]: https://cloud.google.com/secret-manager
+[wif]: https://cloud.google.com/iam/docs/workload-identity-federation
 [sa]: https://cloud.google.com/iam/docs/creating-managing-service-accounts
 [gh-runners]: https://help.github.com/en/actions/hosting-your-own-runners/about-self-hosted-runners
 [gh-secret]: https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
