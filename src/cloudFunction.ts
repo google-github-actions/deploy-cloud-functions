@@ -227,7 +227,7 @@ export class CloudFunction {
       if (typeof key !== 'string' || typeof val !== 'string') {
         const basename = path.basename(envVarFilePath);
         throw new Error(
-          `${basename} yaml must contain only key/value pair of strings. Error parsing key ${key} of type ${typeof key} with value ${val} of type ${typeof val}`,
+          `${basename} must contain only key/value pair of strings. Error parsing key ${key} of type ${typeof key} with value ${val} of type ${typeof val}`,
         );
       }
     }
