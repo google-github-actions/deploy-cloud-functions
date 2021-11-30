@@ -192,7 +192,7 @@ describe('CloudFunction', function () {
     expect(function () {
       new CloudFunction({ name, runtime, parent, envVarsFile });
     }).to.throw(
-      'env_vars_file yaml must contain only key/value pair of strings. Error parsing key KEY2 of type string with value VALUE2,VALUE3 of type object',
+      'test.bad.yaml must contain only key/value pair of strings. Error parsing key KEY2 of type string with value VALUE2,VALUE3 of type object',
     );
   });
 
@@ -201,7 +201,7 @@ describe('CloudFunction', function () {
     expect(function () {
       new CloudFunction({ name, runtime, parent, buildEnvVarsFile });
     }).to.throw(
-      'build_env_vars_file yaml must contain only key/value pair of strings. Error parsing key KEY2 of type string with value VALUE2,VALUE3 of type object',
+      'test.bad.yaml must contain only key/value pair of strings. Error parsing key KEY2 of type string with value VALUE2,VALUE3 of type object',
     );
   });
 
