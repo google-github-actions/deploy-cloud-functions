@@ -16,13 +16,7 @@ describe('Zip', function () {
       await zipDir('/not/a/real/path', path.posix.join(os.tmpdir(), name));
       throw new Error('Should have throw error');
     } catch (err) {
-      if (err instanceof Error) {
-        const msg = err.message || '';
-        if (msg.includes('Unable to find')) {
-          return;
-        }
-      }
-      throw err;
+      expect(`${err}`).to.contain('Unable to find');
     }
   });
 
