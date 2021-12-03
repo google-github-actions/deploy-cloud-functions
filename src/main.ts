@@ -89,8 +89,10 @@ async function run(): Promise<void> {
     } else {
       core.info('No URL set. Only HttpsTrigger Cloud Functions have URL.');
     }
-  } catch (error) {
-    core.setFailed(error.message);
+  } catch (err) {
+    core.setFailed(
+      `google-github-actions/deploy-cloud-functions failed with: ${err}`,
+    );
   }
 }
 
