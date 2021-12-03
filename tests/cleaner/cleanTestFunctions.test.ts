@@ -18,24 +18,16 @@ import { expect } from 'chai';
 import { CloudFunctionClient } from '../../src/cloudFunctionClient';
 
 describe('CloudFunction', function () {
-  it('integration test clean up', async function () {
+  it('integration test cleanup', async function () {
     const functionName = process.env.CLEANUP_FUNCTION_NAME;
     if (!functionName) {
       throw new Error('missing CLEANUP_FUNCTION_NAME');
     }
-
-    const credentials = process.env.CLEANUP_CREDENTIALS;
-    if (!credentials) {
-      throw new Error('missing CLEANUP_CREDENTIALS');
-    }
-
     const projectId = functionName.split('/')[1];
-
-    const region = process.env.CF_REGION || 'us-central1';
+    const region = functionName.split('/')[3];
 
     const client = new CloudFunctionClient(region, {
       projectId,
-      credentials,
     });
 
     const deleteF = await client.delete(functionName);
