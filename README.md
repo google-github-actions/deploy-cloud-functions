@@ -112,7 +112,7 @@ automatically private services, while deploying a revision of a public
 
 - `url`: The URL of your Cloud Function. Only available with HTTP Trigger.
 
-- `name`: The full resource name of the function (e.g. `projects/my-project/locations/my-location/functions/my-function.`)
+- `id`: The full resource name of the function (e.g. `projects/my-project/locations/my-location/functions/my-function.`)
 
 - `status`: The status of the function (e.g. `ACTIVE`)
 

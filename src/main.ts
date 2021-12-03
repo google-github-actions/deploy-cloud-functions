@@ -90,7 +90,7 @@ async function run(): Promise<void> {
       } else {
         core.info('No URL set. Only HttpsTrigger Cloud Functions have URL.');
       }
-      core.setOutput('name', resp.name);
+      core.setOutput('id', resp.name);
       core.setOutput('status', resp.status);
       core.setOutput('version', resp.versionId);
       core.setOutput('runtime', resp.runtime);
