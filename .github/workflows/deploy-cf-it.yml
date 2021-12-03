@@ -1,230 +1,215 @@
-name: deploy-cloud-functions Integration
+name: 'integration'
 
 on:
   push:
     branches:
     - 'main'
   pull_request:
+    branches:
+    - 'main'
 
 concurrency:
-  group: '${{ github.head_ref || github.ref }}-it'
+  group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
   cancel-in-progress: true
 
+defaults:
+  # Integration tests require access to secrets. Secrets are only available when
+  # pushed to the main branch or when a PR is created by collaborators.
+  if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
+
 jobs:
-  gcloud:
-    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
-    name: with setup-gcloud
-    runs-on: ubuntu-latest
+  auth_json:
+    name: 'auth_json'
+    runs-on: 'ubuntu-latest'
     steps:
-    - uses: actions/checkout@v2
-    - uses: google-github-actions/setup-gcloud@master # Set up ADC for credentials
-      with:
-        service_account_email: ${{ secrets.DEPLOY_CF_SA_EMAIL }}
-        service_account_key: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
-        export_default_credentials: true
-    - id: build
-      name: Build dist
-      run: |-
-        npm install
-        npm run build
-    - id: deploy
-      uses: ./
-      with:
-        name: cf-http-gcloud-${{ github.run_number }}
-        runtime: nodejs10
-        entry_point: helloWorld
-        source_dir: ./tests/test-node-func/
-    - uses: actions/setup-node@master
-      with:
-        node-version: 12.x
-    - run: npm install
-    - name: integration tests
-      run: npm run e2e-tests
-      env:
-        URL: ${{ steps.deploy.outputs.url }}
-    - name: integration test clean up
-      run: npm run cleanup
-      env:
-        DEPLOY_CF_SA_KEY_JSON: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
-        CF_NAME: projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/cf-http-gcloud-${{ github.run_number }}
+    - uses: 'actions/checkout@v2'
 
-  b64_json:
-    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
-    name: with base64 json creds
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - id: build
-      name: Build dist
-      run: |-
-        npm install
-        npm run build
-    - id: deploy
-      uses: ./
+    - uses: 'actions/setup-node@v2'
       with:
-        name: cf-http-b64-${{ github.run_number }}
-        runtime: nodejs10
-        entry_point: helloWorld
-        source_dir: ./tests/test-node-func/
-        credentials: ${{ secrets.DEPLOY_CF_SA_KEY_B64 }}
-    - uses: actions/setup-node@master
-      with:
-        node-version: 12.x
-    - run: npm install
-    - uses: google-github-actions/setup-gcloud@master # Set up ADC to make authenticated request to service
-      with:
-        service_account_email: ${{ secrets.DEPLOY_CF_SA_EMAIL }}
-        service_account_key: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
-        export_default_credentials: true
-    - name: integration tests
-      run: npm run e2e-tests
-      env:
-        URL: ${{ steps.deploy.outputs.url }}
-    - name: integration test clean up
-      run: npm run cleanup
-      env:
-        DEPLOY_CF_SA_KEY_JSON: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
-        CF_NAME: projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/cf-http-b64-${{ github.run_number }}
+        node-version: '12.x'
 
-  json:
-    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
-    name: with json creds
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - id: build
-      name: Build dist
-      run: |-
-        npm install
-        npm run build
-    - id: deploy
-      uses: ./
-      with:
-        name: cf-http-json-${{ github.run_number }}
-        region: us-east1
-        runtime: nodejs10
-        entry_point: helloWorld
-        memory_mb: 512
-        source_dir: ./tests/test-node-func/
-        credentials: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
-    - uses: actions/setup-node@master
-      with:
-        node-version: 12.x
-    - run: npm install
-    - uses: google-github-actions/setup-gcloud@master # Set up ADC to make authenticated request to service
-      with:
-        service_account_email: ${{ secrets.DEPLOY_CF_SA_EMAIL }}
-        service_account_key: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
-        export_default_credentials: true
-    - name: integration tests
-      run: npm run e2e-tests
-      env:
-        URL: ${{ steps.deploy.outputs.url }}
-    - name: integration test clean up
-      run: npm run cleanup
-      env:
-        DEPLOY_CF_SA_KEY_JSON: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
-        CF_NAME: projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-east1/functions/cf-http-json-${{ github.run_number }}
-        CF_REGION: us-east1
+    - name: 'npm build'
+      run: 'npm ci && npm run build'
 
-  json-event-trigger:
-    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
-    name: test event trigger
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - id: build
-      name: Build dist
-      run: |-
-        npm install
-        npm run build
-    - id: deploy
-      uses: ./
+    - uses: 'google-github-actions/auth@main'
       with:
-        name: cf-event-json-${{ github.run_number }}
-        runtime: nodejs10
-        entry_point: helloWorld
-        source_dir: ./tests/test-node-func/
-        credentials: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
-        event_trigger_type: providers/cloud.pubsub/eventTypes/topic.publish
-        event_trigger_resource: ${{ secrets.DEPLOY_CF_EVENT_PUBSUB_TOPIC }}
-        env_vars_file: './tests/env-var-files/test.good.yaml'
-    - uses: actions/setup-node@master
+        credentials_json: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
+
+    - id: 'deploy'
+      uses: './'
       with:
-        node-version: 12.x
-    - run: npm install
-    - uses: google-github-actions/setup-gcloud@master # Set up ADC to make authenticated request to service
-      with:
-        service_account_email: ${{ secrets.DEPLOY_CF_SA_EMAIL }}
-        service_account_key: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
-        export_default_credentials: true
-    - name: integration test clean up
-      run: npm run cleanup
+        name: 'wif-http-${{ github.run_number }}'
+        runtime: 'nodejs10'
+        entry_point: 'helloWorld'
+        source_dir: './tests/test-node-func/'
+
+    - name: 'integration'
       env:
-        DEPLOY_CF_SA_KEY_JSON: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
-        CF_NAME: projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/cf-event-json-${{ github.run_number }}
-  b64_json_invalid_src:
-    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
-    name: with invalid source dir
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - id: build
-      name: Build dist
-      run: |-
-        npm install
-        npm run build
-    - id: deploy
-      uses: ./
-      continue-on-error: true
-      with:
-        name: cf-http-invalid-${{ github.run_number }}
-        runtime: nodejs10
-        entry_point: helloWorld
-        source_dir: ./foo/bar # invalid source dir
-        credentials: ${{ secrets.DEPLOY_CF_SA_KEY_B64 }}
-    - name: Catch failure
-      run: |-
-        if [ ${{ steps.deploy.outcome }} != 'failure' ]; then exit 1; fi
-  wif:
+        URL: '${{ steps.deploy.outputs.url }}'
+      run: 'npm run e2e-tests'
+
+    - name: 'cleanup'
+      if: ${{ always() }}
+      env:
+        DEPLOY_CF_SA_KEY_JSON: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
+        CF_NAME: 'projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/wif-http-${{ github.run_number }}'
+      run: 'npm run cleanup'
+
+
+  auth_workload_identity_federation:
+    name: 'auth_workload_identity_federation'
     permissions:
       contents: 'read'
       id-token: 'write'
-    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
-    name: with wif
-    runs-on: ubuntu-latest
+    runs-on: 'ubuntu-latest'
     steps:
-    - uses: actions/checkout@v2
-    - uses: google-github-actions/auth@main
+    - uses: 'actions/checkout@v2'
+
+    - uses: 'actions/setup-node@v2'
       with:
-        workload_identity_provider: ${{ secrets.WIF_PROVIDER_NAME }}
-        service_account: ${{ secrets.DEPLOY_CF_SA_EMAIL }}
-    - id: build
-      name: Build dist
-      run: |-
-        npm install
-        npm run build
-    - id: deploy
+        node-version: '12.x'
+
+    - name: 'npm build'
+      run: 'npm ci && npm run build'
+
+    - uses: 'google-github-actions/auth@main'
+      with:
+        workload_identity_provider: '${{ secrets.WIF_PROVIDER_NAME }}'
+        service_account: '${{ secrets.DEPLOY_CF_SA_EMAIL }}'
+
+    - id: 'deploy'
+      uses: './'
+      with:
+        name: 'wif-http-${{ github.run_number }}'
+        runtime: 'nodejs10'
+        entry_point: 'helloWorld'
+        source_dir: './tests/test-node-func/'
+
+    - name: 'integration'
+      env:
+        URL: '${{ steps.deploy.outputs.url }}'
+      run: 'npm run e2e-tests'
+
+    - name: 'cleanup'
+      if: ${{ always() }}
+      env:
+        DEPLOY_CF_SA_KEY_JSON: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
+        CF_NAME: 'projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/wif-http-${{ github.run_number }}'
+      run: 'npm run cleanup'
+
+  # Deprecated
+  auth_setup_gcloud:
+    name: 'auth_setup_gcloud'
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: 'actions/checkout@v2'
+
+    - uses: 'actions/setup-node@v2'
+      with:
+        node-version: '12.x'
+
+    - name: 'npm build'
+      run: 'npm ci && npm run build'
+
+    - uses: 'google-github-actions/setup-gcloud@master'
+      with:
+        service_account_email: '${{ secrets.DEPLOY_CF_SA_EMAIL }}'
+        service_account_key: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
+        export_default_credentials: true
+
+    - id: 'deploy'
       uses: ./
       with:
-        name: wif-http-${{ github.run_number }}
-        runtime: nodejs10
-        entry_point: helloWorld
-        source_dir: ./tests/test-node-func/
-    - uses: actions/setup-node@master
-      with:
-        node-version: 12.x
-    - uses: google-github-actions/setup-gcloud@master # Set up ADC to make authenticated request to service
-      with:
-        service_account_email: ${{ secrets.DEPLOY_CF_SA_EMAIL }}
-        service_account_key: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
-        export_default_credentials: true
-    - name: integration tests
-      run: npm run e2e-tests
+        name: 'cf-http-gcloud-${{ github.run_number }}'
+        runtime: 'nodejs10'
+        entry_point: 'helloWorld'
+        source_dir: './tests/test-node-func/'
+
+    - name: 'integration'
       env:
-        URL: ${{ steps.deploy.outputs.url }}
-    - name: integration test clean up
-      run: npm run cleanup
+        URL: '${{ steps.deploy.outputs.url }}'
+      run: 'npm run e2e-tests'
+
+    - name: 'cleanup'
+      if: ${{ always() }}
       env:
-        DEPLOY_CF_SA_KEY_JSON: ${{ secrets.DEPLOY_CF_SA_KEY_JSON }}
-        CF_NAME: projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/wif-http-${{ github.run_number }}
+        DEPLOY_CF_SA_KEY_JSON: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
+        CF_NAME: 'projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/cf-http-gcloud-${{ github.run_number }}'
+      run: 'npm run cleanup'
+
+  # Deprecated
+  auth_builtin_credentials:
+    name: 'auth_builtin_credentials'
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: 'actions/checkout@v2'
+
+    - uses: 'actions/setup-node@v2'
+      with:
+        node-version: '12.x'
+
+    - name: 'npm build'
+      run: 'npm ci && npm run build'
+
+    - id: 'deploy'
+      uses: './'
+      with:
+        credentials: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
+        name: 'cf-http-json-${{ github.run_number }}'
+        region: us-'east1'
+        runtime: 'nodejs10'
+        entry_point: 'helloWorld'
+        memory_mb: 512
+        source_dir: './tests/test-node-func/'
+
+    - name: 'integration'
+      env:
+        URL: '${{ steps.deploy.outputs.url }}'
+      run: 'npm run e2e-tests'
+
+    - name: 'cleanup'
+      if: ${{ always() }}
+      env:
+        DEPLOY_CF_SA_KEY_JSON: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
+        CF_NAME: 'projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/wif-http-${{ github.run_number }}'
+        CF_REGION: 'us-east1'
+      run: 'npm run cleanup'
+
+  event_trigger:
+    name: 'event_trigger'
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: 'actions/checkout@v2'
+
+    - uses: 'actions/setup-node@v2'
+      with:
+        node-version: '12.x'
+
+    - name: 'npm build'
+      run: 'npm ci && npm run build'
+
+    - uses: 'google-github-actions/auth@main'
+      with:
+        workload_identity_provider: '${{ secrets.WIF_PROVIDER_NAME }}'
+        service_account: '${{ secrets.DEPLOY_CF_SA_EMAIL }}'
+
+    - id: 'deploy'
+      uses: './'
+      with:
+        name: 'cf-event-json-${{ github.run_number }}'
+        runtime: 'nodejs10'
+        entry_point: 'helloWorld'
+        source_dir: './tests/test-node-func/'
+        event_trigger_type: 'providers/cloud.pubsub/eventTypes/topic.publish'
+        event_trigger_resource: '${{ secrets.DEPLOY_CF_EVENT_PUBSUB_TOPIC }}'
+        env_vars_file: './tests/env-var-files/test.good.yaml'
+
+    - name: 'cleanup'
+      if: ${{ always() }}
+      env:
+        DEPLOY_CF_SA_KEY_JSON: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
+        CF_NAME: 'projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/wif-http-${{ github.run_number }}'
+      run: 'npm run cleanup'

@@ -21,6 +21,14 @@ describe('CloudFunction', function () {
     expect(client.auth.jsonContent).eql({ foo: 'bar' });
   });
 
+  it('initializes with base64 JSON creds', function () {
+    const client = new CloudFunctionClient(region, {
+      credentials: Buffer.from(`{"foo":"bar"}`).toString('base64'),
+      projectId: 'test',
+    });
+    expect(client.auth.jsonContent).eql({ foo: 'bar' });
+  });
+
   it('discovers project id from creds', function () {
     const client = new CloudFunctionClient(region, {
       credentials: `{"foo":"bar", "project_id":"baz"}`,
