@@ -112,6 +112,14 @@ automatically private services, while deploying a revision of a public
 
 - `url`: The URL of your Cloud Function. Only available with HTTP Trigger.
 
+- `id`: The full resource name of the function (e.g. `projects/my-project/locations/my-location/functions/my-function.`)
+
+- `status`: The status of the function (e.g. `ACTIVE`)
+
+- `version`: The version of the function (e.g. `1`)
+
+- `runtime`: The chosen runtime (e.g. `nodejs12`)
+
 ## Authorization
 
 There are a few ways to authenticate this action. A service account will be needed

@@ -83,11 +83,19 @@ async function run(): Promise<void> {
     // Deploy function
     const deployFunctionResponse = await client.deploy(newFunc);
 
-    if (deployFunctionResponse.response?.httpsTrigger?.url) {
-      // Set Cloud Function URL as output
-      core.setOutput('url', deployFunctionResponse.response.httpsTrigger.url);
+    const resp = deployFunctionResponse.response;
+    if (resp) {
+      if (resp.httpsTrigger?.url) {
+        core.setOutput('url', resp.httpsTrigger.url);
+      } else {
+        core.info('No URL set. Only HttpsTrigger Cloud Functions have URL.');
+      }
+      core.setOutput('id', resp.name);
+      core.setOutput('status', resp.status);
+      core.setOutput('version', resp.versionId);
+      core.setOutput('runtime', resp.runtime);
     } else {
-      core.info('No URL set. Only HttpsTrigger Cloud Functions have URL.');
+      core.warning('No response from deployment, no outputs were set!');
     }
   } catch (err) {
     core.setFailed(

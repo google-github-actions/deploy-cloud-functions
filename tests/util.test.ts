@@ -11,6 +11,15 @@ const testDirSimpleIgnore = 'tests/test-func-ignore';
 const testDirNodeIgnore = 'tests/test-func-ignore-node';
 const name = `zip-${Math.round(Math.random() * 100000)}`;
 describe('Zip', function () {
+  it('raises an error if sourceDir does not exist', async function () {
+    try {
+      await zipDir('/not/a/real/path', path.posix.join(os.tmpdir(), name));
+      throw new Error('Should have throw error');
+    } catch (err) {
+      expect(`${err}`).to.contain('Unable to find');
+    }
+  });
+
   it('creates a zipfile with correct files without gcloudignore', async function () {
     const zf = await zipDir(
       testDirNoIgnore,
