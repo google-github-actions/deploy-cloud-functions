@@ -12,13 +12,9 @@ concurrency:
   group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
   cancel-in-progress: true
 
-defaults:
-  # Integration tests require access to secrets. Secrets are only available when
-  # pushed to the main branch or when a PR is created by collaborators.
-  if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
-
 jobs:
   auth_json:
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
     name: 'auth_json'
     runs-on: 'ubuntu-latest'
     steps:
@@ -38,7 +34,7 @@ jobs:
     - id: 'deploy'
       uses: './'
       with:
-        name: 'wif-http-${{ github.run_number }}'
+        name: 'auth-json-http-${{ github.run_number }}'
         runtime: 'nodejs10'
         entry_point: 'helloWorld'
         source_dir: './tests/test-node-func/'
@@ -51,12 +47,13 @@ jobs:
     - name: 'cleanup'
       if: ${{ always() }}
       env:
-        DEPLOY_CF_SA_KEY_JSON: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
-        CF_NAME: 'projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/wif-http-${{ github.run_number }}'
+        CLEANUP_CREDENTIALS: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
+        CLEANUP_FUNCTION_NAME: '${{ steps.deploy.outputs.name }}'
       run: 'npm run cleanup'
 
 
   auth_workload_identity_federation:
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
     name: 'auth_workload_identity_federation'
     permissions:
       contents: 'read'
@@ -80,7 +77,7 @@ jobs:
     - id: 'deploy'
       uses: './'
       with:
-        name: 'wif-http-${{ github.run_number }}'
+        name: 'auth-wif-http-${{ github.run_number }}'
         runtime: 'nodejs10'
         entry_point: 'helloWorld'
         source_dir: './tests/test-node-func/'
@@ -93,12 +90,13 @@ jobs:
     - name: 'cleanup'
       if: ${{ always() }}
       env:
-        DEPLOY_CF_SA_KEY_JSON: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
-        CF_NAME: 'projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/wif-http-${{ github.run_number }}'
+        CLEANUP_CREDENTIALS: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
+        CLEANUP_FUNCTION_NAME: '${{ steps.deploy.outputs.name }}'
       run: 'npm run cleanup'
 
   # Deprecated
   auth_setup_gcloud:
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
     name: 'auth_setup_gcloud'
     runs-on: 'ubuntu-latest'
     steps:
@@ -120,7 +118,7 @@ jobs:
     - id: 'deploy'
       uses: ./
       with:
-        name: 'cf-http-gcloud-${{ github.run_number }}'
+        name: 'auth-setup-gcloud-${{ github.run_number }}'
         runtime: 'nodejs10'
         entry_point: 'helloWorld'
         source_dir: './tests/test-node-func/'
@@ -133,12 +131,13 @@ jobs:
     - name: 'cleanup'
       if: ${{ always() }}
       env:
-        DEPLOY_CF_SA_KEY_JSON: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
-        CF_NAME: 'projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/cf-http-gcloud-${{ github.run_number }}'
+        CLEANUP_CREDENTIALS: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
+        CLEANUP_FUNCTION_NAME: '${{ steps.deploy.outputs.name }}'
       run: 'npm run cleanup'
 
   # Deprecated
   auth_builtin_credentials:
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
     name: 'auth_builtin_credentials'
     runs-on: 'ubuntu-latest'
     steps:
@@ -155,8 +154,8 @@ jobs:
       uses: './'
       with:
         credentials: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
-        name: 'cf-http-json-${{ github.run_number }}'
-        region: us-'east1'
+        name: 'auth-builtin-${{ github.run_number }}'
+        region: 'us-east1'
         runtime: 'nodejs10'
         entry_point: 'helloWorld'
         memory_mb: 512
@@ -170,12 +169,13 @@ jobs:
     - name: 'cleanup'
       if: ${{ always() }}
       env:
-        DEPLOY_CF_SA_KEY_JSON: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
-        CF_NAME: 'projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/wif-http-${{ github.run_number }}'
+        CLEANUP_CREDENTIALS: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
+        CLEANUP_FUNCTION_NAME: '${{ steps.deploy.outputs.name }}'
         CF_REGION: 'us-east1'
       run: 'npm run cleanup'
 
   event_trigger:
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
     name: 'event_trigger'
     permissions:
       contents: 'read'
@@ -199,7 +199,7 @@ jobs:
     - id: 'deploy'
       uses: './'
       with:
-        name: 'cf-event-json-${{ github.run_number }}'
+        name: 'event-trigger-${{ github.run_number }}'
         runtime: 'nodejs10'
         entry_point: 'helloWorld'
         source_dir: './tests/test-node-func/'
@@ -210,6 +210,6 @@ jobs:
     - name: 'cleanup'
       if: ${{ always() }}
       env:
-        DEPLOY_CF_SA_KEY_JSON: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
-        CF_NAME: 'projects/${{ secrets.DEPLOY_CF_PROJECT_ID }}/locations/us-central1/functions/wif-http-${{ github.run_number }}'
+        CLEANUP_CREDENTIALS: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
+        CLEANUP_FUNCTION_NAME: '${{ steps.deploy.outputs.name }}'
       run: 'npm run cleanup'

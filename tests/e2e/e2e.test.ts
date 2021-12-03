@@ -27,6 +27,7 @@ describe('E2E tests', function () {
       throw Error('URL not found.');
     }
   });
+
   it('can make a request', async function () {
     // Requires ADC to be set
     const auth = new GoogleAuth();
