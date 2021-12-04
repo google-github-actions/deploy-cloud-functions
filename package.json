@@ -4,7 +4,7 @@
   "description": "Deploy a Cloud Function",
   "main": "dist/index.js",
   "scripts": {
-    "build": "ncc build src/main.ts",
+    "build": "ncc build -m src/main.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "fixlint": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write **/*.ts",
