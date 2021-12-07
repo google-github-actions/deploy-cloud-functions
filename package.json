@@ -5,12 +5,12 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "ncc build -m src/main.ts",
-    "lint": "eslint . --ext .ts,.tsx",
+    "cleanup": "mocha -r ts-node/register -t 240s 'tests/cleaner/*.test.ts'",
+    "e2e-tests": "mocha -r ts-node/register -t 120s 'tests/e2e/*.test.ts'",
     "fixlint": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write **/*.ts",
-    "test": "mocha -r ts-node/register -t 600s 'tests/*.test.ts'",
-    "e2e-tests": "mocha -r ts-node/register -t 120s 'tests/e2e/e2e.test.ts'",
-    "cleanup": "mocha -r ts-node/register -t 240s 'tests/cleaner/cleanTestFunctions.test.ts'"
+    "lint": "eslint . --ext .ts,.tsx",
+    "test": "mocha -r ts-node/register -t 600s 'tests/*.test.ts'"
   },
   "husky": {
     "hooks": {
@@ -33,29 +33,27 @@
   "dependencies": {
     "@actions/core": "^1.6.0",
     "archiver": "^5.3.0",
-    "gaxios": "^4.3.2",
-    "google-auth-library": "^7.10.2",
-    "googleapis": "^92.0.0",
+    "google-auth-library": "^7.10.3",
     "ignore": "^5.1.9",
     "yaml": "^1.10.2"
   },
   "devDependencies": {
     "@types/archiver": "^5.1.1",
-    "@types/chai": "^4.2.22",
-    "@types/lodash": "^4.14.172",
+    "@types/chai": "^4.3.0",
+    "@types/lodash": "^4.14.177",
     "@types/mocha": "^9.0.0",
-    "@types/node": "^16.11.11",
-    "@types/uuid": "^8.3.1",
-    "@typescript-eslint/eslint-plugin": "^5.5.0",
-    "@typescript-eslint/parser": "^5.5.0",
+    "@types/node": "^16.11.12",
+    "@types/uuid": "^8.3.3",
+    "@typescript-eslint/eslint-plugin": "^5.6.0",
+    "@typescript-eslint/parser": "^5.6.0",
     "@vercel/ncc": "^0.33.0",
     "chai": "^4.3.4",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "eslint": "^8.3.0",
+    "eslint": "^8.4.1",
     "mocha": "^9.1.3",
     "node-stream-zip": "^1.15.0",
-    "prettier": "^2.5.0",
+    "prettier": "^2.5.1",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.2"
   }

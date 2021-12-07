@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import * as fs from 'fs';
-import * as core from '@actions/core';
-import { Gaxios } from 'gaxios';
+import fs from 'fs';
 import * as Archiver from 'archiver';
 import * as path from 'path';
 import ignore from 'ignore';
+import YAML from 'yaml';
+
+import { ExternalAccountClientOptions } from 'google-auth-library';
 
 /**
  * Zip a directory.
@@ -27,35 +28,29 @@ import ignore from 'ignore';
  * @param dirPath Directory to zip.
  * @returns filepath of the created zip file.
  */
-export async function zipDir(
-  dirPath: string,
-  outputPath: string,
-): Promise<string> {
+export function zipDir(dirPath: string, outputPath: string): Promise<string> {
   // Check dirpath
   if (!fs.existsSync(dirPath)) {
     throw new Error(`Unable to find ${dirPath}`);
   }
+
   return new Promise((resolve, reject) => {
     // Create output file stream
     const output = fs.createWriteStream(outputPath);
+
+    // Initialize archive
+    const archive = Archiver.create('zip', { zlib: { level: 7 } });
+    archive.on('warning', (err: Archiver.ArchiverError) => {
+      reject(err);
+    });
+    archive.on('error', (err: Archiver.ArchiverError) => {
+      reject(err);
+    });
     output.on('finish', () => {
-      core.info(`zip file ${outputPath} created successfully`);
       resolve(outputPath);
     });
-    // Init archive
-    const archive = Archiver.create('zip');
-    // log archive warnings
-    archive.on('warning', (err: Archiver.ArchiverError) => {
-      if (err.code === 'ENOENT') {
-        core.info(err.message);
-      } else {
-        reject(err);
-      }
-    });
-    // listen for all archive data to be written
-    output.on('close', function () {
-      core.info(`function source zipfile created: ${archive.pointer()} bytes`);
-    });
+
+    // Pipe all archive data to be written
     archive.pipe(output);
 
     // gcloudignore
@@ -71,6 +66,7 @@ export async function zipDir(
 
     // Add files in dir to archive iff file not ignored
     archive.directory(dirPath, false, gIgnoreF);
+
     // Finish writing files
     archive.finalize();
   });
@@ -94,52 +90,233 @@ export function getGcloudIgnores(dir: string): string[] {
 }
 
 /**
- * Deletes a zip file from disk.
+ * removeFile removes the file at the given path. If the file does not exist, it
+ * does nothing.
  *
- * @param filePath File to delete.
- * @returns Boolean success/failure.
+ * @param filePath Path of the file on disk to delete.
+ * @returns Path of the file that was removed.
  */
-export async function deleteZipFile(filePath: string): Promise<boolean> {
-  // check dirpath
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Unable to find ${filePath}`);
-  }
-  fs.unlink(filePath, (err) => {
-    if (err) {
-      console.error(err);
-      return false;
+export function removeFile(filePath: string): string {
+  try {
+    fs.unlinkSync(filePath);
+    return filePath;
+  } catch (err) {
+    const msg = errorMessage(err);
+
+    if (msg.includes('ENOENT')) {
+      return '';
     }
-  });
-  return true;
+
+    throw new Error(`Failed to file: ${msg}`);
+  }
 }
 
 /**
- * Upload a file to a Signed URL.
- *
- * @param uploadUrl Signed URL.
- * @param zipPath File to upload.
- * @returns uploaded URL.
+ * fromBase64 base64 decodes the result, taking into account URL and standard
+ * encoding with and without padding.
  */
-export async function uploadSource(
-  uploadUrl: string,
-  zipPath: string,
-): Promise<string> {
-  const zipFile = fs.createReadStream(zipPath);
-  const client = new Gaxios({ retryConfig: { retry: 5 } });
-  const resp = await client.request({
-    method: 'PUT',
-    body: zipFile,
-    url: uploadUrl,
-    headers: {
-      'content-type': 'application/zip',
-      'x-goog-content-length-range': '0,104857600',
-    },
-  });
-  if (resp.status != 200) {
-    throw new Error(
-      `Failed to upload function source code: ${resp.statusText}`,
+export function fromBase64(s: string): string {
+  let str = s.replace(/-/g, '+').replace(/_/g, '/');
+  while (str.length % 4) str += '=';
+  return Buffer.from(str, 'base64').toString('utf8');
+}
+
+export type ServiceAccountKey = {
+  type: string;
+  project_id: string;
+  private_key_id: string;
+  private_key: string;
+  client_email: string;
+  client_id: string;
+  auth_uri: string;
+  token_uri: string;
+  auth_provider_x509_cert_url: string;
+  client_x509_cert_url: string;
+};
+
+/**
+ * parseServiceAccountKeyJSON attempts to parse the given string as a service
+ * account key JSON. It handles if the string is base64-encoded.
+ */
+export function parseServiceAccountKeyJSON(
+  str: string,
+): ServiceAccountKey | ExternalAccountClientOptions {
+  if (!str) str = '';
+
+  str = str.trim();
+  if (!str) {
+    throw new Error(`Missing service account key JSON (got empty value)`);
+  }
+
+  // If the string doesn't start with a JSON object character, it is probably
+  // base64-encoded.
+  if (!str.startsWith('{')) {
+    str = fromBase64(str);
+  }
+
+  let creds: ServiceAccountKey | ExternalAccountClientOptions;
+  try {
+    creds = JSON.parse(str);
+  } catch (err) {
+    const msg = errorMessage(err);
+    throw new SyntaxError(
+      `Failed to parse service account key JSON credentials: ${msg}`,
     );
   }
-  core.info(`zip file ${zipPath} uploaded successfully`);
-  return uploadUrl;
+
+  return creds;
+}
+
+/**
+ * isServiceAccountKey returns true if the given interface is a
+ * ServiceAccountKey, false otherwise.
+ */
+export function isServiceAccountKey(
+  obj: ServiceAccountKey | ExternalAccountClientOptions,
+): obj is ServiceAccountKey {
+  return (obj as ServiceAccountKey).project_id !== undefined;
+}
+
+/**
+ * KVPair represents a KEY=VALUE pair of strings.
+ */
+type KVPair = Record<string, string>;
+
+/**
+ * Parses a string of the format `KEY1=VALUE1,KEY2=VALUE2`.
+ *
+ * @param str String with key/value pairs to parse.
+ */
+export function parseKVString(str: string): KVPair {
+  if (!str || str.trim().length === 0) {
+    return {};
+  }
+
+  const result: KVPair = {};
+  const pairs = str.split(/(?<!\\),/gi);
+  for (let i = 0; i < pairs.length; i++) {
+    const pair = pairs[i];
+    let [k, v] = pair.split('=', 2);
+    if (!k || !v) {
+      throw new SyntaxError(`Failed to parse KEY=VALUE pair "${pair}"`);
+    }
+
+    k = k.trim();
+    k = k.replace(/\\,/gi, ',');
+
+    v = v.trim();
+    v = v.replace(/\\,/gi, ',');
+
+    result[k] = v;
+  }
+
+  return result;
+}
+
+/**
+ * Read and parse an env var file.
+ *
+ * @param filePath Path to the file on disk to parse.
+ */
+export function parseKVFile(filePath: string): KVPair {
+  let content: string;
+  try {
+    content = fs.readFileSync(filePath, 'utf-8');
+  } catch (err) {
+    const msg = errorMessage(err);
+    throw new Error(`Failed to read file '${filePath}': ${msg}`);
+  }
+
+  return parseKVYAML(content);
+}
+
+/**
+ * Read and parse contents of the string as YAML. This is mostly just exposed
+ * for testing.
+ *
+ * @param str YAML content to parse as K=V pairs.
+ */
+export function parseKVYAML(str: string): KVPair {
+  if (!str || str.trim().length === 0) {
+    return {};
+  }
+
+  const yamlContent = YAML.parse(str) as KVPair;
+
+  const result: KVPair = {};
+  for (const [k, v] of Object.entries(yamlContent)) {
+    if (typeof k !== 'string' || typeof v !== 'string') {
+      throw new SyntaxError(
+        `env_vars_file must contain only KEY: VALUE strings. Error parsing key ${k} of type ${typeof k} with value ${v} of type ${typeof v}`,
+      );
+    }
+    result[k.trim()] = v.trim();
+  }
+
+  return result;
+}
+
+/**
+ * parseKVStringAndFile parses the given KV string and KV file, merging the
+ * results (with kvString taking precedence).
+ *
+ * @param kvString String of KEY=VALUE pairs.
+ * @param kvFilePath Path on disk to a YAML file of KEY: VALUE pairs.
+ */
+export function parseKVStringAndFile(
+  kvString?: string,
+  kvFilePath?: string,
+): KVPair {
+  kvString = (kvString || '').trim();
+  kvFilePath = (kvFilePath || '').trim();
+
+  let result: Record<string, string> = {};
+
+  if (kvFilePath) {
+    const parsed = parseKVFile(kvFilePath);
+    result = { ...result, ...parsed };
+  }
+
+  if (kvString) {
+    const parsed = parseKVString(kvString);
+    result = { ...result, ...parsed };
+  }
+
+  return result;
+}
+
+/**
+ * presence takes the given string and converts it to undefined iff it's null,
+ * undefined, or the empty string. Otherwise, it returns the trimmed string.
+ *
+ * @param str The string to check
+ */
+export function presence(str: string | null | undefined): string | undefined {
+  if (!str) return undefined;
+
+  str = str.trim();
+  if (!str) return undefined;
+
+  return str;
+}
+
+/**
+ * errorMessage extracts the error message from the given error.
+ */
+export function errorMessage(err: unknown): string {
+  if (!err) {
+    return '';
+  }
+
+  let msg = err instanceof Error ? err.message : `${err}`;
+  msg = msg.trim();
+  msg = msg.replace('Error: ', '');
+  msg = msg.trim();
+
+  if (!msg) {
+    return '';
+  }
+
+  msg = msg[0].toLowerCase() + msg.slice(1);
+  return msg;
 }
