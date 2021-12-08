@@ -421,7 +421,7 @@ describe('Zip', function () {
     const filesInsideZip = await getFilesInZip(zf);
     const expectedFiles = getNonIgnoredFiles(testDirNoIgnore, testDirNoIgnore);
 
-    expect(await filesInsideZip.length).equal(expectedFiles.length);
+    expect(filesInsideZip).eql(expectedFiles);
     filesInsideZip.forEach((f) => expect(expectedFiles).to.include(f));
   });
 
@@ -437,7 +437,7 @@ describe('Zip', function () {
       new Set(['ignore.txt', '.gcloudignore']),
     );
 
-    expect(await filesInsideZip.length).equal(expectedFiles.length);
+    expect(filesInsideZip).eql(expectedFiles);
     filesInsideZip.forEach((f) => expect(expectedFiles).to.include(f));
   });
 
@@ -453,7 +453,7 @@ describe('Zip', function () {
       new Set(['bar/bar.txt', 'bar/baz/baz.txt']),
     );
 
-    expect(await filesInsideZip.length).equal(expectedFiles.length);
+    expect(filesInsideZip).eql(expectedFiles);
     filesInsideZip.forEach((f) => expect(expectedFiles).to.include(f));
   });
 });
