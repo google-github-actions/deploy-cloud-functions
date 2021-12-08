@@ -102,6 +102,20 @@ async function run(): Promise<void> {
       // from a docker repo.
       throw new Error(`Missing required value 'source_dir'`);
     }
+    if (dockerRepository || kmsKeyName) {
+      if (!dockerRepository) {
+        throw new Error(
+          `Missing required field 'docker_repository'. This is required when ` +
+            `'kms_key_name' is set.`,
+        );
+      }
+      if (!kmsKeyName) {
+        throw new Error(
+          `Missing required field 'kms_key_name'. This is required when ` +
+            `'docker_repository' is set.`,
+        );
+      }
+    }
 
     // Create Cloud Functions client
     const client = new CloudFunctionsClient({
