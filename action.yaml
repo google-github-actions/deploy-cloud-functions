@@ -134,6 +134,19 @@ inputs:
     default: 300
     required: false
 
+  build_environment_variables:
+    description: |-
+      Optional list of environment variables that should be available while the
+      function is built. Note this is different than runtime environment
+      variables, which should be set with 'env_vars'.
+    required: false
+
+  build_environment_variables_file:
+    description: |-
+      Path to a local YAML file containing variables. See 'env_vars_file' for
+      syntax.
+    required: false
+
 outputs:
   url:
     description: The URL of your Cloud Function. Only available with HTTP Trigger.

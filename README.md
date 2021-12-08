@@ -95,6 +95,13 @@ steps:
 
 - `deploy_timeout`: (Optional) The function deployment timeout in seconds. Defaults to 300.
 
+- `build_environment_variables`: (Optional) List of environment variables that
+  should be available while the function is built. Note this is different than
+  runtime environment variables, which should be set with 'env_vars'.
+
+- `build_environment_variables_file`: (Optional) Path to a local YAML file
+  containing variables. See 'env_vars_file' for syntax.
+
 - `credentials`: (**Deprecated**) This input is deprecated. See [auth section](https://github.com/google-github-actions/deploy-cloud-functions#via-google-github-actionsauth) for more details.
   Service account key to use for authentication. This should be
   the JSON formatted private key which can be exported from the Cloud Console. The
