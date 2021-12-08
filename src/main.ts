@@ -27,6 +27,7 @@ import { CloudFunctionsClient, CloudFunction } from './client';
 import {
   errorMessage,
   isServiceAccountKey,
+  parseDuration,
   parseKVString,
   parseKVStringAndFile,
   parseServiceAccountKeyJSON,
@@ -54,7 +55,7 @@ async function run(): Promise<void> {
     );
     const ingressSettings = presence(getInput('ingress_settings'));
     const serviceAccountEmail = presence(getInput('service_account_email'));
-    const timeout = presence(getInput('timeout'));
+    const timeout = parseDuration(getInput('timeout'));
     const maxInstances = presence(getInput('max_instances'));
     const minInstances = presence(getInput('min_instances'));
     const eventTriggerType = presence(getInput('event_trigger_type'));
@@ -118,6 +119,11 @@ async function run(): Promise<void> {
         );
       }
     }
+    if (timeout <= 0) {
+      throw new Error(
+        `The 'timeout' parameter must be > 0 seconds (got ${timeout})`,
+      );
+    }
 
     // Create Cloud Functions client
     const client = new CloudFunctionsClient({
@@ -151,7 +157,7 @@ async function run(): Promise<void> {
       // network: network, // TODO: add support
       serviceAccountEmail: serviceAccountEmail,
       // sourceToken: sourceToken, // TODO: add support
-      timeout: timeout,
+      timeout: `${timeout}s`,
       vpcConnector: vpcConnector,
       vpcConnectorEgressSettings: vpcConnectorEgressSettings,
     };

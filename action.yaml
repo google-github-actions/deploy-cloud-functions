@@ -106,6 +106,7 @@ inputs:
   timeout:
     description: |-
       The function execution timeout.
+    default: '60s'
     required: false
 
   min_instances:
