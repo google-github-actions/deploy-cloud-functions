@@ -62,6 +62,11 @@ async function run(): Promise<void> {
     const deployTimeout = presence(getInput('deploy_timeout'));
     const labels = parseKVString(getInput('labels'));
 
+    const buildEnvVars = presence(getInput('build_environment_variables'));
+    const buildEnvVarsFile = presence(
+      getInput('build_environment_variables_file'),
+    );
+
     // Add warning if using credentials
     let credentialsJSON:
       | ServiceAccountKey
@@ -102,6 +107,10 @@ async function run(): Promise<void> {
       credentials: credentialsJSON,
     });
 
+    const buildEnvironmentVariables = parseKVStringAndFile(
+      buildEnvVars,
+      buildEnvVarsFile,
+    );
     const environmentVariables = parseKVStringAndFile(envVars, envVarsFile);
 
     // Create Function definition
@@ -110,7 +119,7 @@ async function run(): Promise<void> {
       runtime: runtime,
       description: description,
       availableMemoryMb: availableMemoryMb ? +availableMemoryMb : undefined,
-      // buildEnvironmentVariables: buildEnvironmentVariables, // TODO: add support
+      buildEnvironmentVariables: buildEnvironmentVariables,
       // buildWorkerPool: buildWorkerPool, // TODO: add support
       // dockerRepository: dockerRepository, // TODO: add support
       entryPoint: entryPoint,

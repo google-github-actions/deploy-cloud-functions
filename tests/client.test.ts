@@ -74,6 +74,7 @@ describe('CloudFunctionsClient', () => {
         name: testFunctionName,
         runtime: 'nodejs12',
         environmentVariables: { KEY1: 'VALUE1' },
+        buildEnvironmentVariables: { KEY1: 'VALUE1' },
         entryPoint: 'helloWorld',
         availableMemoryMb: 512,
         sourceUploadUrl: sourceURL,
