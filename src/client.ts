@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,12 @@ const defaultBaseURL = 'https://cloudfunctions.googleapis.com/v1';
 
 // defaultTimeout is the default timeout in seconds.
 const defaultTimeout = 300;
+
+// cloudFunctionResourceNamePattern is the regular expression to use to match
+// resource names.
+const cloudFunctionResourceNamePattern = new RegExp(
+  /^projects\/.+\/locations\/.+\/functions\/.+$/gi,
+);
 
 export type CloudFunctionClientOptions = {
   projectID?: string;
@@ -352,7 +358,7 @@ export class CloudFunctionsClient {
   }
 
   /**
-   * Deletes a function with the given name.
+   * delete removes a function with the given name.
    *
    * @param name Full resource name of the Cloud Function.
    */
@@ -549,21 +555,25 @@ export class CloudFunctionsClient {
       throw new Error(`Failed to parse resource name: name cannot be empty`);
     }
 
-    if (name.startsWith('projects/')) {
-      return name;
+    if (name.includes('/')) {
+      if (name.match(cloudFunctionResourceNamePattern)) {
+        return name;
+      } else {
+        throw new Error(`Invalid resource name '${name}'`);
+      }
     }
 
     const projectID = this.#projectID;
     if (!projectID) {
       throw new Error(
-        `Failed to get project ID to build resource name. Try setting "project_id".`,
+        `Failed to get project ID to build resource name. Try setting 'project_id'.`,
       );
     }
 
     const location = this.#location;
     if (!location) {
       throw new Error(
-        `Failed to get location (region) to build resource name. Try setting "region".`,
+        `Failed to get location (region) to build resource name. Try setting 'region'.`,
       );
     }
 

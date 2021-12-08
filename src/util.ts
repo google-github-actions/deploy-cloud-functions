@@ -193,6 +193,9 @@ export function parseKVString(str: string): KVPair {
   }
 
   const result: KVPair = {};
+
+  // This regular expression uses a lookahead to split on commas which are not
+  // preceeded by an escape character (slash).
   const pairs = str.split(/(?<!\\),/gi);
   for (let i = 0; i < pairs.length; i++) {
     const pair = pairs[i];
@@ -201,9 +204,11 @@ export function parseKVString(str: string): KVPair {
       throw new SyntaxError(`Failed to parse KEY=VALUE pair "${pair}"`);
     }
 
+    // Trim any key whitespace and un-escape any escaped commas.
     k = k.trim();
     k = k.replace(/\\,/gi, ',');
 
+    // Trim any value whitespace and un-escape any escaped commas.
     v = v.trim();
     v = v.replace(/\\,/gi, ',');
 

@@ -129,6 +129,18 @@ describe('CloudFunctionsClient', () => {
         error: 'Failed to get location (region) to build resource name',
       },
       {
+        name: 'invalid resource name',
+        client: new CloudFunctionsClient(),
+        input: 'projects/foo',
+        error: 'Invalid resource name',
+      },
+      {
+        name: 'full resource name',
+        client: new CloudFunctionsClient(),
+        input: 'projects/p/locations/l/functions/f',
+        expected: 'projects/p/locations/l/functions/f',
+      },
+      {
         name: 'builds location',
         client: new CloudFunctionsClient({ projectID: 'p', location: 'l' }),
         input: 'f',
