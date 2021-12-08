@@ -14,92 +14,178 @@
  * limitations under the License.
  */
 
-import * as core from '@actions/core';
-import { CloudFunctionClient } from './cloudFunctionClient';
-import { CloudFunction } from './cloudFunction';
+import {
+  getInput,
+  info as logInfo,
+  setFailed,
+  setOutput,
+  warning as logWarning,
+} from '@actions/core';
+import { ExternalAccountClientOptions } from 'google-auth-library';
+
+import { CloudFunctionsClient, CloudFunction } from './client';
+import {
+  errorMessage,
+  isServiceAccountKey,
+  parseKVString,
+  parseKVStringAndFile,
+  parseServiceAccountKeyJSON,
+  presence,
+  ServiceAccountKey,
+} from './util';
 
 async function run(): Promise<void> {
   try {
     // Get inputs
-    const name = core.getInput('name', { required: true });
-    const runtime = core.getInput('runtime', { required: true });
-    const credentials = core.getInput('credentials');
-    const projectId = core.getInput('project_id');
-    const availableMemoryMb = core.getInput('memory_mb');
-    const region = core.getInput('region') || 'us-central1';
-    const envVars = core.getInput('env_vars');
-    const envVarsFile = core.getInput('env_vars_file');
-    const entryPoint = core.getInput('entry_point');
-    const sourceDir = core.getInput('source_dir');
-    const vpcConnector = core.getInput('vpc_connector');
-    const vpcConnectorEgressSettings = core.getInput(
-      'vpc_connector_egress_settings',
+    const name = getInput('name', { required: true });
+    const runtime = getInput('runtime', { required: true });
+    const description = presence(getInput('description'));
+    const credentials = presence(getInput('credentials'));
+    let projectID = presence(getInput('project_id'));
+    const availableMemoryMb = presence(getInput('memory_mb'));
+    const region = presence(getInput('region') || 'us-central1');
+    const envVars = presence(getInput('env_vars'));
+    const envVarsFile = presence(getInput('env_vars_file'));
+    const entryPoint = presence(getInput('entry_point'));
+    const sourceDir = presence(getInput('source_dir'));
+    const vpcConnector = presence(getInput('vpc_connector'));
+    const vpcConnectorEgressSettings = presence(
+      getInput('vpc_connector_egress_settings'),
     );
-    const ingressSettings = core.getInput('ingress_settings');
-    const serviceAccountEmail = core.getInput('service_account_email');
-    const timeout = core.getInput('timeout');
-    const maxInstances = core.getInput('max_instances');
-    const eventTriggerType = core.getInput('event_trigger_type');
-    const eventTriggerResource = core.getInput('event_trigger_resource');
-    const eventTriggerService = core.getInput('event_trigger_service');
-    const deployTimeout = core.getInput('deploy_timeout');
-    const labels = core.getInput('labels');
+    const ingressSettings = presence(getInput('ingress_settings'));
+    const serviceAccountEmail = presence(getInput('service_account_email'));
+    const timeout = presence(getInput('timeout'));
+    const maxInstances = presence(getInput('max_instances'));
+    const eventTriggerType = presence(getInput('event_trigger_type'));
+    const eventTriggerResource = presence(getInput('event_trigger_resource'));
+    const eventTriggerService = presence(getInput('event_trigger_service'));
+    const deployTimeout = presence(getInput('deploy_timeout'));
+    const labels = parseKVString(getInput('labels'));
 
     // Add warning if using credentials
+    let credentialsJSON:
+      | ServiceAccountKey
+      | ExternalAccountClientOptions
+      | undefined;
     if (credentials) {
-      core.warning(
-        '"credentials" input has been deprecated. ' +
+      logWarning(
+        'The "credentials" input is deprecated. ' +
           'Please switch to using google-github-actions/auth which supports both Workload Identity Federation and JSON Key authentication. ' +
           'For more details, see https://github.com/google-github-actions/deploy-cloud-functions#authorization',
       );
+
+      credentialsJSON = parseServiceAccountKeyJSON(credentials);
+    }
+
+    // Pick the best project ID.
+    if (!projectID) {
+      if (credentialsJSON && isServiceAccountKey(credentialsJSON)) {
+        projectID = credentialsJSON?.project_id;
+        logInfo(`Extracted project ID '${projectID}' from credentials JSON`);
+      } else if (process.env?.GCLOUD_PROJECT) {
+        projectID = process.env.GCLOUD_PROJECT;
+        logInfo(`Extracted project ID '${projectID}' from $GCLOUD_PROJECT`);
+      }
+    }
+
+    // Validation
+    if (!sourceDir) {
+      // Note: this validation will need to go away once we support deploying
+      // from a docker repo.
+      throw new Error(`Missing required value 'source_dir'`);
     }
 
     // Create Cloud Functions client
-    const client = new CloudFunctionClient(region, { projectId, credentials });
-
-    // Create Function definition
-    const newFunc = new CloudFunction({
-      name: name,
-      parent: client.parent,
-      sourceDir,
-      runtime,
-      availableMemoryMb: +availableMemoryMb,
-      entryPoint,
-      envVars,
-      envVarsFile,
-      timeout,
-      maxInstances: +maxInstances,
-      eventTriggerType,
-      eventTriggerResource,
-      eventTriggerService,
-      deployTimeout,
-      vpcConnector,
-      vpcConnectorEgressSettings,
-      ingressSettings,
-      serviceAccountEmail,
-      labels,
+    const client = new CloudFunctionsClient({
+      projectID: projectID,
+      location: region,
+      credentials: credentialsJSON,
     });
 
-    // Deploy function
-    const deployFunctionResponse = await client.deploy(newFunc);
+    const environmentVariables = parseKVStringAndFile(envVars, envVarsFile);
 
-    const resp = deployFunctionResponse.response;
-    if (resp) {
-      if (resp.httpsTrigger?.url) {
-        core.setOutput('url', resp.httpsTrigger.url);
-      } else {
-        core.info('No URL set. Only HttpsTrigger Cloud Functions have URL.');
-      }
-      core.setOutput('id', resp.name);
-      core.setOutput('status', resp.status);
-      core.setOutput('version', resp.versionId);
-      core.setOutput('runtime', resp.runtime);
+    // Create Function definition
+    const cf: CloudFunction = {
+      name: name,
+      runtime: runtime,
+      description: description,
+      availableMemoryMb: availableMemoryMb ? +availableMemoryMb : undefined,
+      // buildEnvironmentVariables: buildEnvironmentVariables, // TODO: add support
+      // buildWorkerPool: buildWorkerPool, // TODO: add support
+      // dockerRepository: dockerRepository, // TODO: add support
+      entryPoint: entryPoint,
+      environmentVariables: environmentVariables,
+      ingressSettings: ingressSettings,
+      // kmsKeyName: kmsKeyName, // TODO: add support
+      labels: labels,
+      maxInstances: maxInstances ? +maxInstances : undefined,
+      // minInstances: minInstances ? + minInstances : undefined, // TODO: add support
+      // network: network, // TODO: add support
+      serviceAccountEmail: serviceAccountEmail,
+      // sourceToken: sourceToken, // TODO: add support
+      timeout: timeout,
+      vpcConnector: vpcConnector,
+      vpcConnectorEgressSettings: vpcConnectorEgressSettings,
+    };
+
+    if (eventTriggerType && eventTriggerResource) {
+      cf.eventTrigger = {
+        eventType: eventTriggerType,
+        resource: eventTriggerResource,
+        service: eventTriggerService,
+      };
+    } else if (
+      eventTriggerType ||
+      eventTriggerResource ||
+      eventTriggerService
+    ) {
+      throw new Error(
+        `Event triggered functions must define 'event_trigger_type' and 'event_trigger_resource'`,
+      );
     } else {
-      core.warning('No response from deployment, no outputs were set!');
+      cf.httpsTrigger = {};
     }
+
+    // Deploy the Cloud Function
+    const resp = await client.deployFromLocalSource(cf, sourceDir, {
+      timeout: deployTimeout ? +deployTimeout : undefined,
+      onZip: (sourceDir: string, zipPath: string) => {
+        logInfo(`Created zip file from '${sourceDir}' at '${zipPath}'`);
+      },
+      onNew: () => {
+        logInfo('Creating new Cloud Function deployment');
+      },
+      onExisting: () => {
+        logInfo('Creating new Cloud Function revision');
+      },
+      onPoll: ((): (() => void) => {
+        let iteration = 0;
+        return () => {
+          if (iteration === 0) {
+            logInfo('Deploying Cloud Function');
+          } else {
+            logInfo(`Still deploying Cloud Function (${iteration}/n)`);
+          }
+          iteration++;
+        };
+      })(),
+    });
+    if (resp.httpsTrigger?.url) {
+      setOutput('url', resp.httpsTrigger.url);
+    } else {
+      logWarning(
+        `Output 'url' was not set - only httpsTrigger Cloud Functions return this attribute.`,
+      );
+    }
+
+    setOutput('id', resp.name);
+    setOutput('status', resp.status);
+    setOutput('version', resp.versionId);
+    setOutput('runtime', resp.runtime);
   } catch (err) {
-    core.setFailed(
-      `google-github-actions/deploy-cloud-functions failed with: ${err}`,
+    const msg = errorMessage(err);
+    setFailed(
+      `google-github-actions/deploy-cloud-functions failed with: ${msg}`,
     );
   }
 }

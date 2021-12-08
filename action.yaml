@@ -21,9 +21,9 @@ author: Google LLC
 inputs:
   credentials:
     description: |-
-      Optional service account key to use for authentication to GCP. This should be the JSON
-      formatted private key which can be exported from the Cloud Console. The
-      value can be raw or base64-encoded.
+      (DEPRECATED) Optional service account key to use for authentication to
+      GCP. This should be the JSON formatted private key which can be exported
+      from the Cloud Console. The value can be raw or base64-encoded.
     required: false
 
   name:
@@ -38,17 +38,19 @@ inputs:
 
   project_id:
     description: |-
-      Project to deploy the function in.
+      ID of the project in which to deploy the Cloud Function.
     required: false
 
   region:
     description: |-
       Region to deploy the function in. Defaults to us-central1, if not specified.
+    default: 'us-central1'
     required: false
 
   source_dir:
     description: |-
       Path to function deployment directory within the source repo.
+    default: './'
     required: false
 
   env_vars:
@@ -129,12 +131,26 @@ inputs:
   deploy_timeout:
     description: |-
       The function deployment timeout in seconds.
+    default: 300
     required: false
 
 outputs:
   url:
     description: The URL of your Cloud Function. Only available with HTTP Trigger.
+  id:
+    description: |-
+      Full resource name of the Cloud Function, of the format
+      'projects/p/locations/l/functions/f'.
+  status:
+    description: |-
+      Status of the Cloud Function deployment.
+  version:
+    description: |-
+      Version of the Cloud Function deployment.
+  runtime:
+    description: |-
+      Runtime of the Cloud Function deployment.
 
 runs:
-  using: "node12"
-  main: "dist/index.js"
+  using: 'node12'
+  main: 'dist/index.js'

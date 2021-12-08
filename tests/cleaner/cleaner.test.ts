@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import { CloudFunctionClient } from '../../src/cloudFunctionClient';
+import { CloudFunctionsClient } from '../../src/client';
 
 describe('CloudFunction', function () {
   it('integration test cleanup', async function () {
@@ -23,14 +23,10 @@ describe('CloudFunction', function () {
     if (!functionName) {
       throw new Error('missing CLEANUP_FUNCTION_NAME');
     }
-    const projectId = functionName.split('/')[1];
-    const region = functionName.split('/')[3];
 
-    const client = new CloudFunctionClient(region, {
-      projectId,
-    });
+    const client = new CloudFunctionsClient();
 
     const deleteF = await client.delete(functionName);
-    expect(deleteF.done).to.eq(true);
+    expect(deleteF.done).to.be.true;
   });
 });

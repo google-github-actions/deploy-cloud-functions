@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import 'mocha';
+import { expect } from 'chai';
+
 import { GoogleAuth } from 'google-auth-library';
 
-describe('E2E tests', function () {
+describe('e2e tests', () => {
   let URL: string;
   before(function () {
     if (process.env.URL) {
@@ -28,7 +29,7 @@ describe('E2E tests', function () {
     }
   });
 
-  it('can make a request', async function () {
+  it('makes a request', async () => {
     // Requires ADC to be set
     const auth = new GoogleAuth();
     const client = await auth.getIdTokenClient(URL);
