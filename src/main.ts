@@ -56,6 +56,7 @@ async function run(): Promise<void> {
     const serviceAccountEmail = presence(getInput('service_account_email'));
     const timeout = presence(getInput('timeout'));
     const maxInstances = presence(getInput('max_instances'));
+    const minInstances = presence(getInput('min_instances'));
     const eventTriggerType = presence(getInput('event_trigger_type'));
     const eventTriggerResource = presence(getInput('event_trigger_resource'));
     const eventTriggerService = presence(getInput('event_trigger_service'));
@@ -66,6 +67,7 @@ async function run(): Promise<void> {
     const buildEnvVarsFile = presence(
       getInput('build_environment_variables_file'),
     );
+    const buildWorkerPool = presence(getInput('build_worker_pool'));
 
     const dockerRepository = presence(getInput('docker_repository'));
     const kmsKeyName = presence(getInput('kms_key_name'));
@@ -137,7 +139,7 @@ async function run(): Promise<void> {
       description: description,
       availableMemoryMb: availableMemoryMb ? +availableMemoryMb : undefined,
       buildEnvironmentVariables: buildEnvironmentVariables,
-      // buildWorkerPool: buildWorkerPool, // TODO: add support
+      buildWorkerPool: buildWorkerPool,
       dockerRepository: dockerRepository,
       entryPoint: entryPoint,
       environmentVariables: environmentVariables,
@@ -145,7 +147,7 @@ async function run(): Promise<void> {
       kmsKeyName: kmsKeyName,
       labels: labels,
       maxInstances: maxInstances ? +maxInstances : undefined,
-      // minInstances: minInstances ? + minInstances : undefined, // TODO: add support
+      minInstances: minInstances ? +minInstances : undefined,
       // network: network, // TODO: add support
       serviceAccountEmail: serviceAccountEmail,
       // sourceToken: sourceToken, // TODO: add support

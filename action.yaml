@@ -108,6 +108,11 @@ inputs:
       The function execution timeout.
     required: false
 
+  min_instances:
+    description: |-
+      The minimum number of instances for the function.
+    required: false
+
   max_instances:
     description: |-
       The maximum number of instances for the function.
@@ -132,6 +137,12 @@ inputs:
     description: |-
       The function deployment timeout in seconds.
     default: 300
+    required: false
+
+  build_worker_pool:
+    description: |-
+      Name of the Cloud Build Custom Worker Pool that should be used to build
+      the function.
     required: false
 
   build_environment_variables:
