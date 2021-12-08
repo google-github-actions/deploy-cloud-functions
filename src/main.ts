@@ -67,6 +67,9 @@ async function run(): Promise<void> {
       getInput('build_environment_variables_file'),
     );
 
+    const dockerRepository = presence(getInput('docker_repository'));
+    const kmsKeyName = presence(getInput('kms_key_name'));
+
     // Add warning if using credentials
     let credentialsJSON:
       | ServiceAccountKey
@@ -99,6 +102,20 @@ async function run(): Promise<void> {
       // from a docker repo.
       throw new Error(`Missing required value 'source_dir'`);
     }
+    if (dockerRepository || kmsKeyName) {
+      if (!dockerRepository) {
+        throw new Error(
+          `Missing required field 'docker_repository'. This is required when ` +
+            `'kms_key_name' is set.`,
+        );
+      }
+      if (!kmsKeyName) {
+        throw new Error(
+          `Missing required field 'kms_key_name'. This is required when ` +
+            `'docker_repository' is set.`,
+        );
+      }
+    }
 
     // Create Cloud Functions client
     const client = new CloudFunctionsClient({
@@ -121,11 +138,11 @@ async function run(): Promise<void> {
       availableMemoryMb: availableMemoryMb ? +availableMemoryMb : undefined,
       buildEnvironmentVariables: buildEnvironmentVariables,
       // buildWorkerPool: buildWorkerPool, // TODO: add support
-      // dockerRepository: dockerRepository, // TODO: add support
+      dockerRepository: dockerRepository,
       entryPoint: entryPoint,
       environmentVariables: environmentVariables,
       ingressSettings: ingressSettings,
-      // kmsKeyName: kmsKeyName, // TODO: add support
+      kmsKeyName: kmsKeyName,
       labels: labels,
       maxInstances: maxInstances ? +maxInstances : undefined,
       // minInstances: minInstances ? + minInstances : undefined, // TODO: add support

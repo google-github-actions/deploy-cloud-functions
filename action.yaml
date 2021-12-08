@@ -147,6 +147,19 @@ inputs:
       syntax.
     required: false
 
+  docker_repository:
+    description: |-
+      User managed repository created in Artifact Registry.
+    required: false
+
+  kms_key_name:
+    description: |-
+      Resource name of a Google Cloud KMS crypto key used to encrypt/decrypt
+      function resources. If specified, you must also provide an artifact
+      registry repository using the 'docker_repository' field that was created
+      with the same key.
+    required: false
+
 outputs:
   url:
     description: The URL of your Cloud Function. Only available with HTTP Trigger.
