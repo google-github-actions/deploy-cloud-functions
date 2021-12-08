@@ -224,6 +224,7 @@ jobs:
         build_environment_variables_file: './tests/env-var-files/test.good.yaml'
         min_instances: 2
         max_instances: 5
+        timeout: 300
 
     # Auth as the main account for integration and cleanup
     - uses: 'google-github-actions/auth@main'

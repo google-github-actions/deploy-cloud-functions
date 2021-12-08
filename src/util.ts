@@ -93,6 +93,8 @@ export function getGcloudIgnores(dir: string): string[] {
  * removeFile removes the file at the given path. If the file does not exist, it
  * does nothing.
  *
+ * TODO(sethvargo): Candidate for centralization.
+ *
  * @param filePath Path of the file on disk to delete.
  * @returns Path of the file that was removed.
  */
@@ -114,6 +116,9 @@ export function removeFile(filePath: string): string {
 /**
  * fromBase64 base64 decodes the result, taking into account URL and standard
  * encoding with and without padding.
+ *
+ * TODO(sethvargo): Candidate for centralization.
+ *
  */
 export function fromBase64(s: string): string {
   let str = s.replace(/-/g, '+').replace(/_/g, '/');
@@ -137,6 +142,8 @@ export type ServiceAccountKey = {
 /**
  * parseServiceAccountKeyJSON attempts to parse the given string as a service
  * account key JSON. It handles if the string is base64-encoded.
+ *
+ * TODO(sethvargo): Candidate for centralization.
  */
 export function parseServiceAccountKeyJSON(
   str: string,
@@ -184,6 +191,8 @@ type KVPair = Record<string, string>;
 
 /**
  * Parses a string of the format `KEY1=VALUE1,KEY2=VALUE2`.
+ *
+ * TODO(sethvargo): Candidate for centralization.
  *
  * @param str String with key/value pairs to parse.
  */
@@ -294,6 +303,8 @@ export function parseKVStringAndFile(
  * presence takes the given string and converts it to undefined iff it's null,
  * undefined, or the empty string. Otherwise, it returns the trimmed string.
  *
+ * TODO(sethvargo): Candidate for centralization.
+ *
  * @param str The string to check
  */
 export function presence(str: string | null | undefined): string | undefined {
@@ -307,6 +318,9 @@ export function presence(str: string | null | undefined): string | undefined {
 
 /**
  * errorMessage extracts the error message from the given error.
+ *
+ * TODO(sethvargo): Candidate for centralization.
+ *
  */
 export function errorMessage(err: unknown): string {
   if (!err) {
@@ -324,4 +338,69 @@ export function errorMessage(err: unknown): string {
 
   msg = msg[0].toLowerCase() + msg.slice(1);
   return msg;
+}
+
+/**
+ * parseDuration parses a user-supplied string duration with optional suffix and
+ * returns a number representing the number of seconds. It returns 0 when given
+ * the empty string.
+ *
+ * TODO(sethvargo): Candidate for centralization.
+ *
+ * @param str Duration string
+ */
+export function parseDuration(str: string): number {
+  const given = (str || '').trim();
+  if (!given) {
+    return 0;
+  }
+
+  let total = 0;
+  let curr = '';
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i];
+    switch (ch) {
+      case ' ':
+        continue;
+      case ',':
+        continue;
+      case 's': {
+        total += +curr;
+        curr = '';
+        break;
+      }
+      case 'm': {
+        total += +curr * 60;
+        curr = '';
+        break;
+      }
+      case 'h': {
+        total += +curr * 60 * 60;
+        curr = '';
+        break;
+      }
+
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+        curr += ch;
+        break;
+      default:
+        throw new SyntaxError(`Unsupported character "${ch}" at position ${i}`);
+    }
+  }
+
+  // Anything left over is seconds
+  if (curr) {
+    total += +curr;
+  }
+
+  return total;
 }
