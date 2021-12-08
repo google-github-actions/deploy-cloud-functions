@@ -6,10 +6,6 @@ import { expect } from 'chai';
 import os from 'os';
 import path from 'path';
 import crypto from 'crypto';
-import {
-  CredentialBody,
-  ExternalAccountClientOptions,
-} from 'google-auth-library';
 
 import { CloudFunctionsClient, CloudFunction } from '../src/client';
 import { parseServiceAccountKeyJSON, zipDir } from '../src/util';
