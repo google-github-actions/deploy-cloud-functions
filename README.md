@@ -85,6 +85,8 @@ steps:
 
 - `timeout`: (Optional) The function execution timeout in seconds. Defaults to 60.
 
+- `min_instances`: (Optional) The minimum number of instances for the function.
+
 - `max_instances`: (Optional) The maximum number of instances for the function.
 
 - `event_trigger_type`: (Optional) Specifies which action should trigger the function. Defaults to creation of http trigger.
@@ -94,6 +96,10 @@ steps:
 - `event_trigger_service`: (Optional) The hostname of the service that should be observed.
 
 - `deploy_timeout`: (Optional) The function deployment timeout in seconds. Defaults to 300.
+
+- `build_worker_pool`: (Optional) Name of the Cloud Build Custom Worker Pool
+  that should be used to build the function. The format of this field is
+  `projects/p/locations/l/workerPools/w`.
 
 - `build_environment_variables`: (Optional) List of environment variables that
   should be available while the function is built. Note this is different than
