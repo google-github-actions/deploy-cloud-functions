@@ -4,7 +4,15 @@
  * @param {!express:Request} req HTTP request context.
  * @param {!express:Response} res HTTP response context.
  */
+
+require('fs');
+
 exports.helloWorld = (req, res) => {
+  if (!fs.existsSync('.dotfile')) {
+    res.status(500).send('Dotfile does not exist!');
+    return;
+  }
+
   let message = req.query.message || req.body.message || 'Hello World!!';
   res.status(200).send(message);
 };
