@@ -219,6 +219,7 @@ jobs:
         source_dir: './tests/test-node-func/'
         event_trigger_type: 'providers/cloud.pubsub/eventTypes/topic.publish'
         event_trigger_resource: '${{ secrets.DEPLOY_CF_EVENT_PUBSUB_TOPIC }}'
+        event_trigger_retry: true
         env_vars_file: './tests/env-var-files/test.good.yaml'
         build_environment_variables: 'FOO=bar, ZIP=zap'
         build_environment_variables_file: './tests/env-var-files/test.good.yaml'

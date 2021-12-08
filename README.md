@@ -95,6 +95,10 @@ steps:
 
 - `event_trigger_service`: (Optional) The hostname of the service that should be observed.
 
+- `event_trigger_retry`: (Optional) If true, the event will be retried if the
+  function returns a failure. The default value is false. Note this applies to
+  function invocation from events, not the deployment itself.
+
 - `deploy_timeout`: (Optional) The function deployment timeout in seconds. Defaults to 300.
 
 - `build_worker_pool`: (Optional) Name of the Cloud Build Custom Worker Pool

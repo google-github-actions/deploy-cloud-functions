@@ -125,6 +125,11 @@ export type EventTrigger = {
   eventType: string;
   resource: string;
   service?: string;
+  failurePolicy?: FailurePolicy;
+};
+
+export type FailurePolicy = {
+  retry: Record<string, string>;
 };
 
 export type CreateOptions = {

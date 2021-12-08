@@ -15,6 +15,7 @@
  */
 
 import {
+  getBooleanInput,
   getInput,
   info as logInfo,
   setFailed,
@@ -61,6 +62,7 @@ async function run(): Promise<void> {
     const eventTriggerType = presence(getInput('event_trigger_type'));
     const eventTriggerResource = presence(getInput('event_trigger_resource'));
     const eventTriggerService = presence(getInput('event_trigger_service'));
+    const eventTriggerRetry = getBooleanInput('event_trigger_retry');
     const deployTimeout = presence(getInput('deploy_timeout'));
     const labels = parseKVString(getInput('labels'));
 
@@ -154,9 +156,7 @@ async function run(): Promise<void> {
       labels: labels,
       maxInstances: maxInstances ? +maxInstances : undefined,
       minInstances: minInstances ? +minInstances : undefined,
-      // network: network, // TODO: add support
       serviceAccountEmail: serviceAccountEmail,
-      // sourceToken: sourceToken, // TODO: add support
       timeout: `${timeout}s`,
       vpcConnector: vpcConnector,
       vpcConnectorEgressSettings: vpcConnectorEgressSettings,
@@ -168,6 +168,14 @@ async function run(): Promise<void> {
         resource: eventTriggerResource,
         service: eventTriggerService,
       };
+
+      if (eventTriggerRetry) {
+        cf.eventTrigger.failurePolicy = {
+          // No, there's no value here. Retry is a oneof, and this is the
+          // translation to javascript.
+          retry: {},
+        };
+      }
     } else if (
       eventTriggerType ||
       eventTriggerResource ||

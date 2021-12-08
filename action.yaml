@@ -134,6 +134,12 @@ inputs:
       The hostname of the service that should be observed.
     required: false
 
+  event_trigger_retry:
+    description: |-
+      If true, the event will be retried if the function returns a failure.
+    default: false
+    required: false
+
   deploy_timeout:
     description: |-
       The function deployment timeout in seconds.
