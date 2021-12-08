@@ -67,6 +67,9 @@ async function run(): Promise<void> {
       getInput('build_environment_variables_file'),
     );
 
+    const dockerRepository = presence(getInput('docker_repository'));
+    const kmsKeyName = presence(getInput('kms_key_name'));
+
     // Add warning if using credentials
     let credentialsJSON:
       | ServiceAccountKey
@@ -121,11 +124,11 @@ async function run(): Promise<void> {
       availableMemoryMb: availableMemoryMb ? +availableMemoryMb : undefined,
       buildEnvironmentVariables: buildEnvironmentVariables,
       // buildWorkerPool: buildWorkerPool, // TODO: add support
-      // dockerRepository: dockerRepository, // TODO: add support
+      dockerRepository: dockerRepository,
       entryPoint: entryPoint,
       environmentVariables: environmentVariables,
       ingressSettings: ingressSettings,
-      // kmsKeyName: kmsKeyName, // TODO: add support
+      kmsKeyName: kmsKeyName,
       labels: labels,
       maxInstances: maxInstances ? +maxInstances : undefined,
       // minInstances: minInstances ? + minInstances : undefined, // TODO: add support

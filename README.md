@@ -102,6 +102,18 @@ steps:
 - `build_environment_variables_file`: (Optional) Path to a local YAML file
   containing variables. See 'env_vars_file' for syntax.
 
+- `docker_repository`: (Optional) User managed repository created in Artifact
+  Registry optionally with a customer managed encryption key. If specified,
+  deployments will use Artifact Registry. If unspecified and the deployment is
+  eligible to use Artifact Registry, GCF will create and use a repository named
+  'gcf-artifacts' for every deployed region. This is the repository to which the
+  function docker image will be pushed after it is built by Cloud Build.
+
+- `kms_key_name`: (Optional) Resource name of a Google Cloud KMS crypto key used
+  to encrypt/decrypt function resources. If specified, you must also provide an
+  artifact registry repository using the `docker_repository` field that was
+  created with the same key.
+
 - `credentials`: (**Deprecated**) This input is deprecated. See [auth section](https://github.com/google-github-actions/deploy-cloud-functions#via-google-github-actionsauth) for more details.
   Service account key to use for authentication. This should be
   the JSON formatted private key which can be exported from the Cloud Console. The
