@@ -46,7 +46,7 @@ jobs:
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
     - id: deploy
-      uses: google-github-actions/deploy-cloud-functions@v0.6.0
+      uses: google-github-actions/deploy-cloud-functions@v0.7.0
       with:
         name: my-function
         runtime: nodejs10
@@ -230,7 +230,7 @@ jobs:
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
     - id: deploy
-      uses: google-github-actions/deploy-cloud-functions@v0.6.0
+      uses: google-github-actions/deploy-cloud-functions@v0.7.0
       with:
         name: my-function
         runtime: nodejs10
@@ -250,7 +250,7 @@ jobs:
         credentials_json: ${{ secrets.gcp_credentials }}
 
     - id: deploy
-      uses: google-github-actions/deploy-cloud-functions@v0.6.0
+      uses: google-github-actions/deploy-cloud-functions@v0.7.0
       with:
         name: my-function
         runtime: nodejs10
@@ -270,7 +270,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - id: Deploy
-      uses: google-github-actions/deploy-cloud-functions@v0.6.0
+      uses: google-github-actions/deploy-cloud-functions@v0.7.0
       with:
         name: my-function
         runtime: nodejs10
