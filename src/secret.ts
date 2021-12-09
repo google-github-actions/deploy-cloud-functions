@@ -64,7 +64,8 @@ export class SecretName {
       }
       default: {
         throw new TypeError(
-          `Failed to parse secret reference "${s}": unknown format`,
+          `Failed to parse secret reference "${s}": unknown format. Secrets ` +
+            `should be of the format "projects/p/secrets/s/versions/v".`,
         );
       }
     }
