@@ -30,22 +30,30 @@ Cloud Function. See the Authorization section below for more information.
 ## Usage
 
 ```yaml
-steps:
-- uses: actions/checkout@v2
-- id: auth
-  uses: google-github-actions/auth@v0.4.0
-  with:
-    workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
-    service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
-- id: deploy
-  uses: google-github-actions/deploy-cloud-functions@v0.6.0
-  with:
-    name: my-function
-    runtime: nodejs10
+jobs:
+  job_id:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
 
-# Example of using the output
-- id: test
-  run: curl "${{ steps.deploy.outputs.url }}"
+    steps:
+    - uses: actions/checkout@v2
+
+    - id: auth
+      uses: google-github-actions/auth@v0
+      with:
+        workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
+        service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
+
+    - id: deploy
+      uses: google-github-actions/deploy-cloud-functions@v0.7.0
+      with:
+        name: my-function
+        runtime: nodejs10
+
+    # Example of using the output
+    - id: test
+      run: curl "${{ steps.deploy.outputs.url }}"
 ```
 
 ## Inputs
@@ -206,32 +214,46 @@ See [usage](https://github.com/google-github-actions/auth#usage) for more detail
 #### Authenticating via Workload Identity Federation
 
 ```yaml
-- uses: actions/checkout@v2
-- id: auth
-  uses: google-github-actions/auth@v0.4.0
-  with:
-    workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
-    service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
-- id: deploy
-  uses: google-github-actions/deploy-cloud-functions@v0.6.0
-  with:
-    name: my-function
-    runtime: nodejs10
+jobs:
+  job_id:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - id: auth
+      uses: google-github-actions/auth@v0
+      with:
+        workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
+        service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
+
+    - id: deploy
+      uses: google-github-actions/deploy-cloud-functions@v0.7.0
+      with:
+        name: my-function
+        runtime: nodejs10
 ```
 
 #### Authenticating via Service Account Key JSON
 
 ```yaml
-- uses: actions/checkout@v2
-- id: auth
-  uses: google-github-actions/auth@v0.4.0
-  with:
-    credentials_json: ${{ secrets.gcp_credentials }}
-- id: deploy
-  uses: google-github-actions/deploy-cloud-functions@v0.6.0
-  with:
-    name: my-function
-    runtime: nodejs10
+jobs:
+  job_id:
+    steps:
+    - uses: actions/checkout@v2
+
+    - id: auth
+      uses: google-github-actions/auth@v0
+      with:
+        credentials_json: ${{ secrets.gcp_credentials }}
+
+    - id: deploy
+      uses: google-github-actions/deploy-cloud-functions@v0.7.0
+      with:
+        name: my-function
+        runtime: nodejs10
 ```
 
 ### Via Application Default Credentials
@@ -242,12 +264,16 @@ authenticate requests as the service account attached to the instance. **This
 only works using a custom runner hosted on GCP.**
 
 ```yaml
-- uses: actions/checkout@v2
-- id: Deploy
-  uses: google-github-actions/deploy-cloud-functions@v0.6.0
-  with:
-    name: my-function
-    runtime: nodejs10
+jobs:
+  job_id:
+    steps:
+    - uses: actions/checkout@v2
+
+    - id: Deploy
+      uses: google-github-actions/deploy-cloud-functions@v0.7.0
+      with:
+        name: my-function
+        runtime: nodejs10
 ```
 
 The action will automatically detect and use the Application Default
