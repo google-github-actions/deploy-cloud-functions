@@ -87,6 +87,8 @@ export type CloudFunction = {
   maxInstances?: number;
   minInstances?: number;
   network?: string;
+  secretEnvironmentVariables?: SecretEnvVar[];
+  secretVolumes?: SecretVolume[];
   serviceAccountEmail?: string;
   sourceToken?: string;
   timeout?: string;
@@ -101,6 +103,23 @@ export type CloudFunction = {
   // oneof
   httpsTrigger?: HTTPSTrigger;
   eventTrigger?: EventTrigger;
+};
+
+export type SecretEnvVar = {
+  key: string;
+  projectId: string;
+  secret: string;
+  version: string;
+};
+
+export type SecretVolume = {
+  mountPath: string;
+  projectId: string;
+  secret: string;
+  versions: {
+    path: string;
+    version: string;
+  }[];
 };
 
 export type CloudFunctionResponse = CloudFunction & {

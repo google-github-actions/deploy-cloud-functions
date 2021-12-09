@@ -98,6 +98,27 @@ inputs:
       The ingress settings for the function, controlling what traffic can reach it.
     required: false
 
+  secret_environment_variables:
+    description: |-
+      List of key-value pairs to set as environment variables at runtime of the
+      format "KEY1=SECRET_VERSION_REF" where SECRET_VERSION_REF is a full
+      resource name of a Google Secret Manager secret of the format
+      "projects/p/secrets/s/versions/v". If the project is omitted, it will be
+      inferred from the Cloud Function project ID. If the version is omitted, it
+      will default to "latest"
+    required: false
+
+  secret_volumes:
+    description: |-
+      List of key-value pairs to mount as volumes at runtime of the format
+      "PATH=SECRET_VERSION_REF" where PATH is the mount path inside the
+      container (e.g. "/etc/secrets/my-secret") and SECRET_VERSION_REF is a full
+      resource name of a Google Secret Manager secret of the format
+      "projects/p/secrets/s/versions/v". If the project is omitted, it will be
+      inferred from the Cloud Function project ID. If the version is omitted, it
+      will default to "latest"
+    required: false
+
   service_account_email:
     description: |-
       The email address of the IAM service account associated with the function at runtime.
