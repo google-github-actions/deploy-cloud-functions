@@ -438,8 +438,7 @@ describe('#Zip', () => {
       if (tc.expectedFiles) {
         const zf = await zipDir(tc.zipDir, path.posix.join(os.tmpdir(), name));
         const filesInsideZip = await getFilesInZip(zf);
-        expect(filesInsideZip).eql(tc.expectedFiles);
-        filesInsideZip.forEach((f) => expect(tc.expectedFiles).to.include(f));
+        expect(filesInsideZip).to.have.members(tc.expectedFiles);
       } else if (tc.error) {
         try {
           await zipDir(tc.zipDir, path.posix.join(os.tmpdir(), name));
