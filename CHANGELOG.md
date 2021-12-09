@@ -5,6 +5,11 @@
 
 ### Features
 
+* add support for min_instances ([#213](https://github.com/google-github-actions/deploy-cloud-functions/pull/213))
+* add support for custom_worker_pool ([#213](https://github.com/google-github-actions/deploy-cloud-functions/pull/213))
+* add support for docker_registry and kms_key_name ([#211](https://github.com/google-github-actions/deploy-cloud-functions/pull/211))
+* add support for build_environment_variables ([#210](https://github.com/google-github-actions/deploy-cloud-functions/pull/210))
+* add support for mounting secrets via environment variables and the filesystem ([#222](https://github.com/google-github-actions/deploy-cloud-functions/pull/222))
 * add support for event_trigger_retry ([#216](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/216)) ([1253ca1](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/1253ca12e3e3b5ab038b24b02554af1cd2cd1efd))
 * Add vpcConnectorEgressSettings & ingressSettings options ([#112](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/112)) ([#141](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/141)) ([d5dec31](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/d5dec313cb9c6f9c5464bf45570c9fe674152357))
 * add WIF docs, add warning for credentials input ([#194](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/194)) ([5291949](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/5291949fd2128ce3013b033205506ec53614bba7))
@@ -14,6 +19,8 @@
 
 ### Bug Fixes
 
+* decrease action size by 17Mb for faster loading
+* fail deployment if the function is not in the ACTIVE state ([#223](https://github.com/google-github-actions/deploy-cloud-functions/pull/223))
 * bump deps and googleapis ([#144](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/144)) ([b18cd87](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/b18cd87804b7d330ee30910b872c78eb9108e21c))
 * improve archive performance ([#101](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/101)) ([bdd610a](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/bdd610a0768d530458fa2dbcf4b0a8ef1b4e85af))
 * improve env var parsing behaviour ([#122](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/122)) ([#126](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/126)) ([199d134](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/199d134e25ce4d245f4e6a2b9cef23c06ec4f35a))
