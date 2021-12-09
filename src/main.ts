@@ -212,6 +212,16 @@ async function run(): Promise<void> {
         };
       })(),
     });
+
+    if (resp.status !== 'ACTIVE') {
+      throw new Error(
+        `Cloud Function deployment finished, but the function not in the ` +
+          `"ACTIVE" status. The current status is "${resp.status}", which ` +
+          `could indicate a failed deployment. Check the Cloud Function ` +
+          `logs for more information.`,
+      );
+    }
+
     if (resp.httpsTrigger?.url) {
       setOutput('url', resp.httpsTrigger.url);
     } else {
