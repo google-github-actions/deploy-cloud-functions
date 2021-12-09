@@ -17,9 +17,6 @@ import {
 } from '../src/util';
 import StreamZip from 'node-stream-zip';
 
-const testDirNoIgnore = 'tests/test-node-func';
-const testDirSimpleIgnore = 'tests/test-func-ignore';
-const testDirNodeIgnore = 'tests/test-func-ignore-node';
 const name = `zip-${Math.round(Math.random() * 100000)}`;
 
 describe('Util', () => {
@@ -403,58 +400,54 @@ describe('Util', () => {
   });
 });
 
-describe('Zip', function () {
-  it('raises an error if sourceDir does not exist', async () => {
-    try {
-      await zipDir('/not/a/real/path', path.posix.join(os.tmpdir(), name));
-      throw new Error('Should have throw error');
-    } catch (err) {
-      expect(`${err}`).to.contain('Unable to find');
-    }
-  });
+describe('#Zip', () => {
+  const cases = [
+    {
+      name: 'throws an error if sourceDir does not exist',
+      zipDir: '/not/a/real/path',
+      error: 'Unable to find',
+    },
+    {
+      name: 'creates a zipfile with correct files without gcloudignore',
+      zipDir: 'tests/test-node-func',
+      expectedFiles: ['.dotfile', 'index.js', 'package.json'],
+      error: 'Unable to find',
+    },
+    {
+      name: 'creates a zipfile with correct files with simple gcloudignore',
+      zipDir: 'tests/test-func-ignore',
+      expectedFiles: ['index.js', 'package.json'],
+      error: 'Unable to find',
+    },
+    {
+      name: 'creates a zipfile with correct files with simple gcloudignore',
+      zipDir: 'tests/test-func-ignore-node',
+      expectedFiles: [
+        '.gcloudignore',
+        'foo/data.txt',
+        'index.js',
+        'notIgnored.txt',
+        'package.json',
+      ],
+      error: 'Unable to find',
+    },
+  ];
 
-  it('creates a zipfile with correct files without gcloudignore', async () => {
-    const zf = await zipDir(
-      testDirNoIgnore,
-      path.posix.join(os.tmpdir(), name),
-    );
-    const filesInsideZip = await getFilesInZip(zf);
-    const expectedFiles = getNonIgnoredFiles(testDirNoIgnore, testDirNoIgnore);
-
-    expect(filesInsideZip).eql(expectedFiles);
-    filesInsideZip.forEach((f) => expect(expectedFiles).to.include(f));
-  });
-
-  it('creates a zipfile with correct files with simple gcloudignore', async () => {
-    const zf = await zipDir(
-      testDirSimpleIgnore,
-      path.posix.join(os.tmpdir(), name),
-    );
-    const filesInsideZip = await getFilesInZip(zf);
-    const expectedFiles = getNonIgnoredFiles(
-      testDirSimpleIgnore,
-      testDirSimpleIgnore,
-      new Set(['ignore.txt', '.gcloudignore']),
-    );
-
-    expect(filesInsideZip).eql(expectedFiles);
-    filesInsideZip.forEach((f) => expect(expectedFiles).to.include(f));
-  });
-
-  it('creates a zipfile with correct files with dir gcloudignore', async () => {
-    const zf = await zipDir(
-      testDirNodeIgnore,
-      path.posix.join(os.tmpdir(), name),
-    );
-    const filesInsideZip = await getFilesInZip(zf);
-    const expectedFiles = getNonIgnoredFiles(
-      testDirNodeIgnore,
-      testDirNodeIgnore,
-      new Set(['bar/bar.txt', 'bar/baz/baz.txt']),
-    );
-
-    expect(filesInsideZip).eql(expectedFiles);
-    filesInsideZip.forEach((f) => expect(expectedFiles).to.include(f));
+  cases.forEach((tc) => {
+    it(tc.name, async () => {
+      if (tc.expectedFiles) {
+        const zf = await zipDir(tc.zipDir, path.posix.join(os.tmpdir(), name));
+        const filesInsideZip = await getFilesInZip(zf);
+        expect(filesInsideZip).to.have.members(tc.expectedFiles);
+      } else if (tc.error) {
+        try {
+          await zipDir(tc.zipDir, path.posix.join(os.tmpdir(), name));
+          throw new Error(`Should have thrown err: ${tc.error}`);
+        } catch (err) {
+          expect(`${err}`).to.contain(tc.error);
+        }
+      }
+    });
   });
 });
 
@@ -473,31 +466,4 @@ async function getFilesInZip(zipFilePath: string): Promise<string[]> {
     }
   }
   return filesInsideZip;
-}
-
-function getNonIgnoredFiles(
-  parentDir: string,
-  directory: string,
-  ignore: Set<string> = new Set(),
-  fileList: string[] = [],
-): string[] {
-  const items = fs.readdirSync(directory);
-  for (const item of items) {
-    const stat = fs.statSync(path.posix.join(directory, item));
-    if (stat.isDirectory())
-      fileList = getNonIgnoredFiles(
-        parentDir,
-        path.posix.join(directory, item),
-        ignore,
-        fileList,
-      );
-    else {
-      const fPath = path.posix.relative(
-        parentDir,
-        path.posix.join(directory, item),
-      );
-      if (!ignore.has(fPath)) fileList.push(fPath);
-    }
-  }
-  return fileList;
 }
