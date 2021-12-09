@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { posix } from 'path';
+
 import {
   getBooleanInput,
   getInput,
@@ -24,7 +26,13 @@ import {
 } from '@actions/core';
 import { ExternalAccountClientOptions } from 'google-auth-library';
 
-import { CloudFunctionsClient, CloudFunction } from './client';
+import {
+  CloudFunction,
+  CloudFunctionsClient,
+  SecretEnvVar,
+  SecretVolume,
+} from './client';
+import { SecretName } from './secret';
 import {
   errorMessage,
   isServiceAccountKey,
@@ -71,6 +79,11 @@ async function run(): Promise<void> {
       getInput('build_environment_variables_file'),
     );
     const buildWorkerPool = presence(getInput('build_worker_pool'));
+
+    const secretEnvVars = parseKVString(
+      getInput('secret_environment_variables'),
+    );
+    const secretVols = parseKVString(getInput('secret_volumes'));
 
     const dockerRepository = presence(getInput('docker_repository'));
     const kmsKeyName = presence(getInput('kms_key_name'));
@@ -127,18 +140,55 @@ async function run(): Promise<void> {
       );
     }
 
+    // Build environment variables.
+    const buildEnvironmentVariables = parseKVStringAndFile(
+      buildEnvVars,
+      buildEnvVarsFile,
+    );
+    const environmentVariables = parseKVStringAndFile(envVars, envVarsFile);
+
+    // Build secret environment variables.
+    const secretEnvironmentVariables: SecretEnvVar[] = [];
+    if (secretEnvVars) {
+      for (const [key, value] of Object.entries(secretEnvVars)) {
+        const secretRef = new SecretName(value);
+        secretEnvironmentVariables.push({
+          key: key,
+          projectId: secretRef.project,
+          secret: secretRef.name,
+          version: secretRef.version,
+        });
+      }
+    }
+
+    // Build secret volumes.
+    const secretVolumes: SecretVolume[] = [];
+    if (secretVols) {
+      for (const [key, value] of Object.entries(secretVols)) {
+        const mountPath = posix.dirname(key);
+        const pth = posix.basename(key);
+
+        const secretRef = new SecretName(value);
+        secretVolumes.push({
+          mountPath: mountPath,
+          projectId: secretRef.project,
+          secret: secretRef.name,
+          versions: [
+            {
+              path: pth,
+              version: secretRef.version,
+            },
+          ],
+        });
+      }
+    }
+
     // Create Cloud Functions client
     const client = new CloudFunctionsClient({
       projectID: projectID,
       location: region,
       credentials: credentialsJSON,
     });
-
-    const buildEnvironmentVariables = parseKVStringAndFile(
-      buildEnvVars,
-      buildEnvVarsFile,
-    );
-    const environmentVariables = parseKVStringAndFile(envVars, envVarsFile);
 
     // Create Function definition
     const cf: CloudFunction = {
@@ -156,6 +206,8 @@ async function run(): Promise<void> {
       labels: labels,
       maxInstances: maxInstances ? +maxInstances : undefined,
       minInstances: minInstances ? +minInstances : undefined,
+      secretEnvironmentVariables: secretEnvironmentVariables,
+      secretVolumes: secretVolumes,
       serviceAccountEmail: serviceAccountEmail,
       timeout: `${timeout}s`,
       vpcConnector: vpcConnector,
