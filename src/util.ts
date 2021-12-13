@@ -208,18 +208,25 @@ export function parseKVString(str: string): KVPair {
   const pairs = str.split(/(?<!\\),/gi);
   for (let i = 0; i < pairs.length; i++) {
     const pair = pairs[i];
-    let [k, v] = pair.split('=', 2);
-    if (!k || !v) {
-      throw new SyntaxError(`Failed to parse KEY=VALUE pair "${pair}"`);
+    const firstEqual = pair.indexOf('=');
+    if (!firstEqual || firstEqual === -1) {
+      throw new SyntaxError(
+        `Failed to parse KEY=VALUE pair "${pair}": missing "="`,
+      );
     }
 
     // Trim any key whitespace and un-escape any escaped commas.
-    k = k.trim();
-    k = k.replace(/\\,/gi, ',');
+    const k = pair.slice(0, firstEqual).trim().replace(/\\,/gi, ',');
+    const v = pair
+      .slice(firstEqual + 1)
+      .trim()
+      .replace(/\\,/gi, ',');
 
-    // Trim any value whitespace and un-escape any escaped commas.
-    v = v.trim();
-    v = v.replace(/\\,/gi, ',');
+    if (!k || !v) {
+      throw new SyntaxError(
+        `Failed to parse KEY=VALUE pair "${pair}": no value`,
+      );
+    }
 
     result[k] = v;
   }

@@ -86,6 +86,31 @@ describe('Util', () => {
         expected: { FOO: 'bar', ZIP: 'zap' },
       },
       {
+        name: 'value with equals',
+        input: 'FOO=bar=baz',
+        expected: { FOO: 'bar=baz' },
+      },
+      {
+        name: 'value with many equals',
+        input: 'FOO=bar=baz;zip=zap;zinc=atom',
+        expected: { FOO: 'bar=baz;zip=zap;zinc=atom' },
+      },
+      {
+        name: 'comma-separated value with many equals',
+        input: 'FOO=bar=baz,ZIP=zap=flap==,ZINC=atom',
+        expected: { FOO: 'bar=baz', ZIP: 'zap=flap==', ZINC: 'atom' },
+      },
+      {
+        name: 'value with consecutive equals',
+        input: 'FOO=bar==baz;zip===zap;zinc====atom',
+        expected: { FOO: 'bar==baz;zip===zap;zinc====atom' },
+      },
+      {
+        name: 'value with trailing equals',
+        input: 'FOO=aGVsbG8gd29ybGQhCg==',
+        expected: { FOO: 'aGVsbG8gd29ybGQhCg==' },
+      },
+      {
         name: 'trims',
         input: '  FOO= bar, ZIP=zap ',
         expected: { FOO: 'bar', ZIP: 'zap' },
