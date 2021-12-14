@@ -45,15 +45,15 @@ jobs:
         workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
-    - id: deploy
-      uses: google-github-actions/deploy-cloud-functions@v0.7.0
+    - id: 'deploy'
+      uses: 'google-github-actions/deploy-cloud-functions@v0'
       with:
-        name: my-function
-        runtime: nodejs10
+        name: 'my-function'
+        runtime: 'nodejs12'
 
     # Example of using the output
-    - id: test
-      run: curl "${{ steps.deploy.outputs.url }}"
+    - id: 'test'
+      run: 'curl "${{ steps.deploy.outputs.url }}"'
 ```
 
 ## Inputs
@@ -221,19 +221,19 @@ jobs:
       id-token: 'write'
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: 'actions/checkout@v2'
 
-    - id: auth
-      uses: google-github-actions/auth@v0
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v0'
       with:
         workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
-    - id: deploy
-      uses: google-github-actions/deploy-cloud-functions@v0.7.0
+    - id: 'deploy'
+      uses: 'google-github-actions/deploy-cloud-functions@v0'
       with:
-        name: my-function
-        runtime: nodejs10
+        name: 'my-function'
+        runtime: 'nodejs12'
 ```
 
 #### Authenticating via Service Account Key JSON
@@ -242,18 +242,18 @@ jobs:
 jobs:
   job_id:
     steps:
-    - uses: actions/checkout@v2
+    - uses: 'actions/checkout@v2'
 
-    - id: auth
-      uses: google-github-actions/auth@v0
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v0'
       with:
-        credentials_json: ${{ secrets.gcp_credentials }}
+        credentials_json: '${{ secrets.gcp_credentials }}'
 
-    - id: deploy
-      uses: google-github-actions/deploy-cloud-functions@v0.7.0
+    - id: 'deploy'
+      uses: 'google-github-actions/deploy-cloud-functions@v0'
       with:
-        name: my-function
-        runtime: nodejs10
+        name: 'my-function'
+        runtime: 'nodejs12'
 ```
 
 ### Via Application Default Credentials
@@ -267,13 +267,13 @@ only works using a custom runner hosted on GCP.**
 jobs:
   job_id:
     steps:
-    - uses: actions/checkout@v2
+    - uses: 'actions/checkout@v2'
 
-    - id: Deploy
-      uses: google-github-actions/deploy-cloud-functions@v0.7.0
+    - id: 'deploy'
+      uses: 'google-github-actions/deploy-cloud-functions@v0'
       with:
-        name: my-function
-        runtime: nodejs10
+        name: 'my-function'
+        runtime: 'nodejs12'
 ```
 
 The action will automatically detect and use the Application Default
