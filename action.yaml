@@ -216,6 +216,11 @@ outputs:
     description: |-
       Runtime of the Cloud Function deployment.
 
+
+branding:
+  icon: 'code'
+  color: 'blue'
+
 runs:
   using: 'node12'
   main: 'dist/index.js'
