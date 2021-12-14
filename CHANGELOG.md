@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.7.1](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.7.0...v0.7.1) (2021-12-14)
+
+
+### Miscellaneous Chores
+
+* release v0.7.1 ([e28e39f](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/e28e39fa09d2f50449b8fd16438a7643fc8ed854))
+
 ## [0.7.0](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.6.0...v0.7.0) (2021-12-09)
 
 
