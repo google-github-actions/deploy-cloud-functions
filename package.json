@@ -34,7 +34,7 @@
     "@actions/core": "^1.6.0",
     "archiver": "^5.3.0",
     "google-auth-library": "^7.10.3",
-    "ignore": "^5.1.9",
+    "ignore": "^5.2.0",
     "yaml": "^1.10.2"
   },
   "devDependencies": {
