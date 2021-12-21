@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+'use strict';
+
 import 'mocha';
+import { expect } from 'chai';
 
 import { SecretName } from '../src/secret';
 
