@@ -18,6 +18,11 @@ limitations under the License.
 This action deploys your function source code to [Cloud Functions](cloud-functions) and makes the URL
 available to later build steps via outputs.
 
+**This GitHub Action is _declarative_, meaning it will overwrite any values on
+an existing Cloud Function deployment.** If you manually deployed a Cloud
+Function, you must specify **all** parameters in this action. Any unspecified
+values will be reverted to their default value (which is usually "null").
+
 ## Prerequisites
 
 This action requires:
@@ -68,30 +73,27 @@ jobs:
 
 - `region`: (Optional) [Region](https://cloud.google.com/functions/docs/locations) in which the function should be deployed. Defaults to `us-central1`.
 
-- `env_vars`: (Optional) List of key-value pairs to set as environment variables in the format:
-  `KEY1=VALUE1,KEY2=VALUE2`. All existing environment variables will be
-  removed, even if this parameter is not passed.
+- `env_vars`: (Optional) List of key-value pairs to set as environment variables in the format: `KEY1=VALUE1,KEY2=VALUE2`. All existing environment variables will be removed, even if this parameter is not passed.
 
-- `env_vars_file`: (Optional) Path to a local YAML file with definitions for all environment variables. An example env_vars_file can be found [here](tests/env-var-files/test.good.yaml). Only one of env_vars or env_vars_file can be specified.
+- `env_vars_file`: (Optional) Path to a local YAML file with definitions for all environment variables. An example env_vars_file can be found [here](tests/env-var-files/test.good.yaml). All existing environment variables will be removed, even if this parameter is not passed. If `env_vars` is also given, values in `env_vars` take precendence over these values.
 
-- `labels`: (Optional) List of key-value pairs to set as function labels in the form label1=VALUE1,label2=VALUE2.
+- `labels`: (Optional) List of key-value pairs to set as function labels in the form `label1=VALUE1,label2=VALUE2`. All existing labels will be removed, even if this parameter is not passed.
 
 - `source_dir`: (Optional) Source directory for the function. Defaults to current directory.
 
-- `project_id`: (Optional) ID of the Google Cloud project. If provided, this
-  will override the project configured by gcloud.
+- `project_id`: (Optional) ID of the Google Cloud project. If provided, this will override the project configured in the environment.
 
 - `description`: (Optional) Description for the Cloud Function.
 
-- `vpc_connector`: (Optional) The VPC Access connector that the function can connect to..
+- `vpc_connector`: (Optional) The VPC Access connector that the function can connect to.
 
 - `vpc_connector_egress_settings`: (Optional) The egress settings for the connector, controlling what traffic is diverted through it.
 
 - `ingress_settings`: (Optional) The ingress settings for the function, controlling what traffic can reach it.
 
 - `secret_environment_variables`: (Optional) List of key-value pairs to set as
-  environment variables at runtime of the format "KEY1=SECRET_VERSION_REF" where
-  SECRET_VERSION_REF is a full resource name of a Google Secret Manager secret
+  environment variables at runtime of the format `KEY1=SECRET_VERSION_REF` where
+  `SECRET_VERSION_REF` is a full resource name of a Google Secret Manager secret
   of the format "projects/p/secrets/s/versions/v". If the project is omitted, it
   will be inferred from the Cloud Function project ID. If the version is
   omitted, it will default to "latest".
@@ -102,6 +104,8 @@ jobs:
     ```yaml
     secret_environment_variables: 'API_KEY=projects/my-project/secrets/api-key/versions/5'
     ```
+
+    All existing secrets will be removed, even if this parameter is not passed.
 
 - `secret_volumes`: (Optional) List of key-value pairs to mount as volumes at
   runtime of the format "PATH=SECRET_VERSION_REF" where PATH is the mount path
@@ -117,6 +121,9 @@ jobs:
     ```yaml
     secret_volumes: '/etc/secrets/api-key=projects/my-project/secrets/api-key'
     ```
+
+    All existing secret volume mounts will be removed, even if this parameter is
+    not passed.
 
 - `service_account_email`: (Optional) The email address of the IAM service account associated with the function at runtime.
 
