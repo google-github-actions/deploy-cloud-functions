@@ -14,22 +14,31 @@
  * limitations under the License.
  */
 
-import https, { RequestOptions } from 'https';
-import { URL } from 'url';
+import { RequestOptions } from 'https';
 import { randomBytes } from 'crypto';
 import fs from 'fs';
 import * as path from 'path';
 import { tmpdir } from 'os';
-import { errorMessage, removeFile, zipDir } from './util';
+
 import {
   CredentialBody,
   ExternalAccountClientOptions,
   GoogleAuth,
 } from 'google-auth-library';
+import {
+  errorMessage,
+  request,
+  removeFile,
+} from '@google-github-actions/actions-utils';
+
+import { zipDir } from './util';
 
 // Do not listen to the linter - this can NOT be rewritten as an ES6 import statement.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version: appVersion } = require('../package.json');
+
+// userAgent is the default user agent.
+const userAgent = `google-github-actions:deploy-cloud-functions/${appVersion}`;
 
 // defaultBaseURL is the URL for Cloud Functions.
 const defaultBaseURL = 'https://cloudfunctions.googleapis.com/v1';
@@ -182,57 +191,20 @@ export class CloudFunctionsClient {
    * request is a high-level helper that returns a promise from the executed
    * request.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-  static request(opts: RequestOptions, data?: any): Promise<string> {
-    if (!opts.headers) {
-      opts.headers = {};
-    }
-
-    if (!opts.headers['User-Agent']) {
-      opts.headers[
-        'User-Agent'
-      ] = `google-github-actions:deploy-cloud-functions/${appVersion}`;
-    }
-
-    return new Promise((resolve, reject) => {
-      const req = https.request(opts, (res) => {
-        res.setEncoding('utf8');
-
-        let body = '';
-        res.on('data', (data) => {
-          body += data;
-        });
-
-        res.on('end', () => {
-          if (res.statusCode && res.statusCode >= 400) {
-            reject(body);
-          } else {
-            resolve(body);
-          }
-        });
-      });
-
-      req.on('error', (err) => {
-        reject(err);
-      });
-
-      if (data == null) {
-        req.end();
-        return;
-      }
-
-      if (
-        typeof data === 'string' ||
-        data instanceof String ||
-        data instanceof Buffer
-      ) {
-        req.write(data);
-        req.end();
-        return;
-      }
-
-      data.pipe(req);
-    });
+  static async request(
+    method: string,
+    url: string,
+    data?: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    opts?: RequestOptions,
+  ): Promise<string> {
+    opts ||= {};
+    opts.headers = Object.assign(
+      {
+        'User-Agent': userAgent,
+      },
+      opts.headers,
+    );
+    return await request(method, url, data, opts);
   }
 
   /**
@@ -272,23 +244,15 @@ export class CloudFunctionsClient {
   async #request(
     method: string,
     url: string,
-    opts?: RequestOptions,
     data?: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    opts?: RequestOptions,
   ) {
-    const u = new URL(url);
-    opts = Object.assign(opts || {}, {
-      hostname: u.hostname,
-      port: u.port,
-      path: u.pathname + u.search,
-      method: method,
-      headers: {},
-    });
-
     const authToken = await this.#auth.getAccessToken();
     if (!authToken) {
       throw new Error(`Failed to get auth token for ${method} ${url}`);
     }
 
+    opts ||= {};
     opts.headers = Object.assign(
       {
         'Authorization': `Bearer ${authToken}`,
@@ -299,10 +263,11 @@ export class CloudFunctionsClient {
     );
 
     try {
-      const resp = await CloudFunctionsClient.request(opts, data);
+      const resp = await request(method, url, data, opts);
       return JSON.parse(resp);
     } catch (err) {
-      throw new Error(`Failed to ${method} ${url}: ${errorMessage(err)}`);
+      const msg = errorMessage(err);
+      throw new Error(`Failed to ${method} ${url}: ${msg}`);
     }
   }
 
@@ -368,7 +333,7 @@ export class CloudFunctionsClient {
     const parent = this.parentFromName(resourceName);
     const u = `${this.#baseURL}/${parent}/functions`;
     const body = JSON.stringify(cf);
-    const resp: Operation = await this.#request('POST', u, {}, body);
+    const resp: Operation = await this.#request('POST', u, body);
     const op = await this.#pollOperation(resp.name, {
       interval: 5,
       retries: timeout / 5,
@@ -460,7 +425,7 @@ export class CloudFunctionsClient {
 
     const u = `${this.#baseURL}/${resourceName}?updateMask=${updateMasks}`;
     const body = JSON.stringify(cf);
-    const resp: Operation = await this.#request('PATCH', u, {}, body);
+    const resp: Operation = await this.#request('PATCH', u, body);
     const op = await this.#pollOperation(resp.name, {
       interval: 5,
       retries: timeout / 5,
@@ -554,19 +519,17 @@ export class CloudFunctionsClient {
   async uploadSource(uploadURL: string, zipPath: string): Promise<void> {
     const zipFile = fs.createReadStream(zipPath);
 
-    const u = new URL(uploadURL);
-    const opts = {
-      hostname: u.hostname,
-      port: u.port,
-      path: u.pathname + u.search,
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/zip',
-        'x-goog-content-length-range': '0,104857600',
-      },
-    };
-
-    await CloudFunctionsClient.request(opts, zipFile);
+    try {
+      await CloudFunctionsClient.request('PUT', uploadURL, zipFile, {
+        headers: {
+          'content-type': 'application/zip',
+          'x-goog-content-length-range': '0,104857600',
+        },
+      });
+    } catch (err) {
+      const msg = errorMessage(err);
+      throw new Error(`Failed to upload source: ${msg}`);
+    }
   }
 
   fullResourceName(name: string): string {

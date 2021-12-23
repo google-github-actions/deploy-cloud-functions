@@ -7,8 +7,10 @@ import os from 'os';
 import path from 'path';
 import crypto from 'crypto';
 
+import { parseCredential } from '@google-github-actions/actions-utils';
+
 import { CloudFunctionsClient, CloudFunction } from '../src/client';
-import { parseServiceAccountKeyJSON, zipDir } from '../src/util';
+import { zipDir } from '../src/util';
 
 const testProjectID = process.env.DEPLOY_CF_PROJECT_ID;
 const testServiceAccountKey = process.env.DEPLOY_CF_SA_KEY_JSON;
@@ -23,7 +25,7 @@ describe('CloudFunctionsClient', () => {
       if (!testProjectID) return;
 
       const credentials = testServiceAccountKey
-        ? parseServiceAccountKeyJSON(testServiceAccountKey)
+        ? parseCredential(testServiceAccountKey)
         : undefined;
 
       try {
@@ -43,7 +45,7 @@ describe('CloudFunctionsClient', () => {
       if (!testProjectID) this.skip();
 
       const credentials = testServiceAccountKey
-        ? parseServiceAccountKeyJSON(testServiceAccountKey)
+        ? parseCredential(testServiceAccountKey)
         : undefined;
 
       const client = new CloudFunctionsClient({

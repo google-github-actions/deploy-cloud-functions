@@ -24,7 +24,16 @@ import {
   setOutput,
   warning as logWarning,
 } from '@actions/core';
-import { ExternalAccountClientOptions } from 'google-auth-library';
+import {
+  Credential,
+  errorMessage,
+  isServiceAccountKey,
+  parseCredential,
+  parseDuration,
+  parseKVString,
+  parseKVStringAndFile,
+  presence,
+} from '@google-github-actions/actions-utils';
 
 import {
   CloudFunction,
@@ -33,16 +42,6 @@ import {
   SecretVolume,
 } from './client';
 import { SecretName } from './secret';
-import {
-  errorMessage,
-  isServiceAccountKey,
-  parseDuration,
-  parseKVString,
-  parseKVStringAndFile,
-  parseServiceAccountKeyJSON,
-  presence,
-  ServiceAccountKey,
-} from './util';
 
 async function run(): Promise<void> {
   try {
@@ -89,10 +88,7 @@ async function run(): Promise<void> {
     const kmsKeyName = presence(getInput('kms_key_name'));
 
     // Add warning if using credentials
-    let credentialsJSON:
-      | ServiceAccountKey
-      | ExternalAccountClientOptions
-      | undefined;
+    let credentialsJSON: Credential | undefined;
     if (credentials) {
       logWarning(
         'The "credentials" input is deprecated. ' +
@@ -100,7 +96,7 @@ async function run(): Promise<void> {
           'For more details, see https://github.com/google-github-actions/deploy-cloud-functions#authorization',
       );
 
-      credentialsJSON = parseServiceAccountKeyJSON(credentials);
+      credentialsJSON = parseCredential(credentials);
     }
 
     // Pick the best project ID.
