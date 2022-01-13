@@ -413,11 +413,13 @@ export class CloudFunctionsClient {
       'ingressSettings',
       'serviceAccountEmail',
       'timeout',
+      'minInstances',
       'maxInstances',
       'eventTrigger.eventType',
       'eventTrigger.resource',
       'eventTrigger.service',
       'labels',
+      'secretEnvironmentVariables',
     ].join(',');
 
     const resourceName = this.fullResourceName(cf.name);
