@@ -419,7 +419,7 @@ export class CloudFunctionsClient {
       'eventTrigger.resource',
       'eventTrigger.service',
       'labels',
-      'secretEnvironmentVariables'
+      'secretEnvironmentVariables',
     ].join(',');
 
     const resourceName = this.fullResourceName(cf.name);
