@@ -105,7 +105,7 @@ inputs:
       resource name of a Google Secret Manager secret of the format
       "projects/p/secrets/s/versions/v". If the project is omitted, it will be
       inferred from the Cloud Function project ID. If the version is omitted, it
-      will default to "latest"
+      will default to "latest".
     required: false
 
   secret_volumes:
@@ -116,7 +116,7 @@ inputs:
       resource name of a Google Secret Manager secret of the format
       "projects/p/secrets/s/versions/v". If the project is omitted, it will be
       inferred from the Cloud Function project ID. If the version is omitted, it
-      will default to "latest"
+      will default to "latest".
     required: false
 
   service_account_email:
@@ -138,6 +138,16 @@ inputs:
   max_instances:
     description: |-
       The maximum number of instances for the function.
+    required: false
+
+  https_trigger_security_level:
+    description: |-
+      The security level for an HTTP(s) trigger. If set to "secure_always", the
+      function will only be accessible over the https protocol. If set to
+      "secure_optional", the function will be accessible over the http and https
+      protocols. The default value is "security_level_unspecified", which uses
+      the platform's default value.
+    default: "security_level_unspecified"
     required: false
 
   event_trigger_type:

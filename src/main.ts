@@ -66,6 +66,9 @@ async function run(): Promise<void> {
     const timeout = parseDuration(getInput('timeout'));
     const maxInstances = presence(getInput('max_instances'));
     const minInstances = presence(getInput('min_instances'));
+    const httpsTriggerSecurityLevel = presence(
+      getInput('https_trigger_security_level'),
+    );
     const eventTriggerType = presence(getInput('event_trigger_type'));
     const eventTriggerResource = presence(getInput('event_trigger_resource'));
     const eventTriggerService = presence(getInput('event_trigger_service'));
@@ -111,6 +114,16 @@ async function run(): Promise<void> {
     }
 
     // Validation
+    if (
+      httpsTriggerSecurityLevel &&
+      httpsTriggerSecurityLevel.toUpperCase() != 'SECURITY_LEVEL_UNSPECIFIED' &&
+      eventTriggerType
+    ) {
+      throw new Error(
+        `Only one of 'https_trigger_security_level' or 'event_trigger_type' ` +
+          `may be specified.`,
+      );
+    }
     if (!sourceDir) {
       // Note: this validation will need to go away once we support deploying
       // from a docker repo.
@@ -211,6 +224,7 @@ async function run(): Promise<void> {
     };
 
     if (eventTriggerType && eventTriggerResource) {
+      // Set event trigger properties.
       cf.eventTrigger = {
         eventType: eventTriggerType,
         resource: eventTriggerResource,
@@ -233,7 +247,12 @@ async function run(): Promise<void> {
         `Event triggered functions must define 'event_trigger_type' and 'event_trigger_resource'`,
       );
     } else {
+      // Set https trigger properties.
       cf.httpsTrigger = {};
+
+      if (httpsTriggerSecurityLevel) {
+        cf.httpsTrigger.securityLevel = httpsTriggerSecurityLevel.toUpperCase();
+      }
     }
 
     // Deploy the Cloud Function

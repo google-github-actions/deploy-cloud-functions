@@ -133,6 +133,14 @@ jobs:
 
 - `max_instances`: (Optional) The maximum number of instances for the function.
 
+- `https_trigger_security_level`: (Optional) The security level for an
+  HTTP(s)trigger. If set to `"secure_always"`, the function will only be
+  accessible over the https protocol. If set to `"secure_optional"`, the
+  function will be accessible over the http and https protocols. The default
+  value is `"security_level_unspecified"`, which uses the platform's default
+  value. We recommend setting this value to `"secure_always"` unless you need
+  your function to be accessible over a non-TLS connection.
+
 - `event_trigger_type`: (Optional) Specifies which action should trigger the function. Defaults to creation of http trigger.
 
 - `event_trigger_resource`: (Optional) Specifies which resource from eventTrigger is observed.
