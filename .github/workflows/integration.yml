@@ -188,6 +188,48 @@ jobs:
         CLEANUP_FUNCTION_NAME: '${{ steps.deploy.outputs.id }}'
       run: 'npm run cleanup'
 
+  https_trigger:
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
+    name: 'https_trigger'
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: 'actions/checkout@v2'
+
+    - uses: 'actions/setup-node@v2'
+      with:
+        node-version: '12.x'
+
+    - name: 'npm build'
+      run: 'npm ci && npm run build'
+
+    - uses: 'google-github-actions/auth@main'
+      with:
+        workload_identity_provider: '${{ secrets.WIF_PROVIDER_NAME }}'
+        service_account: '${{ secrets.DEPLOY_CF_SA_EMAIL }}'
+
+    - id: 'deploy'
+      uses: './'
+      with:
+        name: 'https-trigger-${{ github.run_number }}'
+        runtime: 'nodejs10'
+        entry_point: 'helloWorld'
+        source_dir: './tests/test-node-func/'
+        https_trigger_security_level: 'secure_always'
+
+    # Auth as the main account for integration and cleanup
+    - uses: 'google-github-actions/auth@main'
+      with:
+        credentials_json: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
+
+    - name: 'cleanup'
+      if: ${{ always() }}
+      env:
+        CLEANUP_FUNCTION_NAME: '${{ steps.deploy.outputs.id }}'
+      run: 'npm run cleanup'
+
   event_trigger:
     if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
     name: 'event_trigger'
