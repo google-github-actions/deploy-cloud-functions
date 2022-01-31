@@ -21,7 +21,7 @@ jobs:
 
     - uses: 'actions/setup-node@v2'
       with:
-        node-version: '12.x'
+        node-version: '16.x'
 
     - name: 'npm build'
       run: 'npm ci && npm run build'
@@ -67,7 +67,7 @@ jobs:
 
     - uses: 'actions/setup-node@v2'
       with:
-        node-version: '12.x'
+        node-version: '16.x'
 
     - name: 'npm build'
       run: 'npm ci && npm run build'
@@ -111,7 +111,7 @@ jobs:
 
     - uses: 'actions/setup-node@v2'
       with:
-        node-version: '12.x'
+        node-version: '16.x'
 
     - name: 'npm build'
       run: 'npm ci && npm run build'
@@ -156,7 +156,7 @@ jobs:
 
     - uses: 'actions/setup-node@v2'
       with:
-        node-version: '12.x'
+        node-version: '16.x'
 
     - name: 'npm build'
       run: 'npm ci && npm run build'
@@ -200,7 +200,7 @@ jobs:
 
     - uses: 'actions/setup-node@v2'
       with:
-        node-version: '12.x'
+        node-version: '16.x'
 
     - name: 'npm build'
       run: 'npm ci && npm run build'
@@ -242,7 +242,7 @@ jobs:
 
     - uses: 'actions/setup-node@v2'
       with:
-        node-version: '12.x'
+        node-version: '16.x'
 
     - name: 'npm build'
       run: 'npm ci && npm run build'

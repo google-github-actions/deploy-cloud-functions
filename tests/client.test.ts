@@ -70,7 +70,7 @@ describe('CloudFunctionsClient', () => {
 
       const cf: CloudFunction = {
         name: testFunctionName,
-        runtime: 'nodejs12',
+        runtime: 'nodejs16',
         environmentVariables: { KEY1: 'VALUE1' },
         buildEnvironmentVariables: { KEY1: 'VALUE1' },
         entryPoint: 'helloWorld',
