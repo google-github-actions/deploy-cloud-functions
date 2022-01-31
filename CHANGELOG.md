@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.0](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.7.1...v0.8.0) (2022-01-31)
+
+
+### Features
+
+* add security_level field for https triggers ([#266](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/266)) ([aa3a2aa](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/aa3a2aacae8d3a7b3597c856b50bea18ee006b25))
+* switch to using actions-utils ([#243](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/243)) ([938f2f6](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/938f2f686126c0e4ad3601df45408041b4650c6e))
+
 ### [0.7.1](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.7.0...v0.7.1) (2021-12-14)
 
 
