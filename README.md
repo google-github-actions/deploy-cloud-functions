@@ -54,7 +54,7 @@ jobs:
       uses: 'google-github-actions/deploy-cloud-functions@v0'
       with:
         name: 'my-function'
-        runtime: 'nodejs12'
+        runtime: 'nodejs16'
 
     # Example of using the output
     - id: 'test'
@@ -203,7 +203,7 @@ automatically private services, while deploying a revision of a public
 
 - `version`: The version of the function (e.g. `1`)
 
-- `runtime`: The chosen runtime (e.g. `nodejs12`)
+- `runtime`: The chosen runtime (e.g. `nodejs16`)
 
 ## Authorization
 
@@ -248,7 +248,7 @@ jobs:
       uses: 'google-github-actions/deploy-cloud-functions@v0'
       with:
         name: 'my-function'
-        runtime: 'nodejs12'
+        runtime: 'nodejs16'
 ```
 
 #### Authenticating via Service Account Key JSON
@@ -268,7 +268,7 @@ jobs:
       uses: 'google-github-actions/deploy-cloud-functions@v0'
       with:
         name: 'my-function'
-        runtime: 'nodejs12'
+        runtime: 'nodejs16'
 ```
 
 ### Via Application Default Credentials
@@ -288,7 +288,7 @@ jobs:
       uses: 'google-github-actions/deploy-cloud-functions@v0'
       with:
         name: 'my-function'
-        runtime: 'nodejs12'
+        runtime: 'nodejs16'
 ```
 
 The action will automatically detect and use the Application Default
