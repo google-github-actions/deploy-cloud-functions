@@ -160,7 +160,7 @@ async function run(): Promise<void> {
     const secretEnvironmentVariables: SecretEnvVar[] = [];
     if (secretEnvVars) {
       for (const [key, value] of Object.entries(secretEnvVars)) {
-        const secretRef = new SecretName(value);
+        const secretRef = new SecretName(value, projectID);
         secretEnvironmentVariables.push({
           key: key,
           projectId: secretRef.project,
@@ -177,7 +177,7 @@ async function run(): Promise<void> {
         const mountPath = posix.dirname(key);
         const pth = posix.basename(key);
 
-        const secretRef = new SecretName(value);
+        const secretRef = new SecretName(value, projectID);
         secretVolumes.push({
           mountPath: mountPath,
           projectId: secretRef.project,
