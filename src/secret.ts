@@ -18,6 +18,7 @@
  * Parses a string into a Google Secret Manager reference.
  *
  * @param s String reference to parse
+ * @param projectId String GCP project Id based on credentials file
  * @returns Reference
  */
 export class SecretName {
@@ -26,7 +27,7 @@ export class SecretName {
   readonly name: string;
   readonly version: string;
 
-  constructor(s: string | null | undefined) {
+  constructor(s: string | null | undefined, projectId: string) {
     s = (s || '').trim();
     if (!s) {
       throw new Error(`Missing secret name`);
@@ -59,6 +60,13 @@ export class SecretName {
       case 2: {
         this.project = refParts[0];
         this.name = refParts[1];
+        this.version = 'latest';
+        break;
+      }
+      // <s>
+      case 1: {
+        this.project = projectId;
+        this.name = refParts[0];
         this.version = 'latest';
         break;
       }
