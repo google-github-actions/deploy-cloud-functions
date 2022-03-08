@@ -94,9 +94,8 @@ jobs:
 - `secret_environment_variables`: (Optional) List of key-value pairs to set as
   environment variables at runtime of the format `KEY1=SECRET_VERSION_REF` where
   `SECRET_VERSION_REF` is a full resource name of a Google Secret Manager secret
-  of the format "projects/p/secrets/s/versions/v". If the project is omitted, it
-  will be inferred from the Cloud Function project ID. If the version is
-  omitted, it will default to "latest".
+  of the format "projects/p/secrets/s/versions/v". If the version is omitted, it
+  will default to "latest".
 
     For example, this mounts version 5 of the `api-key` secret into `$API_KEY`
     inside the function's runtime:
@@ -111,9 +110,8 @@ jobs:
   runtime of the format "PATH=SECRET_VERSION_REF" where PATH is the mount path
   inside the container (e.g. "/etc/secrets/my-secret") and SECRET_VERSION_REF is
   a full resource name of a Google Secret Manager secret of the format
-  "projects/p/secrets/s/versions/v". If the project is omitted, it will be
-  inferred from the Cloud Function project ID. If the version is omitted, it
-  will default to "latest".
+  "projects/p/secrets/s/versions/v". If the version is omitted, it will default
+  to "latest".
 
     For example, this mounts the latest value of the `api-key` secret at
     `/etc/secrets/api-key` inside the function's filesystem:
