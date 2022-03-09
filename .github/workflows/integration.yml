@@ -17,9 +17,9 @@ jobs:
     if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'actions/checkout@v2'
+    - uses: 'actions/checkout@v3'
 
-    - uses: 'actions/setup-node@v2'
+    - uses: 'actions/setup-node@v3'
       with:
         node-version: '16.x'
 
@@ -63,9 +63,9 @@ jobs:
       id-token: 'write'
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'actions/checkout@v2'
+    - uses: 'actions/checkout@v3'
 
-    - uses: 'actions/setup-node@v2'
+    - uses: 'actions/setup-node@v3'
       with:
         node-version: '16.x'
 
@@ -107,9 +107,9 @@ jobs:
     name: 'auth_setup_gcloud'
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'actions/checkout@v2'
+    - uses: 'actions/checkout@v3'
 
-    - uses: 'actions/setup-node@v2'
+    - uses: 'actions/setup-node@v3'
       with:
         node-version: '16.x'
 
@@ -152,9 +152,9 @@ jobs:
     name: 'auth_builtin_credentials'
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'actions/checkout@v2'
+    - uses: 'actions/checkout@v3'
 
-    - uses: 'actions/setup-node@v2'
+    - uses: 'actions/setup-node@v3'
       with:
         node-version: '16.x'
 
@@ -196,9 +196,9 @@ jobs:
       id-token: 'write'
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'actions/checkout@v2'
+    - uses: 'actions/checkout@v3'
 
-    - uses: 'actions/setup-node@v2'
+    - uses: 'actions/setup-node@v3'
       with:
         node-version: '16.x'
 
@@ -238,9 +238,9 @@ jobs:
       id-token: 'write'
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'actions/checkout@v2'
+    - uses: 'actions/checkout@v3'
 
-    - uses: 'actions/setup-node@v2'
+    - uses: 'actions/setup-node@v3'
       with:
         node-version: '16.x'
 

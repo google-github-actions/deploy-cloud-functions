@@ -27,10 +27,16 @@ values will be reverted to their default value (which is usually "null").
 
 This action requires:
 
-- Google Cloud credentials that are authorized to deploy a
-Cloud Function. See the Authorization section below for more information.
+-   Google Cloud credentials that are authorized to deploy a Cloud Function. See
+    the [Authorization](#Authorization) section below for more information.
 
-- [Enable the Cloud Functions API](http://console.cloud.google.com/apis/library/cloudfunctions.googleapis.com?_ga=2.267842766.1374248275.1591025444-475066991.1589991158)
+-   [Enable the Cloud Functions API](http://console.cloud.google.com/apis/library/cloudfunctions.googleapis.com)
+
+
+-   This action runs using Node 16. If you are using self-hosted GitHub Actions
+    runners, you must use runner version [2.285.0](https://github.com/actions/virtual-environments)
+    or newer.
+
 
 ## Usage
 
@@ -42,7 +48,7 @@ jobs:
       id-token: 'write'
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - id: auth
       uses: google-github-actions/auth@v0
@@ -234,7 +240,7 @@ jobs:
       id-token: 'write'
 
     steps:
-    - uses: 'actions/checkout@v2'
+    - uses: 'actions/checkout@v3'
 
     - id: 'auth'
       uses: 'google-github-actions/auth@v0'
@@ -255,7 +261,7 @@ jobs:
 jobs:
   job_id:
     steps:
-    - uses: 'actions/checkout@v2'
+    - uses: 'actions/checkout@v3'
 
     - id: 'auth'
       uses: 'google-github-actions/auth@v0'
@@ -280,7 +286,7 @@ only works using a custom runner hosted on GCP.**
 jobs:
   job_id:
     steps:
-    - uses: 'actions/checkout@v2'
+    - uses: 'actions/checkout@v3'
 
     - id: 'deploy'
       uses: 'google-github-actions/deploy-cloud-functions@v0'
