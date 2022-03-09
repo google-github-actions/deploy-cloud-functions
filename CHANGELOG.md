@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.9.0](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.8.0...v0.9.0) (2022-03-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* require nodejs 16 (#272)
+
+### Bug Fixes
+
+* add buildEnvironmentVariables to updateMask ([#276](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/276)) ([53c1f8b](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/53c1f8be67564a771e568c620dbaf3efaecb26bc))
+
+
+### Miscellaneous Chores
+
+* require nodejs 16 ([#272](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/272)) ([9b7d084](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/9b7d084f94201f2bf164cfa0fd99f03bd920d8de))
+
 ## [0.8.0](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.7.1...v0.8.0) (2022-01-31)
 
 
