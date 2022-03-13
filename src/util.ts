@@ -54,9 +54,7 @@ export function zipDir(dirPath: string, outputPath: string): Promise<string> {
     let gIgnoreF = undefined;
     if (getGcloudIgnores(dirPath).length > 0) {
       const gIgnore = ignore().add(getGcloudIgnores(dirPath));
-      gIgnoreF = function (
-        file: Archiver.EntryData,
-      ): false | Archiver.EntryData {
+      gIgnoreF = function (file: Archiver.EntryData): false | Archiver.EntryData {
         return !gIgnore.ignores(file.name) ? file : false;
       };
     }

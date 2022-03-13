@@ -35,12 +35,7 @@ import {
   presence,
 } from '@google-github-actions/actions-utils';
 
-import {
-  CloudFunction,
-  CloudFunctionsClient,
-  SecretEnvVar,
-  SecretVolume,
-} from './client';
+import { CloudFunction, CloudFunctionsClient, SecretEnvVar, SecretVolume } from './client';
 import { SecretName } from './secret';
 
 async function run(): Promise<void> {
@@ -58,17 +53,13 @@ async function run(): Promise<void> {
     const entryPoint = presence(getInput('entry_point'));
     const sourceDir = presence(getInput('source_dir'));
     const vpcConnector = presence(getInput('vpc_connector'));
-    const vpcConnectorEgressSettings = presence(
-      getInput('vpc_connector_egress_settings'),
-    );
+    const vpcConnectorEgressSettings = presence(getInput('vpc_connector_egress_settings'));
     const ingressSettings = presence(getInput('ingress_settings'));
     const serviceAccountEmail = presence(getInput('service_account_email'));
     const timeout = parseDuration(getInput('timeout'));
     const maxInstances = presence(getInput('max_instances'));
     const minInstances = presence(getInput('min_instances'));
-    const httpsTriggerSecurityLevel = presence(
-      getInput('https_trigger_security_level'),
-    );
+    const httpsTriggerSecurityLevel = presence(getInput('https_trigger_security_level'));
     const eventTriggerType = presence(getInput('event_trigger_type'));
     const eventTriggerResource = presence(getInput('event_trigger_resource'));
     const eventTriggerService = presence(getInput('event_trigger_service'));
@@ -77,14 +68,10 @@ async function run(): Promise<void> {
     const labels = parseKVString(getInput('labels'));
 
     const buildEnvVars = presence(getInput('build_environment_variables'));
-    const buildEnvVarsFile = presence(
-      getInput('build_environment_variables_file'),
-    );
+    const buildEnvVarsFile = presence(getInput('build_environment_variables_file'));
     const buildWorkerPool = presence(getInput('build_worker_pool'));
 
-    const secretEnvVars = parseKVString(
-      getInput('secret_environment_variables'),
-    );
+    const secretEnvVars = parseKVString(getInput('secret_environment_variables'));
     const secretVols = parseKVString(getInput('secret_volumes'));
 
     const dockerRepository = presence(getInput('docker_repository'));
@@ -120,8 +107,7 @@ async function run(): Promise<void> {
       eventTriggerType
     ) {
       throw new Error(
-        `Only one of 'https_trigger_security_level' or 'event_trigger_type' ` +
-          `may be specified.`,
+        `Only one of 'https_trigger_security_level' or 'event_trigger_type' ` + `may be specified.`,
       );
     }
     if (!sourceDir) {
@@ -144,16 +130,11 @@ async function run(): Promise<void> {
       }
     }
     if (timeout <= 0) {
-      throw new Error(
-        `The 'timeout' parameter must be > 0 seconds (got ${timeout})`,
-      );
+      throw new Error(`The 'timeout' parameter must be > 0 seconds (got ${timeout})`);
     }
 
     // Build environment variables.
-    const buildEnvironmentVariables = parseKVStringAndFile(
-      buildEnvVars,
-      buildEnvVarsFile,
-    );
+    const buildEnvironmentVariables = parseKVStringAndFile(buildEnvVars, buildEnvVarsFile);
     const environmentVariables = parseKVStringAndFile(envVars, envVarsFile);
 
     // Build secret environment variables.
@@ -238,11 +219,7 @@ async function run(): Promise<void> {
           retry: {},
         };
       }
-    } else if (
-      eventTriggerType ||
-      eventTriggerResource ||
-      eventTriggerService
-    ) {
+    } else if (eventTriggerType || eventTriggerResource || eventTriggerService) {
       throw new Error(
         `Event triggered functions must define 'event_trigger_type' and 'event_trigger_resource'`,
       );
@@ -303,9 +280,7 @@ async function run(): Promise<void> {
     setOutput('runtime', resp.runtime);
   } catch (err) {
     const msg = errorMessage(err);
-    setFailed(
-      `google-github-actions/deploy-cloud-functions failed with: ${msg}`,
-    );
+    setFailed(`google-github-actions/deploy-cloud-functions failed with: ${msg}`);
   }
 }
 

@@ -54,10 +54,7 @@ describe('CloudFunctionsClient', () => {
         credentials: credentials,
       });
 
-      const outputPath = path.join(
-        os.tmpdir(),
-        crypto.randomBytes(12).toString('hex'),
-      );
+      const outputPath = path.join(os.tmpdir(), crypto.randomBytes(12).toString('hex'));
       const zipPath = await zipDir(testNodeFuncDir, outputPath);
 
       // Generate upload URL
