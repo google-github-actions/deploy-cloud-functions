@@ -16,7 +16,9 @@
 
 import { posix } from 'path';
 
+import { EntryData } from 'archiver';
 import {
+  debug as logDebug,
   getBooleanInput,
   getInput,
   info as logInfo,
@@ -42,6 +44,7 @@ import {
   SecretVolume,
 } from './client';
 import { SecretName } from './secret';
+import { formatEntry } from './util';
 
 async function run(): Promise<void> {
   try {
@@ -260,6 +263,9 @@ async function run(): Promise<void> {
       timeout: deployTimeout ? +deployTimeout : undefined,
       onZip: (sourceDir: string, zipPath: string) => {
         logInfo(`Created zip file from '${sourceDir}' at '${zipPath}'`);
+      },
+      onZipEntry: (entry: EntryData) => {
+        logDebug(formatEntry(entry));
       },
       onNew: () => {
         logInfo('Creating new Cloud Function deployment');
