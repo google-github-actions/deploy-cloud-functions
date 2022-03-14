@@ -23,7 +23,7 @@ import { tmpdir } from 'os';
 import { CredentialBody, ExternalAccountClientOptions, GoogleAuth } from 'google-auth-library';
 import { errorMessage, request, removeFile } from '@google-github-actions/actions-utils';
 
-import { zipDir } from './util';
+import { zipDir, ZipOptions } from './util';
 
 // Do not listen to the linter - this can NOT be rewritten as an ES6 import statement.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -173,7 +173,7 @@ export type DeployOptions = {
   onZip?: OnZipFunction;
   onNew?: OnFunction;
   onExisting?: OnFunction;
-};
+} & ZipOptions;
 
 export type OnFunction = () => void;
 export type OnZipFunction = (sourceDir: string, zipPath: string) => void;
@@ -444,7 +444,7 @@ export class CloudFunctionsClient {
     const randomName = randomBytes(12).toString('hex');
     const zipPath = path.join(tmpdir(), `cfsrc-${randomName}.zip`);
     try {
-      await zipDir(sourceDir, zipPath);
+      await zipDir(sourceDir, zipPath, opts);
       if (opts?.onZip) opts.onZip(sourceDir, zipPath);
     } catch (err) {
       throw new Error(`Zip file ${zipPath} creation failed: ${err}`);
