@@ -20,16 +20,8 @@ import fs from 'fs';
 import * as path from 'path';
 import { tmpdir } from 'os';
 
-import {
-  CredentialBody,
-  ExternalAccountClientOptions,
-  GoogleAuth,
-} from 'google-auth-library';
-import {
-  errorMessage,
-  request,
-  removeFile,
-} from '@google-github-actions/actions-utils';
+import { CredentialBody, ExternalAccountClientOptions, GoogleAuth } from 'google-auth-library';
+import { errorMessage, request, removeFile } from '@google-github-actions/actions-utils';
 
 import { zipDir, ZipOptions } from './util';
 
@@ -321,10 +313,7 @@ export class CloudFunctionsClient {
    *
    * @param cf Cloud Function to deploy.
    */
-  async create(
-    cf: CloudFunction,
-    opts?: CreateOptions,
-  ): Promise<CloudFunctionResponse> {
+  async create(cf: CloudFunction, opts?: CreateOptions): Promise<CloudFunctionResponse> {
     const timeout = opts?.timeout || defaultTimeout;
 
     const resourceName = this.fullResourceName(cf.name);
@@ -394,10 +383,7 @@ export class CloudFunctionsClient {
    *
    * @param cf Cloud Function to patch
    */
-  async patch(
-    cf: CloudFunction,
-    opts?: PatchOptions,
-  ): Promise<CloudFunctionResponse> {
+  async patch(cf: CloudFunction, opts?: PatchOptions): Promise<CloudFunctionResponse> {
     const timeout = opts?.timeout || defaultTimeout;
 
     // fieldMasks are used if we are overwriting only specific fields of the
@@ -555,9 +541,7 @@ export class CloudFunctionsClient {
 
     const projectID = this.#projectID;
     if (!projectID) {
-      throw new Error(
-        `Failed to get project ID to build resource name. Try setting 'project_id'.`,
-      );
+      throw new Error(`Failed to get project ID to build resource name. Try setting 'project_id'.`);
     }
 
     const location = this.#location;
