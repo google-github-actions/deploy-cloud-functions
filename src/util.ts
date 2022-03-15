@@ -40,11 +40,7 @@ export type ZipOptions = {
  * @param opts Options with which to invoke the zip.
  * @returns filepath of the created zip file.
  */
-export function zipDir(
-  dirPath: string,
-  outputPath: string,
-  opts?: ZipOptions,
-): Promise<string> {
+export function zipDir(dirPath: string, outputPath: string, opts?: ZipOptions): Promise<string> {
   // Check dirpath
   if (!fs.existsSync(dirPath)) {
     throw new Error(`Unable to find ${dirPath}`);
