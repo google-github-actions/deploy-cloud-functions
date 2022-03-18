@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { RequestOptions } from 'https';
 import { randomBytes } from 'crypto';
 import fs from 'fs';
 import * as path from 'path';
 import { tmpdir } from 'os';
 
+import { HttpClient } from '@actions/http-client';
 import { CredentialBody, ExternalAccountClientOptions, GoogleAuth } from 'google-auth-library';
-import { errorMessage, request, removeFile } from '@google-github-actions/actions-utils';
+import { errorMessage, removeFile } from '@google-github-actions/actions-utils';
 
 import { zipDir, ZipOptions } from './util';
 
@@ -180,26 +180,6 @@ export type OnZipFunction = (sourceDir: string, zipPath: string) => void;
 
 export class CloudFunctionsClient {
   /**
-   * request is a high-level helper that returns a promise from the executed
-   * request.
-   */
-  static async request(
-    method: string,
-    url: string,
-    data?: any, // eslint-disable-line @typescript-eslint/no-explicit-any
-    opts?: RequestOptions,
-  ): Promise<string> {
-    opts ||= {};
-    opts.headers = Object.assign(
-      {
-        'User-Agent': userAgent,
-      },
-      opts.headers,
-    );
-    return await request(method, url, data, opts);
-  }
-
-  /**
    * baseURL is the cloud functions endpoint. By default, this is the public
    * cloud functions endpoint, but it can be overridden for testing.
    */
@@ -220,6 +200,11 @@ export class CloudFunctionsClient {
   readonly #projectID?: string;
   readonly #location?: string;
 
+  /**
+   * client is the HTTP client.
+   */
+  readonly #client: HttpClient;
+
   constructor(opts?: CloudFunctionClientOptions) {
     this.#baseURL = opts?.baseURL || defaultBaseURL;
 
@@ -231,32 +216,34 @@ export class CloudFunctionsClient {
 
     this.#projectID = opts?.projectID;
     this.#location = opts?.location;
+
+    this.#client = new HttpClient(userAgent);
   }
 
   async #request(
     method: string,
     url: string,
     data?: any, // eslint-disable-line @typescript-eslint/no-explicit-any
-    opts?: RequestOptions,
   ) {
     const authToken = await this.#auth.getAccessToken();
     if (!authToken) {
       throw new Error(`Failed to get auth token for ${method} ${url}`);
     }
 
-    opts ||= {};
-    opts.headers = Object.assign(
-      {
-        'Authorization': `Bearer ${authToken}`,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      opts.headers,
-    );
+    const headers = {
+      'Authorization': `Bearer ${authToken}`,
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    };
 
     try {
-      const resp = await request(method, url, data, opts);
-      return JSON.parse(resp);
+      const response = await this.#client.request(method, url, data, headers);
+      const body = await response.readBody();
+      const statusCode = response.message.statusCode || 500;
+      if (statusCode >= 400) {
+        throw new Error(`(${statusCode}) ${body}`);
+      }
+      return JSON.parse(body);
     } catch (err) {
       const msg = errorMessage(err);
       throw new Error(`Failed to ${method} ${url}: ${msg}`);
@@ -509,12 +496,18 @@ export class CloudFunctionsClient {
     const zipFile = fs.createReadStream(zipPath);
 
     try {
-      await CloudFunctionsClient.request('PUT', uploadURL, zipFile, {
-        headers: {
-          'content-type': 'application/zip',
-          'x-goog-content-length-range': '0,104857600',
-        },
+      // This is different logic than the primary request function, and it does
+      // not return JSON.
+      const response = await this.#client.request('PUT', uploadURL, zipFile, {
+        'content-type': 'application/zip',
+        'x-goog-content-length-range': '0,104857600',
       });
+
+      const body = await response.readBody();
+      const statusCode = response.message.statusCode || 500;
+      if (statusCode >= 400) {
+        throw new Error(`(${statusCode}) ${body}`);
+      }
     } catch (err) {
       const msg = errorMessage(err);
       throw new Error(`Failed to upload source: ${msg}`);

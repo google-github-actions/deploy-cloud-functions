@@ -265,7 +265,9 @@ jobs:
         env_vars_file: './tests/env-var-files/test.good.yaml'
         build_environment_variables: 'FOO=bar, ZIP=zap'
         build_environment_variables_file: './tests/env-var-files/test.good.yaml'
-        secret_environment_variables: 'FOO=${{ secrets.DEPLOY_CF_SECRET_VERSION_REF }},BAR=${{ secrets.DEPLOY_CF_SECRET_REF }}'
+        secret_environment_variables: |-
+          FOO=${{ secrets.DEPLOY_CF_SECRET_VERSION_REF }}
+          BAR=${{ secrets.DEPLOY_CF_SECRET_REF }}
         secret_volumes: '/etc/secrets/foo=${{ secrets.DEPLOY_CF_SECRET_VERSION_REF }}'
         min_instances: 2
         max_instances: 5
