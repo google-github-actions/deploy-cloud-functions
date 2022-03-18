@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.10.0](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.9.0...v0.10.0) (2022-03-18)
+
+
+### Features
+
+* output archive entries in debug mode ([#300](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/300)) ([88aa99f](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/88aa99f704ec90816fec08735e2f68232f9522ae))
+
+
+### Bug Fixes
+
+* support multi-line KV for secrets, envvars, and labels ([#309](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/309)) ([2cf760b](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/2cf760b0443400bd6ae8542d9d472f950d44e71b))
+
 ## [0.9.0](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.8.0...v0.9.0) (2022-03-09)
 
 
