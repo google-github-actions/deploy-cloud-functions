@@ -1,0 +1,53 @@
+name: 'update-readme'
+
+on:
+  # cron schedule runs every Tuesday at 5pm UTC following public release of new cloud sdk version
+  schedule:
+    -cron: '0 17 * * 2'
+
+jobs:
+  build:
+    permissions:
+      contents: 'write'
+      id-token: 'write'
+      pull-requests: write
+    runs-on: 'ubuntu-latest'
+
+    steps:
+    - uses: 'actions/checkout@v3'
+
+    - uses: 'actions/setup-node@v3'
+      with:
+        node-version: '16.x'
+    
+    # Used to authenticate setup-gcloud in update script
+    - name: 'Auth with WIF'
+      uses: google-github-actions/auth@v0
+      with:
+        workload_identity_provider: # TODO replace with WIF
+        service_account: # TODO: replace with SA
+    
+    - name: 'Build & Run Update Readme Script'
+      run: |-
+        cd utils
+        npm ci
+        npm run build-readme
+        node dist_temp/index.js
+    
+    #  Builds update readme script, if there is a diff detected 
+    #  will open pull request from fork and commit updated Readme
+    - name: 'Create pull request for self-updating readme'
+      uses: 'peter-evans/create-pull-request@dcd5fd746d53dd8de555c0f10bca6c35628be47a'
+      with:
+        token: #TODO replace with bot/machine account token
+        add-paths: README.md
+        committer: # TODO replace with bot/machine account
+        author: # TODO replace with bot/machine account
+        signoff: # TODO replace with bot/machine account
+        commit-message: 'Update Readme'
+        title: 'chore: refresh readme'
+        body: 'Build compiled Typescript for self-updating Readme'
+        base: 'main'
+        branch: 'actions/update-readme'
+        push-to-fork: # TODO replace with bot user fork (ie. origin/repo, ex: bot-user/deploy-cloud-functions)
+        delete-branch: true
