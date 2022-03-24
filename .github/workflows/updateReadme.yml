@@ -20,19 +20,17 @@ jobs:
       with:
         node-version: '16.x'
     
-    # Used to authenticate setup-gcloud in update script
-    - name: 'Auth with WIF'
-      uses: google-github-actions/auth@v0
-      with:
-        workload_identity_provider: # TODO replace with WIF
-        service_account: # TODO: replace with SA
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v0
     
-    - name: 'Build & Run Update Readme Script'
-      run: |-
-        cd utils
+    - name: Fetch Event Types
+      run: gcloud functions event-types list --format json > events.json
+    
+    - name: Output File
+      run: |
         npm ci
-        npm run build-readme
-        node dist_temp/index.js
+        npm build-readme
+        node ./utils/dist_tmp/index.js
     
     #  Builds update readme script, if there is a diff detected 
     #  will open pull request from fork and commit updated Readme
@@ -40,7 +38,7 @@ jobs:
       uses: 'peter-evans/create-pull-request@dcd5fd746d53dd8de555c0f10bca6c35628be47a'
       with:
         token: #TODO replace with bot/machine account token
-        add-paths: README.md
+        add-paths: docs/eventTriggerTypes.md
         committer: # TODO replace with bot/machine account
         author: # TODO replace with bot/machine account
         signoff: # TODO replace with bot/machine account

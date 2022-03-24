@@ -1,87 +1,50 @@
-import * as core from '@actions/core';
-import * as toolCache from '@actions/tool-cache';
-import * as setupGcloud from '@google-github-actions/setup-cloud-sdk';
-import path from 'path';
-import * as Moustache from 'mustache';
 import * as fs from 'fs';
 
-interface GcloudResponseObject {
-  output: string; // stringified json object
-  commandString: string; // the gcloud command string to be run
-}
+/**
+ * Script to Update Readme with Event Trigger Types from gcloud output
+ * table returns three columns: event type, resource name, and resource collection
+ *
+ * gcloud step writes results to json file -> read json file and parse into a string row
+ * formmated for a row in a markdown table for each relevant event type -> reads existing markdown doc
+ * and replaces the substring between markers with the updated data
+ */
 
-const setupGcloudSDK = async (): Promise<GcloudResponseObject> => {
-  try {
-    const cmd = ['functions', 'event-types', 'list', '--format', 'json'];
-    // Setup latest Gcloud Version
-    const gcloudVersion = await setupGcloud.getLatestGcloudSDKVersion();
+const markdownTable = `
+| Event Type | Resource Name | Resource Collection |
+| ---------- | ------------- | ------------------- | \n`;
 
-    if (!setupGcloud.isInstalled(gcloudVersion)) {
-      await setupGcloud.installGcloudSDK(gcloudVersion);
-    } else {
-      const toolPath = toolCache.find('gcloud', gcloudVersion);
-      core.addPath(path.join(toolPath, 'bin'));
+const startMarker = '<!-- Start: DO NOT EDIT -->';
+const endMarker = '<!-- End: DO NOT EDIT -->';
+
+const readEventData = async (): Promise<string> => {
+  const eventTypesData = fs.readFileSync('./events.json');
+  const markdownArray: string[] = [];
+  markdownArray.push(markdownTable);
+  // TODO find exportable type for gcloud output
+  JSON.parse(eventTypesData.toString()).forEach((data: any) => {
+    if (data.label && data.resource_type.name && data.resource_type.value.collection_id) {
+      const stringToAdd = `| ${data.label} | ${data.resource_type.name} | ${data.resource_type.value.collection_id} | \n`;
+      markdownArray.push(stringToAdd);
     }
-    await setupGcloud.authenticateGcloudSDK();
-    const authenticated = await setupGcloud.isAuthenticated();
-    if (!authenticated) {
-      throw new Error('Error authenticating the Cloud SDK.');
-    }
-    const toolCommand = setupGcloud.getToolCommand();
-    const commandString = `${toolCommand} ${cmd.join(' ')}`;
-    // Print command string for logging
-    core.info(`Running: ${commandString}`);
-    // Run gcloud cmd.
-    const { output } = await setupGcloud.gcloudRun(cmd);
-    return {
-      output: output,
-      commandString: commandString,
-    };
-  } catch (e) {
-    throw new Error('There was an error setting up Gcloud SDK. Full error: ' + e);
-  }
+  });
+  const newTable = markdownArray.join('');
+  return newTable;
 };
 
-// type definitions for data written to readme
-interface EventTypes {
-  event_type: string; // the event type the cloud function can listen to
-  resource_name: string; // the name of the google cloud resource triggering that event
-  resource_collection: string; // the resource collection
-}
-
-const generateReadMe = async (): Promise<void> => {
-  const event_types: EventTypes[] = [];
-  const { output, commandString } = await setupGcloudSDK();
-  try {
-    // TODO: find type for glcoud output
-    JSON.parse(output).forEach((data: any) => {
-      if (data.label && data.resource_type.name && data.resource_type.value.collection_id) {
-        event_types.push({
-          event_type: data.label,
-          resource_name: data.resource_type.name,
-          resource_collection: data.resource_type.value.collection_id,
-        });
-      } else {
-        throw new Error(`Response body changed for command: ${commandString}.`);
-      }
-    });
-    // remove duplicate events from gcloud output
-    const uniqueEvents = new Set(event_types);
-    const eventTriggerData = {
-      events: Array.from(uniqueEvents),
-    };
-    // read moustache template and write new readme to be commited
-    fs.readFile('./main.moustache', (err, data) => {
-      if (err)
-        throw new Error(`There was an error reading the moustache file template. Error: ${err}`);
-      const output = Moustache.render(data.toString(), eventTriggerData);
-      fs.writeFileSync('../READMETEST.md', output);
-    });
-  } catch (e) {
-    throw new Error(
-      `There was an error generating readme. Check gcloud command response output. Full error: ${e}`,
+const updateReadMe = async (): Promise<void> => {
+  const eventData = await readEventData();
+  fs.readFile('./docs/eventTriggerTypes.md', (err, data) => {
+    const currentMarkdown = data.toString();
+    const startMarkerIndex = currentMarkdown.indexOf(startMarker);
+    const endMarkerIndex = currentMarkdown.indexOf(endMarker);
+    // grab substring between start and end markers
+    // replace with updated event types table
+    const newData = currentMarkdown.replace(
+      currentMarkdown.substring(startMarkerIndex + startMarker.length, endMarkerIndex - 1),
+      eventData,
     );
-  }
+    fs.writeFileSync('./docs/eventTriggerTypes.md', newData);
+  });
 };
 
-generateReadMe();
+updateReadMe();

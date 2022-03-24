@@ -145,7 +145,7 @@ jobs:
   value. We recommend setting this value to `"secure_always"` unless you need
   your function to be accessible over a non-TLS connection.
 
-- `event_trigger_type`: (Optional) Specifies which action should trigger the function. Defaults to creation of http trigger.
+- `event_trigger_type`: (Optional) Specifies which action should trigger the function. Defaults to creation of http trigger. See currently available event trigger types [here](/docs/eventTriggerTypes.md)
 
 - `event_trigger_resource`: (Optional) Specifies which resource from eventTrigger is observed.
 
