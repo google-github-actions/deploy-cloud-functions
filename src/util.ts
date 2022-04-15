@@ -66,9 +66,11 @@ export function zipDir(dirPath: string, outputPath: string, opts?: ZipOptions): 
     archive.pipe(output);
 
     // gcloudignore
+    // TODO(sethvargo): switch to actions-utils#parseGcloudIgnore
     let gIgnoreF = undefined;
-    if (getGcloudIgnores(dirPath).length > 0) {
-      const gIgnore = ignore().add(getGcloudIgnores(dirPath));
+    const ignores = getGcloudIgnores(dirPath);
+    if (ignores.length > 0) {
+      const gIgnore = ignore().add(ignores);
       gIgnoreF = function (file: Archiver.EntryData): false | Archiver.EntryData {
         return !gIgnore.ignores(file.name) ? file : false;
       };
