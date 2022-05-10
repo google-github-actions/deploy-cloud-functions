@@ -21,7 +21,7 @@ import { tmpdir } from 'os';
 
 import { HttpClient } from '@actions/http-client';
 import { CredentialBody, ExternalAccountClientOptions, GoogleAuth } from 'google-auth-library';
-import { errorMessage, removeFile } from '@google-github-actions/actions-utils';
+import { errorMessage, forceRemove } from '@google-github-actions/actions-utils';
 
 import { zipDir, ZipOptions } from './util';
 
@@ -375,31 +375,53 @@ export class CloudFunctionsClient {
 
     // fieldMasks are used if we are overwriting only specific fields of the
     // resource in the case we assume we will always need to replace.
+    //
+    // https://cloud.google.com/functions/docs/reference/rest/v1/projects.locations.functions#CloudFunction
     const updateMasks = [
-      'sourceUploadUrl',
-      'name',
-      'environmentVariables',
+      'availableMemoryMb',
       'buildEnvironmentVariables',
+      'buildWorkerPool',
+      'description',
+      'dockerRepository',
       'entryPoint',
-      'runtime',
-      'vpcConnector',
-      'vpcConnectorEgressSettings',
+      'environmentVariables',
+      'eventTrigger',
+      'httpsTrigger',
       'ingressSettings',
+      'kmsKeyName',
+      'labels',
+      'maxInstances',
+      'minInstances',
+      'name',
+      'network',
+      'runtime',
+      'secretEnvironmentVariables',
+      'secretVolumes',
       'serviceAccountEmail',
       'timeout',
-      'minInstances',
-      'maxInstances',
-      'eventTrigger.eventType',
-      'eventTrigger.resource',
-      'eventTrigger.service',
-      'labels',
-      'secretEnvironmentVariables',
-    ].join(',');
+      'vpcConnector',
+      'vpcConnectorEgressSettings',
+    ];
+
+    // These values cannot be set on the updateMask unless they are also given
+    // in the request.
+    if (cf.sourceArchiveUrl?.length) {
+      updateMasks.push('sourceArchiveUrl');
+    }
+    if (cf.sourceRepository?.url?.length) {
+      updateMasks.push('sourceRepository');
+    }
+    if (cf.sourceToken?.length) {
+      updateMasks.push('sourceToken');
+    }
+    if (cf.sourceUploadUrl?.length) {
+      updateMasks.push('sourceUploadUrl');
+    }
 
     const resourceName = this.fullResourceName(cf.name);
     cf.name = resourceName;
 
-    const u = `${this.#baseURL}/${resourceName}?updateMask=${updateMasks}`;
+    const u = `${this.#baseURL}/${resourceName}?updateMask=${updateMasks.join(',')}`;
     const body = JSON.stringify(cf);
     const resp: Operation = await this.#request('PATCH', u, body);
     const op = await this.#pollOperation(resp.name, {
@@ -453,7 +475,7 @@ export class CloudFunctionsClient {
     }
 
     // Delete temp zip file after upload
-    removeFile(zipPath);
+    forceRemove(zipPath);
     cf.sourceUploadUrl = uploadURL;
 
     // Get the existing function data.
