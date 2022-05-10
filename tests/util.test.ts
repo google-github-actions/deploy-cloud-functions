@@ -63,7 +63,7 @@ describe('Util', () => {
 
 /**
  *
- * @param zipFile path to zipfile
+ * @param zipFilePath path to zipfile
  * @returns list of files within zipfile
  */
 async function getFilesInZip(zipFilePath: string): Promise<string[]> {

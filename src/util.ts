@@ -15,8 +15,10 @@
  */
 
 import fs from 'fs';
-import * as Archiver from 'archiver';
 import * as path from 'path';
+
+import * as Archiver from 'archiver';
+import { parseGcloudIgnore, toPlatformPath } from '@google-github-actions/actions-utils';
 import ignore from 'ignore';
 
 /**
@@ -40,16 +42,28 @@ export type ZipOptions = {
  * @param opts Options with which to invoke the zip.
  * @returns filepath of the created zip file.
  */
-export function zipDir(dirPath: string, outputPath: string, opts?: ZipOptions): Promise<string> {
+export async function zipDir(
+  dirPath: string,
+  outputPath: string,
+  opts?: ZipOptions,
+): Promise<string> {
   // Check dirpath
   if (!fs.existsSync(dirPath)) {
     throw new Error(`Unable to find ${dirPath}`);
   }
 
-  return new Promise((resolve, reject) => {
-    // Create output file stream
-    const output = fs.createWriteStream(outputPath);
+  // Create output file stream
+  const output = fs.createWriteStream(outputPath);
 
+  // Process gcloudignore
+  const ignoreFile = toPlatformPath(path.join(dirPath, '.gcloudignore'));
+  const ignores = await parseGcloudIgnore(ignoreFile);
+  const ignorer = ignore().add(ignores);
+  const ignoreFn = (entry: Archiver.EntryData): false | Archiver.EntryData => {
+    return ignorer.ignores(entry.name) ? false : entry;
+  };
+
+  return new Promise((resolve, reject) => {
     // Initialize archive
     const archive = Archiver.create('zip', { zlib: { level: 7 } });
     archive.on('entry', (entry) => {
@@ -65,40 +79,12 @@ export function zipDir(dirPath: string, outputPath: string, opts?: ZipOptions): 
     // Pipe all archive data to be written
     archive.pipe(output);
 
-    // gcloudignore
-    // TODO(sethvargo): switch to actions-utils#parseGcloudIgnore
-    let gIgnoreF = undefined;
-    const ignores = getGcloudIgnores(dirPath);
-    if (ignores.length > 0) {
-      const gIgnore = ignore().add(ignores);
-      gIgnoreF = function (file: Archiver.EntryData): false | Archiver.EntryData {
-        return !gIgnore.ignores(file.name) ? file : false;
-      };
-    }
-
     // Add files in dir to archive iff file not ignored
-    archive.directory(dirPath, false, gIgnoreF);
+    archive.directory(dirPath, false, ignoreFn);
 
     // Finish writing files
     archive.finalize();
   });
-}
-
-/**
- * @param dir dir which may contain .gcloudignore file
- * @returns list of ignores in .gcloudignore if present
- */
-export function getGcloudIgnores(dir: string): string[] {
-  const gcloudIgnorePath = path.posix.join(dir, '.gcloudignore');
-  if (!fs.existsSync(gcloudIgnorePath)) {
-    return [];
-  }
-  // read .gcloudignore, split on newline
-  return fs
-    .readFileSync(gcloudIgnorePath, { encoding: 'utf-8' })
-    .toString()
-    .split(/\r?\n/)
-    .map((s) => s.trim());
 }
 
 /**
