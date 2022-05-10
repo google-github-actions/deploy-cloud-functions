@@ -85,7 +85,7 @@ jobs:
 
 - `labels`: (Optional) List of key-value pairs to set as function labels in the form `label1=VALUE1,label2=VALUE2`. All existing labels will be removed, even if this parameter is not passed.
 
-- `source_dir`: (Optional) Source directory for the function. Defaults to current directory.
+- `source_dir`: (Optional) Source directory for the function. Defaults to current directory. The action does **not** follow symlinks to directories or files when generating the upload artifact.
 
 - `project_id`: (Optional) ID of the Google Cloud project. If provided, this will override the project configured in the environment.
 
