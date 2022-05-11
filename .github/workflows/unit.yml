@@ -38,11 +38,13 @@ jobs:
     - name: 'npm lint'
       # There's no need to run the linter for each operating system, since it
       # will find the same thing 3x and clog up the PR review.
-      if: ${{matrix.os == 'ubuntu-latest'}}
+      if: ${{ matrix.os == 'ubuntu-latest' }}
       run: 'npm run lint'
 
     - name: 'npm test'
       env:
         DEPLOY_CF_PROJECT_ID: '${{ secrets.DEPLOY_CF_PROJECT_ID }}'
+        DEPLOY_CF_SA_EMAIL: '${{ secrets.DEPLOY_CF_SA_EMAIL }}'
         DEPLOY_CF_SA_KEY_JSON: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
+        DEPLOY_CF_SECRET_VERSION_REF: '${{ secrets.DEPLOY_CF_SECRET_VERSION_REF }}'
       run: 'npm run test'

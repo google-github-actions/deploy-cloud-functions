@@ -121,7 +121,16 @@ inputs:
 
   service_account_email:
     description: |-
-      The email address of the IAM service account associated with the function at runtime.
+      The email address of the Google Cloud service account to use as the
+      runtime service account for the function. If unspecified, the default
+      Cloud Functions runtime service account is used.
+
+      Note this differs from the service account used to deploy the Cloud
+      Function, which is the currently-authenticated principal. However, the
+      deploying service account must have permission to impersonate the runtime
+      service account, which can be achieved by granting the deployment service
+      account "roles/iam.serviceAccountUser" permission on the runtime service
+      account.
     required: false
 
   timeout:

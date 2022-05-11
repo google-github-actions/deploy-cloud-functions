@@ -129,7 +129,13 @@ jobs:
     All existing secret volume mounts will be removed, even if this parameter is
     not passed.
 
-- `service_account_email`: (Optional) The email address of the IAM service account associated with the function at runtime.
+- `service_account_email`: (Optional) The email address of the Google Cloud
+  service account to use as the runtime service account for the function. If
+  unspecified, the default Cloud Functions runtime service account is used.
+
+    Note this differs from the service account used to deploy the Cloud
+    Function, which is the currently-authenticated principal. See
+    [Authorization](#Authorization) for more information.
 
 - `timeout`: (Optional) The function execution timeout in seconds. Defaults to 60.
 
@@ -211,17 +217,23 @@ automatically private services, while deploying a revision of a public
 
 ## Authorization
 
-There are a few ways to authenticate this action. A service account will be needed
-with the following roles:
+The _deployment_ service account must have the following IAM permissions:
 
-- Cloud Functions Admin (`cloudfunctions.admin`):
-  - Can create, update, and delete functions.
-  - Can set IAM policies and view source code.
+-   Cloud Functions Admin (`roles/cloudfunctions.admin`)
 
-This service account needs to be a member of the `App Engine default service account`
-`(PROJECT_ID@appspot.gserviceaccount.com)`, with role
-`Service Account User` (`roles/iam.serviceAccountUser`). See [additional configuration for deployment](https://cloud.google.com/functions/docs/reference/iam/roles#additional-configuration)
-for further instructions.
+Additionally, the _deployment_ service account must have permissions to act as
+(impersonate) the _runtime_ service account, which can be achieved by granting
+the deployment _service_ account "roles/iam.serviceAccountUser" permissions on
+the _runtime_ service account. If unspecified, the _runtime_ service account is the App Engine Default Service Account `PROJECT_ID@appspot.gserviceaccount.com`.
+
+In some cases, the Cloud Build service account, which defaults as
+`PROJECT_NUMBER@cloudbuild.gserviceaccount.com`, may also need to be granted
+"roles/iam.serviceAccountUser" permission on the _runtime_ service account.
+
+See the Google Cloud documentation to [learn more about custom runtime service
+accounts](https://cloud.google.com/functions/docs/securing/function-identity#individual)
+and [additional configuration for
+deployment](https://cloud.google.com/functions/docs/reference/iam/roles#additional-configuration)
 
 ### Via google-github-actions/auth
 
