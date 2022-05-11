@@ -32,7 +32,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@actions/core": "^1.7.0",
-    "@actions/http-client": "^1.0.11",
+    "@actions/http-client": "^2.0.0",
     "@google-github-actions/actions-utils": "^0.3.0",
     "archiver": "^5.3.1",
     "google-auth-library": "^8.0.2",
