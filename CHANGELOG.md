@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.10.1](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.10.0...v0.10.1) (2022-05-11)
+
+
+### Bug Fixes
+
+* switch to ignore parsing logic in actions-utils ([#322](https://www.github.com/google-github-actions/deploy-cloud-functions/issues/322)) ([14963a4](https://www.github.com/google-github-actions/deploy-cloud-functions/commit/14963a4d5f3bafa1dd0a082a1ac39a8f459561bf))
+
 ## [0.10.0](https://www.github.com/google-github-actions/deploy-cloud-functions/compare/v0.9.0...v0.10.0) (2022-03-18)
 
 
