@@ -6,7 +6,7 @@ import { expect } from 'chai';
 import StreamZip from 'node-stream-zip';
 import { randomFilepath } from '@google-github-actions/actions-utils';
 
-import { zipDir } from '../src/util';
+import { toEnum, zipDir } from '../src/util';
 
 describe('Util', () => {
   describe('#zipDir', () => {
@@ -56,6 +56,52 @@ describe('Util', () => {
             expect(`${err}`).to.contain(tc.error);
           }
         }
+      });
+    });
+  });
+
+  describe('#toEnum', () => {
+    const cases: {
+      name: string;
+      str: string;
+      exp: string;
+    }[] = [
+      {
+        name: 'empty',
+        str: '',
+        exp: '',
+      },
+      {
+        name: 'uppers',
+        str: 'foo',
+        exp: 'FOO',
+      },
+      {
+        name: 'spaces',
+        str: 'foo bar',
+        exp: 'FOO_BAR',
+      },
+      {
+        name: 'dashes',
+        str: 'foo-bar',
+        exp: 'FOO_BAR',
+      },
+      {
+        name: 'multiple spaces',
+        str: 'foo bar   baz',
+        exp: 'FOO_BAR_BAZ',
+      },
+      {
+        name: 'multiple dashes',
+        str: 'foo-bar--baz',
+        exp: 'FOO_BAR_BAZ',
+      },
+    ];
+
+    cases.forEach((tc) => {
+      it(tc.name, () => {
+        const e = toEnum(tc.str);
+        expect(e).to.eql(tc.exp);
       });
     });
   });
