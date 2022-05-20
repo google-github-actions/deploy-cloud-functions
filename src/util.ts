@@ -106,3 +106,15 @@ export function formatEntry(entry: RealEntryData): string {
   const type = (entry.type || 'unknown').toUpperCase()[0];
   return `[${type}] (${mode}) ${name} => ${sourcePath}`;
 }
+
+/**
+ * toEnum converts the input value to the closest enum-string equivalent. It
+ * does this by replacing any dashes or spaces with underscores, and returning
+ * the uppercase result.
+ *
+ * @param s String to enumerize.
+ * @returns string
+ */
+export function toEnum(s: string): string {
+  return (s || '').replace(/[\s-]+/g, '_').toUpperCase();
+}

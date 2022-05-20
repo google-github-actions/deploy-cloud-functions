@@ -79,6 +79,7 @@ export type CloudFunction = {
   availableMemoryMb?: number;
   buildEnvironmentVariables?: KVPair;
   buildWorkerPool?: string;
+  dockerRegistry?: string;
   dockerRepository?: string;
   entryPoint?: string;
   environmentVariables?: KVPair;
@@ -382,6 +383,7 @@ export class CloudFunctionsClient {
       'buildEnvironmentVariables',
       'buildWorkerPool',
       'description',
+      'dockerRegistry',
       'dockerRepository',
       'entryPoint',
       'environmentVariables',

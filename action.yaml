@@ -205,6 +205,13 @@ inputs:
       syntax.
     required: false
 
+  docker_registry:
+    description: |-
+      Registry to use for storing Docker containers. This must be one of
+      "artifact-registry" or "container-registry".
+    default: "container-registry"
+    required: false
+
   docker_repository:
     description: |-
       User managed repository created in Artifact Registry.

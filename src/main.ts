@@ -39,7 +39,7 @@ import {
 
 import { CloudFunction, CloudFunctionsClient, SecretEnvVar, SecretVolume } from './client';
 import { SecretName } from './secret';
-import { formatEntry } from './util';
+import { formatEntry, toEnum } from './util';
 
 async function run(): Promise<void> {
   try {
@@ -77,6 +77,7 @@ async function run(): Promise<void> {
     const secretEnvVars = parseKVString(getInput('secret_environment_variables'));
     const secretVols = parseKVString(getInput('secret_volumes'));
 
+    const dockerRegistry = presence(toEnum(getInput('docker_registry')));
     const dockerRepository = presence(getInput('docker_repository'));
     const kmsKeyName = presence(getInput('kms_key_name'));
 
@@ -191,6 +192,7 @@ async function run(): Promise<void> {
       availableMemoryMb: availableMemoryMb ? +availableMemoryMb : undefined,
       buildEnvironmentVariables: buildEnvironmentVariables,
       buildWorkerPool: buildWorkerPool,
+      dockerRegistry: dockerRegistry,
       dockerRepository: dockerRepository,
       entryPoint: entryPoint,
       environmentVariables: environmentVariables,
