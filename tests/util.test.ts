@@ -6,7 +6,7 @@ import { expect } from 'chai';
 import StreamZip from 'node-stream-zip';
 import { randomFilepath } from '@google-github-actions/actions-utils';
 
-import { toEnum, zipDir } from '../src/util';
+import { stringToInt, toEnum, zipDir } from '../src/util';
 
 describe('Util', () => {
   describe('#zipDir', () => {
@@ -101,6 +101,52 @@ describe('Util', () => {
     cases.forEach((tc) => {
       it(tc.name, () => {
         const e = toEnum(tc.str);
+        expect(e).to.eql(tc.exp);
+      });
+    });
+  });
+
+  describe('#stringToInt', () => {
+    const cases: {
+      name: string;
+      str: string;
+      exp: number | undefined;
+    }[] = [
+      {
+        name: 'empty',
+        str: '',
+        exp: undefined,
+      },
+      {
+        name: 'spaces',
+        str: ' ',
+        exp: undefined,
+      },
+      {
+        name: 'digit',
+        str: '1',
+        exp: 1,
+      },
+      {
+        name: 'multi-digit',
+        str: '123',
+        exp: 123,
+      },
+      {
+        name: 'suffix',
+        str: '100MB',
+        exp: 100,
+      },
+      {
+        name: 'suffix',
+        str: '1,000MB',
+        exp: 1000,
+      },
+    ];
+
+    cases.forEach((tc) => {
+      it(tc.name, () => {
+        const e = stringToInt(tc.str);
         expect(e).to.eql(tc.exp);
       });
     });

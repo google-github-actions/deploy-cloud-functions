@@ -118,3 +118,25 @@ export function formatEntry(entry: RealEntryData): string {
 export function toEnum(s: string): string {
   return (s || '').replace(/[\s-]+/g, '_').toUpperCase();
 }
+
+/**
+ * stringToInt is a helper that converts the given string into an integer. If
+ * the given string is empty, it returns undefined. If the string is not empty
+ * and parseInt fails (returns NaN), it throws an error. Otherwise, it returns
+ * the integer value.
+ *
+ * @param str String to parse as an int.
+ * @returns Parsed integer or undefined if the input was the empty string.
+ */
+export function stringToInt(str: string): number | undefined {
+  str = (str || '').trim().replace(/[^\d]/g, '');
+  if (str === '') {
+    return undefined;
+  }
+
+  const result = parseInt(str);
+  if (isNaN(result)) {
+    throw new Error(`input "${str}" is not a number`);
+  }
+  return result;
+}
