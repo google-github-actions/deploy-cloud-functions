@@ -75,7 +75,7 @@ jobs:
 
 - `entry_point`: (Optional) Name of a function (as defined in source code) that will be executed. Defaults to the resource name suffix, if not specified.
 
-- `memory_mb`: (Optional) The amount of memory in MB available for a function. Defaults to 256MB.
+- `memory_mb`: (Optional) The amount of memory in MB available for a function. Defaults to '256' (256 MB). The value must be the number of megabytes _without_ the unit suffix.
 
 - `region`: (Optional) [Region](https://cloud.google.com/functions/docs/locations) in which the function should be deployed. Defaults to `us-central1`.
 

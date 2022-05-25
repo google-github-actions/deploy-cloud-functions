@@ -6,7 +6,7 @@ import { expect } from 'chai';
 import StreamZip from 'node-stream-zip';
 import { randomFilepath } from '@google-github-actions/actions-utils';
 
-import { toEnum, zipDir } from '../src/util';
+import { stringToInt, toEnum, zipDir } from '../src/util';
 
 describe('Util', () => {
   describe('#zipDir', () => {
@@ -44,11 +44,11 @@ describe('Util', () => {
 
     cases.forEach((tc) => {
       it(tc.name, async () => {
-        if (tc.expectedFiles) {
+        if (tc.expectedFiles !== undefined) {
           const zf = await zipDir(tc.zipDir, randomFilepath());
           const filesInsideZip = await getFilesInZip(zf);
           expect(filesInsideZip).to.have.members(tc.expectedFiles);
-        } else if (tc.error) {
+        } else if (tc.error !== undefined) {
           try {
             await zipDir(tc.zipDir, randomFilepath());
             throw new Error(`Should have thrown err: ${tc.error}`);
@@ -102,6 +102,65 @@ describe('Util', () => {
       it(tc.name, () => {
         const e = toEnum(tc.str);
         expect(e).to.eql(tc.exp);
+      });
+    });
+  });
+
+  describe('#stringToInt', () => {
+    const cases: {
+      only?: boolean;
+      name: string;
+      input: string;
+      expected?: number | undefined;
+      error?: string;
+    }[] = [
+      {
+        name: 'empty',
+        input: '',
+        expected: undefined,
+      },
+      {
+        name: 'spaces',
+        input: ' ',
+        expected: undefined,
+      },
+      {
+        name: 'digit',
+        input: '1',
+        expected: 1,
+      },
+      {
+        name: 'multi-digit',
+        input: '123',
+        expected: 123,
+      },
+      {
+        name: 'suffix',
+        input: '100MB',
+        expected: 100,
+      },
+      {
+        name: 'comma',
+        input: '1,000',
+        expected: 1000,
+      },
+      {
+        name: 'NaN',
+        input: 'this is definitely not a number',
+        error: 'input "this is definitely not a number" is not a number',
+      },
+    ];
+
+    cases.forEach((tc) => {
+      const fn = tc.only ? it.only : it;
+      fn(tc.name, () => {
+        if (tc.expected !== undefined) {
+          expect(stringToInt(tc.input)).to.eql(tc.expected);
+        } else if (tc.error !== undefined) {
+          expect(() => {
+            stringToInt(tc.input);
+          }).to.throw(tc.error);
+        }
       });
     });
   });

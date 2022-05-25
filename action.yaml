@@ -80,7 +80,7 @@ inputs:
 
   memory_mb:
     description: |-
-      The amount of memory in MB available for a function. Defaults to 256MB.
+      The amount of memory in MB available for a function. Defaults to 256.
     required: false
 
   vpc_connector:

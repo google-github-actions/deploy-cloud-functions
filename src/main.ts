@@ -39,7 +39,7 @@ import {
 
 import { CloudFunction, CloudFunctionsClient, SecretEnvVar, SecretVolume } from './client';
 import { SecretName } from './secret';
-import { formatEntry, toEnum } from './util';
+import { formatEntry, stringToInt, toEnum } from './util';
 
 async function run(): Promise<void> {
   try {
@@ -49,7 +49,7 @@ async function run(): Promise<void> {
     const description = presence(getInput('description'));
     const credentials = presence(getInput('credentials'));
     let projectID = presence(getInput('project_id'));
-    const availableMemoryMb = presence(getInput('memory_mb'));
+    const availableMemoryMb = stringToInt(getInput('memory_mb'));
     const region = presence(getInput('region') || 'us-central1');
     const envVars = presence(getInput('env_vars'));
     const envVarsFile = presence(getInput('env_vars_file'));
@@ -189,7 +189,7 @@ async function run(): Promise<void> {
       name: name,
       runtime: runtime,
       description: description,
-      availableMemoryMb: availableMemoryMb ? +availableMemoryMb : undefined,
+      availableMemoryMb: availableMemoryMb,
       buildEnvironmentVariables: buildEnvironmentVariables,
       buildWorkerPool: buildWorkerPool,
       dockerRegistry: dockerRegistry,
