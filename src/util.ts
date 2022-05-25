@@ -129,7 +129,7 @@ export function toEnum(s: string): string {
  * @returns Parsed integer or undefined if the input was the empty string.
  */
 export function stringToInt(str: string): number | undefined {
-  str = (str || '').trim().replace(/[^\d]/g, '');
+  str = (str || '').trim().replace(/[_,]/g, '');
   if (str === '') {
     return undefined;
   }

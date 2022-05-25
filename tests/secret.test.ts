@@ -88,12 +88,12 @@ describe('SecretName', function () {
 
   cases.forEach((tc) => {
     it(tc.name, async () => {
-      if (tc.expected) {
+      if (tc.expected !== undefined) {
         const secret = new SecretName(tc.input);
         expect(secret.project).to.eq(tc.expected.project);
         expect(secret.name).to.eq(tc.expected.secret);
         expect(secret.version).to.eq(tc.expected.version);
-      } else if (tc.error) {
+      } else if (tc.error !== undefined) {
         expect(() => {
           new SecretName(tc.input);
         }).to.throw(tc.error);

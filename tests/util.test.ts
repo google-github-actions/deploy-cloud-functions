@@ -44,11 +44,11 @@ describe('Util', () => {
 
     cases.forEach((tc) => {
       it(tc.name, async () => {
-        if (tc.expectedFiles) {
+        if (tc.expectedFiles !== undefined) {
           const zf = await zipDir(tc.zipDir, randomFilepath());
           const filesInsideZip = await getFilesInZip(zf);
           expect(filesInsideZip).to.have.members(tc.expectedFiles);
-        } else if (tc.error) {
+        } else if (tc.error !== undefined) {
           try {
             await zipDir(tc.zipDir, randomFilepath());
             throw new Error(`Should have thrown err: ${tc.error}`);
@@ -108,46 +108,59 @@ describe('Util', () => {
 
   describe('#stringToInt', () => {
     const cases: {
+      only?: boolean;
       name: string;
-      str: string;
-      exp: number | undefined;
+      input: string;
+      expected?: number | undefined;
+      error?: string;
     }[] = [
       {
         name: 'empty',
-        str: '',
-        exp: undefined,
+        input: '',
+        expected: undefined,
       },
       {
         name: 'spaces',
-        str: ' ',
-        exp: undefined,
+        input: ' ',
+        expected: undefined,
       },
       {
         name: 'digit',
-        str: '1',
-        exp: 1,
+        input: '1',
+        expected: 1,
       },
       {
         name: 'multi-digit',
-        str: '123',
-        exp: 123,
+        input: '123',
+        expected: 123,
       },
       {
         name: 'suffix',
-        str: '100MB',
-        exp: 100,
+        input: '100MB',
+        expected: 100,
       },
       {
-        name: 'suffix',
-        str: '1,000MB',
-        exp: 1000,
+        name: 'comma',
+        input: '1,000',
+        expected: 1000,
+      },
+      {
+        name: 'NaN',
+        input: 'this is definitely not a number',
+        error: 'input "this is definitely not a number" is not a number',
       },
     ];
 
     cases.forEach((tc) => {
-      it(tc.name, () => {
-        const e = stringToInt(tc.str);
-        expect(e).to.eql(tc.exp);
+      const fn = tc.only ? it.only : it;
+      fn(tc.name, () => {
+        if (tc.expected !== undefined) {
+          expect(stringToInt(tc.input)).to.eql(tc.expected);
+        } else if (tc.error !== undefined) {
+          expect(() => {
+            stringToInt(tc.input);
+          }).to.throw(tc.error);
+        }
       });
     });
   });

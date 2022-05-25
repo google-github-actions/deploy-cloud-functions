@@ -314,9 +314,9 @@ describe('CloudFunctionsClient', () => {
 
     cases.forEach((tc) => {
       it(tc.name, async () => {
-        if (tc.expected) {
+        if (tc.expected !== undefined) {
           expect(tc.client.fullResourceName(tc.input)).to.eql(tc.expected);
-        } else if (tc.error) {
+        } else if (tc.error !== undefined) {
           expect(() => {
             tc.client.fullResourceName(tc.input);
           }).to.throw(tc.error);
