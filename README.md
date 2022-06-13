@@ -43,6 +43,7 @@ This action requires:
 ```yaml
 jobs:
   job_id:
+    runs-on: ubuntu-latest
     permissions:
       contents: 'read'
       id-token: 'write'
