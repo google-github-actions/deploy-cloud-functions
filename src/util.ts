@@ -31,7 +31,16 @@ export type OnZipEntryFunction = (entry: Archiver.EntryData) => void;
  * ZipOptions is used as input to the zip function.
  */
 export type ZipOptions = {
-  onZipEntry?: OnZipEntryFunction;
+  /**
+   * onZipAddEntry is called when an entry is added to the archive.
+   */
+  onZipAddEntry?: OnZipEntryFunction;
+
+  /**
+   * onZipIgnoreEntry is called when an entry is ignored due to an ignore
+   * specification.
+   */
+  onZipIgnoreEntry?: OnZipEntryFunction;
 };
 
 /**
@@ -60,7 +69,11 @@ export async function zipDir(
   const ignores = await parseGcloudIgnore(ignoreFile);
   const ignorer = ignore().add(ignores);
   const ignoreFn = (entry: Archiver.EntryData): false | Archiver.EntryData => {
-    return ignorer.ignores(entry.name) ? false : entry;
+    if (ignorer.ignores(entry.name)) {
+      if (opts?.onZipIgnoreEntry) opts.onZipIgnoreEntry(entry);
+      return false;
+    }
+    return entry;
   };
 
   return new Promise((resolve, reject) => {
@@ -70,7 +83,7 @@ export async function zipDir(
       // For some reason, TypeScript complains if this guard is outside the
       // closure. It would be more performant just not create this listener, but
       // alas...
-      if (opts?.onZipEntry) opts.onZipEntry(entry);
+      if (opts?.onZipAddEntry) opts.onZipAddEntry(entry);
     });
     archive.on('warning', (err) => reject(err));
     archive.on('error', (err) => reject(err));
