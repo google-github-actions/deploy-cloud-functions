@@ -243,8 +243,11 @@ async function run(): Promise<void> {
       onZip: (sourceDir: string, zipPath: string) => {
         logInfo(`Created zip file from '${sourceDir}' at '${zipPath}'`);
       },
-      onZipEntry: (entry: EntryData) => {
+      onZipAddEntry: (entry: EntryData) => {
         logDebug(formatEntry(entry));
+      },
+      onZipIgnoreEntry: (entry: EntryData) => {
+        logDebug(`Ignoring ${entry.name}`);
       },
       onNew: () => {
         logInfo('Creating new Cloud Function deployment');
