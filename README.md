@@ -110,7 +110,13 @@ jobs:
     ```yaml
     secret_environment_variables: 'API_KEY=projects/my-project/secrets/api-key/versions/5'
     ```
-
+    
+    Multiple secrets should be separated by a comma, all within one continuous string (do not add wrapping [ ])
+    
+    ```yaml
+    secret_environment_variables: 'API_KEY1=projects/.., API_KEY2=projects/..'
+    ```
+    
     All existing secrets will be removed, even if this parameter is not passed.
 
 - `secret_volumes`: (Optional) List of key-value pairs to mount as volumes at
