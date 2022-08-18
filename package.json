@@ -31,7 +31,7 @@
   "author": "Google LLC",
   "license": "Apache-2.0",
   "dependencies": {
-    "@actions/core": "^1.9.0",
+    "@actions/core": "^1.9.1",
     "@actions/http-client": "^2.0.1",
     "@google-github-actions/actions-utils": "^0.4.0",
     "archiver": "^5.3.1",
