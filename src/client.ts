@@ -96,6 +96,7 @@ export type CloudFunction = {
   timeout?: string;
   vpcConnector?: string;
   vpcConnectorEgressSettings?: string;
+  gen2?: boolean;
 
   // oneof
   sourceArchiveUrl?: string;
