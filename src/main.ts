@@ -69,6 +69,7 @@ async function run(): Promise<void> {
     const eventTriggerRetry = getBooleanInput('event_trigger_retry');
     const deployTimeout = presence(getInput('deploy_timeout'));
     const labels = parseKVString(getInput('labels'));
+    const gen2 = getInput('gen2') === '1';
 
     const buildEnvVars = presence(getInput('build_environment_variables'));
     const buildEnvVarsFile = presence(getInput('build_environment_variables_file'));
@@ -208,6 +209,10 @@ async function run(): Promise<void> {
       vpcConnector: vpcConnector,
       vpcConnectorEgressSettings: vpcConnectorEgressSettings,
     };
+
+    if (gen2) {
+      cf.gen2 = gen2;
+    }
 
     if (eventTriggerType && eventTriggerResource) {
       // Set event trigger properties.
