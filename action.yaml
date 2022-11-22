@@ -19,13 +19,6 @@ description: |-
 author: Google LLC
 
 inputs:
-  credentials:
-    description: |-
-      (DEPRECATED) Optional service account key to use for authentication to
-      GCP. This should be the JSON formatted private key which can be exported
-      from the Cloud Console. The value can be raw or base64-encoded.
-    required: false
-
   name:
     description: |-
       Name of the Cloud Function.

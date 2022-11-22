@@ -1,4 +1,4 @@
-name: 'unit'
+name: 'Unit'
 
 on:
   push:
@@ -15,8 +15,10 @@ concurrency:
 
 jobs:
   unit:
-    name: 'unit'
-    runs-on: '${{ matrix.os }}'
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
     strategy:
       fail-fast: false
       matrix:
@@ -24,6 +26,7 @@ jobs:
         - 'ubuntu-latest'
         - 'windows-latest'
         - 'macos-latest'
+    runs-on: '${{ matrix.os }}'
 
     steps:
     - uses: 'actions/checkout@v3'
@@ -41,10 +44,15 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: 'npm run lint'
 
+    - uses: 'google-github-actions/auth@main'
+      if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
+      with:
+        workload_identity_provider: '${{ secrets.WIF_PROVIDER_NAME }}'
+        service_account: '${{ secrets.DEPLOY_CF_SA_EMAIL }}'
+
     - name: 'npm test'
       env:
         DEPLOY_CF_PROJECT_ID: '${{ secrets.DEPLOY_CF_PROJECT_ID }}'
         DEPLOY_CF_SA_EMAIL: '${{ secrets.DEPLOY_CF_SA_EMAIL }}'
-        DEPLOY_CF_SA_KEY_JSON: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
         DEPLOY_CF_SECRET_VERSION_REF: '${{ secrets.DEPLOY_CF_SECRET_VERSION_REF }}'
       run: 'npm run test'
