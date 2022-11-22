@@ -1,18 +1,3 @@
-<!--
-Copyright 2020 Google LLC
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
--->
 # deploy-cloud-functions
 
 This action deploys your function source code to [Cloud Functions](cloud-functions) and makes the URL
@@ -25,17 +10,13 @@ values will be reverted to their default value (which is usually "null").
 
 ## Prerequisites
 
-This action requires:
-
--   Google Cloud credentials that are authorized to deploy a Cloud Function. See
-    the [Authorization](#Authorization) section below for more information.
-
--   [Enable the Cloud Functions API](http://console.cloud.google.com/apis/library/cloudfunctions.googleapis.com)
-
+-   This action requires Google Cloud credentials that are authorized to access
+    the secrets being requested. See [Authorization](#authorization) for more
+    information.
 
 -   This action runs using Node 16. If you are using self-hosted GitHub Actions
-    runners, you must use runner version [2.285.0](https://github.com/actions/virtual-environments)
-    or newer.
+    runners, you must use runner version
+    [2.285.0](https://github.com/actions/virtual-environments) or newer.
 
 
 ## Usage
@@ -43,16 +24,16 @@ This action requires:
 ```yaml
 jobs:
   job_id:
-    runs-on: ubuntu-latest
+    runs-on: 'ubuntu-latest'
     permissions:
       contents: 'read'
       id-token: 'write'
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: 'actions/checkout@v3'
 
-    - id: auth
-      uses: google-github-actions/auth@v0
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v1'
       with:
         workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
@@ -191,12 +172,7 @@ jobs:
   provide an artifact registry repository using the `docker_repository` field
   that was created with the same key.
 
-- `credentials`: (**Deprecated**) This input is deprecated. See [auth section](https://github.com/google-github-actions/deploy-cloud-functions#via-google-github-actionsauth) for more details.
-  Service account key to use for authentication. This should be
-  the JSON formatted private key which can be exported from the Cloud Console. The
-  value can be raw or base64-encoded.
-
-## Allow unauthenticated requests
+### Allowing unauthenticated requests
 
 A Cloud Functions product recommendation is that CI/CD systems not set or change
 settings for allowing unauthenticated invocations. New deployments are
@@ -238,10 +214,9 @@ deployment](https://cloud.google.com/functions/docs/reference/iam/roles#addition
 
 ### Via google-github-actions/auth
 
-Use [google-github-actions/auth](https://github.com/google-github-actions/auth) to authenticate the action. You can use [Workload Identity Federation][wif] or traditional [Service Account Key JSON][sa] authentication.
-by specifying the `credentials` input. This Action supports both the recommended [Workload Identity Federation][wif] based authentication and the traditional [Service Account Key JSON][sa] based auth.
-
-See [usage](https://github.com/google-github-actions/auth#usage) for more details.
+Use [google-github-actions/auth](https://github.com/google-github-actions/auth)
+to authenticate the action. You can use [Workload Identity Federation][wif] or
+traditional [Service Account Key JSON][sa] authentication.
 
 #### Authenticating via Workload Identity Federation
 
@@ -256,30 +231,10 @@ jobs:
     - uses: 'actions/checkout@v3'
 
     - id: 'auth'
-      uses: 'google-github-actions/auth@v0'
+      uses: 'google-github-actions/auth@v1'
       with:
         workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
-
-    - id: 'deploy'
-      uses: 'google-github-actions/deploy-cloud-functions@v0'
-      with:
-        name: 'my-function'
-        runtime: 'nodejs16'
-```
-
-#### Authenticating via Service Account Key JSON
-
-```yaml
-jobs:
-  job_id:
-    steps:
-    - uses: 'actions/checkout@v3'
-
-    - id: 'auth'
-      uses: 'google-github-actions/auth@v0'
-      with:
-        credentials_json: '${{ secrets.gcp_credentials }}'
 
     - id: 'deploy'
       uses: 'google-github-actions/deploy-cloud-functions@v0'
@@ -318,4 +273,3 @@ Credentials.
 [sa]: https://cloud.google.com/iam/docs/creating-managing-service-accounts
 [gh-runners]: https://help.github.com/en/actions/hosting-your-own-runners/about-self-hosted-runners
 [gh-secret]: https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
-[setup-gcloud]: https://github.com/google-github-actions/setup-gcloud

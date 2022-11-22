@@ -35,25 +35,25 @@
     "@actions/http-client": "^2.0.1",
     "@google-github-actions/actions-utils": "^0.4.3",
     "archiver": "^5.3.1",
-    "google-auth-library": "^8.5.2",
+    "google-auth-library": "^8.7.0",
     "ignore": "^5.2.0"
   },
   "devDependencies": {
     "@types/archiver": "^5.3.1",
-    "@types/chai": "^4.3.3",
+    "@types/chai": "^4.3.4",
     "@types/mocha": "^10.0.0",
-    "@types/node": "^18.8.5",
-    "@typescript-eslint/eslint-plugin": "^5.40.0",
-    "@typescript-eslint/parser": "^5.40.0",
+    "@types/node": "^18.11.9",
+    "@typescript-eslint/eslint-plugin": "^5.44.0",
+    "@typescript-eslint/parser": "^5.44.0",
     "@vercel/ncc": "^0.34.0",
-    "chai": "^4.3.6",
+    "chai": "^4.3.7",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "eslint": "^8.25.0",
-    "mocha": "^10.0.0",
+    "eslint": "^8.28.0",
+    "mocha": "^10.1.0",
     "node-stream-zip": "^1.15.0",
     "prettier": "^2.7.1",
     "ts-node": "^10.9.1",
-    "typescript": "^4.8.4"
+    "typescript": "^4.9.3"
   }
 }

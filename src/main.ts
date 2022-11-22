@@ -27,10 +27,7 @@ import {
   warning as logWarning,
 } from '@actions/core';
 import {
-  Credential,
   errorMessage,
-  isServiceAccountKey,
-  parseCredential,
   parseDuration,
   parseKVString,
   parseKVStringAndFile,
@@ -47,8 +44,7 @@ async function run(): Promise<void> {
     const name = getInput('name', { required: true });
     const runtime = getInput('runtime', { required: true });
     const description = presence(getInput('description'));
-    const credentials = presence(getInput('credentials'));
-    let projectID = presence(getInput('project_id'));
+    const projectID = presence(getInput('project_id')) || presence(process.env?.GCLOUD_PROJECT);
     const availableMemoryMb = stringToInt(getInput('memory_mb'));
     const region = presence(getInput('region') || 'us-central1');
     const envVars = presence(getInput('env_vars'));
@@ -80,29 +76,6 @@ async function run(): Promise<void> {
     const dockerRegistry = presence(toEnum(getInput('docker_registry')));
     const dockerRepository = presence(getInput('docker_repository'));
     const kmsKeyName = presence(getInput('kms_key_name'));
-
-    // Add warning if using credentials
-    let credentialsJSON: Credential | undefined;
-    if (credentials) {
-      logWarning(
-        'The "credentials" input is deprecated. ' +
-          'Please switch to using google-github-actions/auth which supports both Workload Identity Federation and JSON Key authentication. ' +
-          'For more details, see https://github.com/google-github-actions/deploy-cloud-functions#authorization',
-      );
-
-      credentialsJSON = parseCredential(credentials);
-    }
-
-    // Pick the best project ID.
-    if (!projectID) {
-      if (credentialsJSON && isServiceAccountKey(credentialsJSON)) {
-        projectID = credentialsJSON?.project_id;
-        logInfo(`Extracted project ID '${projectID}' from credentials JSON`);
-      } else if (process.env?.GCLOUD_PROJECT) {
-        projectID = process.env.GCLOUD_PROJECT;
-        logInfo(`Extracted project ID '${projectID}' from $GCLOUD_PROJECT`);
-      }
-    }
 
     // Validation
     if (
@@ -181,7 +154,6 @@ async function run(): Promise<void> {
     const client = new CloudFunctionsClient({
       projectID: projectID,
       location: region,
-      credentials: credentialsJSON,
     });
 
     // Create Function definition
@@ -295,4 +267,6 @@ async function run(): Promise<void> {
   }
 }
 
-run();
+if (require.main === module) {
+  run();
+}

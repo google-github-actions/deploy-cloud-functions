@@ -7,14 +7,11 @@ import os from 'os';
 import path from 'path';
 import crypto from 'crypto';
 
-import { parseCredential } from '@google-github-actions/actions-utils';
-
 import { CloudFunctionsClient, CloudFunction } from '../src/client';
 import { SecretName } from '../src/secret';
 import { zipDir } from '../src/util';
 
 const testProjectID = process.env.DEPLOY_CF_PROJECT_ID;
-const testServiceAccountKey = process.env.DEPLOY_CF_SA_KEY_JSON;
 const testServiceAccountEmail = process.env.DEPLOY_CF_SA_EMAIL;
 const testSecretVersion = process.env.DEPLOY_CF_SECRET_VERSION_REF;
 const testLocation = 'us-central1';
@@ -27,15 +24,10 @@ describe('CloudFunctionsClient', () => {
     after(async function () {
       if (!testProjectID) return;
 
-      const credentials = testServiceAccountKey
-        ? parseCredential(testServiceAccountKey)
-        : undefined;
-
       try {
         const client = new CloudFunctionsClient({
           projectID: testProjectID,
           location: testLocation,
-          credentials: credentials,
         });
 
         await client.delete(testFunctionName);
@@ -49,14 +41,9 @@ describe('CloudFunctionsClient', () => {
 
       const secret = new SecretName(testSecretVersion);
 
-      const credentials = testServiceAccountKey
-        ? parseCredential(testServiceAccountKey)
-        : undefined;
-
       const client = new CloudFunctionsClient({
         projectID: testProjectID,
         location: testLocation,
-        credentials: credentials,
       });
 
       const outputPath = path.join(os.tmpdir(), crypto.randomBytes(12).toString('hex'));

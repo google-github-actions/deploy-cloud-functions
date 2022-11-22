@@ -20,7 +20,7 @@ import * as path from 'path';
 import { tmpdir } from 'os';
 
 import { HttpClient } from '@actions/http-client';
-import { CredentialBody, ExternalAccountClientOptions, GoogleAuth } from 'google-auth-library';
+import { GoogleAuth } from 'google-auth-library';
 import { errorMessage, forceRemove } from '@google-github-actions/actions-utils';
 
 import { zipDir, ZipOptions } from './util';
@@ -47,7 +47,6 @@ const cloudFunctionResourceNamePattern = new RegExp(
 export type CloudFunctionClientOptions = {
   projectID?: string;
   location?: string;
-  credentials?: CredentialBody | ExternalAccountClientOptions;
   baseURL?: string;
 };
 
@@ -211,7 +210,6 @@ export class CloudFunctionsClient {
 
     this.#auth = new GoogleAuth({
       scopes: ['https://www.googleapis.com/auth/cloud-platform'],
-      credentials: opts?.credentials,
       projectId: opts?.projectID,
     });
 
