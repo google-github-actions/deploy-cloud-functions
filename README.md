@@ -39,7 +39,7 @@ jobs:
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
     - id: 'deploy'
-      uses: 'google-github-actions/deploy-cloud-functions@v0'
+      uses: 'google-github-actions/deploy-cloud-functions@v1'
       with:
         name: 'my-function'
         runtime: 'nodejs16'
@@ -237,7 +237,7 @@ jobs:
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
     - id: 'deploy'
-      uses: 'google-github-actions/deploy-cloud-functions@v0'
+      uses: 'google-github-actions/deploy-cloud-functions@v1'
       with:
         name: 'my-function'
         runtime: 'nodejs16'
@@ -257,7 +257,7 @@ jobs:
     - uses: 'actions/checkout@v3'
 
     - id: 'deploy'
-      uses: 'google-github-actions/deploy-cloud-functions@v0'
+      uses: 'google-github-actions/deploy-cloud-functions@v1'
       with:
         name: 'my-function'
         runtime: 'nodejs16'
