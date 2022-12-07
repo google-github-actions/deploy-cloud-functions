@@ -5,7 +5,6 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "ncc build -m src/main.ts",
-    "cleanup": "mocha -r ts-node/register -t 240s 'tests/cleaner/*.test.ts'",
     "e2e-tests": "mocha -r ts-node/register -t 120s 'tests/e2e/*.test.ts'",
     "fixlint": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write **/*.ts",
@@ -33,27 +32,27 @@
   "dependencies": {
     "@actions/core": "^1.10.0",
     "@actions/http-client": "^2.0.1",
-    "@google-github-actions/actions-utils": "^0.4.3",
+    "@google-github-actions/actions-utils": "^0.4.4",
     "archiver": "^5.3.1",
     "google-auth-library": "^8.7.0",
-    "ignore": "^5.2.0"
+    "ignore": "^5.2.1"
   },
   "devDependencies": {
     "@types/archiver": "^5.3.1",
     "@types/chai": "^4.3.4",
-    "@types/mocha": "^10.0.0",
-    "@types/node": "^18.11.9",
-    "@typescript-eslint/eslint-plugin": "^5.44.0",
-    "@typescript-eslint/parser": "^5.44.0",
-    "@vercel/ncc": "^0.34.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^18.11.12",
+    "@typescript-eslint/eslint-plugin": "^5.46.0",
+    "@typescript-eslint/parser": "^5.46.0",
+    "@vercel/ncc": "^0.36.0",
     "chai": "^4.3.7",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "eslint": "^8.28.0",
+    "eslint": "^8.29.0",
     "mocha": "^10.1.0",
     "node-stream-zip": "^1.15.0",
-    "prettier": "^2.7.1",
+    "prettier": "^2.8.1",
     "ts-node": "^10.9.1",
-    "typescript": "^4.9.3"
+    "typescript": "^4.9.4"
   }
 }

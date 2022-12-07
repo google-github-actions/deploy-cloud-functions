@@ -11,54 +11,51 @@ import { CloudFunctionsClient, CloudFunction } from '../src/client';
 import { SecretName } from '../src/secret';
 import { zipDir } from '../src/util';
 
-const testProjectID = process.env.DEPLOY_CF_PROJECT_ID;
-const testServiceAccountEmail = process.env.DEPLOY_CF_SA_EMAIL;
-const testSecretVersion = process.env.DEPLOY_CF_SECRET_VERSION_REF;
-const testLocation = 'us-central1';
-const testFunctionName = 'test-' + crypto.randomBytes(12).toString('hex');
-const testNodeFuncDir = 'tests/test-node-func';
+const { TEST_PROJECT_ID, TEST_SERVICE_ACCOUNT_EMAIL, TEST_SECRET_VERSION_NAME } = process.env;
+const TEST_LOCATION = 'us-central1';
+const TEST_FUNCTION_NAME = 'test-' + crypto.randomBytes(12).toString('hex');
 
 describe('CloudFunctionsClient', () => {
   describe('lifecycle', () => {
     // Always try to delete the function
     after(async function () {
-      if (!testProjectID) return;
+      if (!TEST_PROJECT_ID) return;
 
       try {
         const client = new CloudFunctionsClient({
-          projectID: testProjectID,
-          location: testLocation,
+          projectID: TEST_PROJECT_ID,
+          location: TEST_LOCATION,
         });
 
-        await client.delete(testFunctionName);
+        await client.delete(TEST_FUNCTION_NAME);
       } catch {
         // do nothing
       }
     });
 
     it('can create, read, update, and delete', async function () {
-      if (!testProjectID) this.skip();
+      if (!TEST_PROJECT_ID) this.skip();
 
-      const secret = new SecretName(testSecretVersion);
+      const secret = new SecretName(TEST_SECRET_VERSION_NAME);
 
       const client = new CloudFunctionsClient({
-        projectID: testProjectID,
-        location: testLocation,
+        projectID: TEST_PROJECT_ID,
+        location: TEST_LOCATION,
       });
 
       const outputPath = path.join(os.tmpdir(), crypto.randomBytes(12).toString('hex'));
-      const zipPath = await zipDir(testNodeFuncDir, outputPath);
+      const zipPath = await zipDir('tests/test-node-func', outputPath);
 
       // Generate upload URL
       const sourceURL = await client.generateUploadURL(
-        `projects/${testProjectID}/locations/${testLocation}`,
+        `projects/${TEST_PROJECT_ID}/locations/${TEST_LOCATION}`,
       );
 
       // Upload source
       await client.uploadSource(sourceURL, zipPath);
 
       const cf: CloudFunction = {
-        name: testFunctionName,
+        name: TEST_FUNCTION_NAME,
         runtime: 'nodejs16',
         description: 'test function',
         availableMemoryMb: 512,
@@ -95,7 +92,7 @@ describe('CloudFunctionsClient', () => {
             ],
           },
         ],
-        serviceAccountEmail: testServiceAccountEmail,
+        serviceAccountEmail: TEST_SERVICE_ACCOUNT_EMAIL,
         timeout: '60s',
         // vpcConnector: string,
         // vpcConnectorEgressSettings: string,
@@ -113,7 +110,7 @@ describe('CloudFunctionsClient', () => {
 
       // Read
       const getResp = await client.get(cf.name);
-      expect(getResp.name).to.satisfy((msg: string) => msg.endsWith(testFunctionName)); // The response is the fully-qualified name
+      expect(getResp.name).to.satisfy((msg: string) => msg.endsWith(TEST_FUNCTION_NAME)); // The response is the fully-qualified name
       expect(getResp.runtime).to.eql('nodejs16');
       expect(getResp.description).to.eql('test function');
       expect(getResp.availableMemoryMb).to.eql(512);
@@ -148,18 +145,18 @@ describe('CloudFunctionsClient', () => {
           ],
         },
       ]);
-      expect(getResp.serviceAccountEmail).to.eql(testServiceAccountEmail);
+      expect(getResp.serviceAccountEmail).to.eql(TEST_SERVICE_ACCOUNT_EMAIL);
       expect(getResp.timeout).to.eql('60s');
       expect(getResp.httpsTrigger?.securityLevel).to.eql('SECURE_ALWAYS');
 
       // Update
       const updateSourceUrl = await client.generateUploadURL(
-        `projects/${testProjectID}/locations/${testLocation}`,
+        `projects/${TEST_PROJECT_ID}/locations/${TEST_LOCATION}`,
       );
       await client.uploadSource(updateSourceUrl, zipPath);
 
       const cf2: CloudFunction = {
-        name: testFunctionName,
+        name: TEST_FUNCTION_NAME,
         runtime: 'nodejs14',
         description: 'test function2',
         availableMemoryMb: 256,
@@ -196,7 +193,7 @@ describe('CloudFunctionsClient', () => {
             ],
           },
         ],
-        serviceAccountEmail: testServiceAccountEmail,
+        serviceAccountEmail: TEST_SERVICE_ACCOUNT_EMAIL,
         timeout: '30s',
         // vpcConnector: string,
         // vpcConnectorEgressSettings: string,
@@ -208,7 +205,7 @@ describe('CloudFunctionsClient', () => {
       };
 
       const patchResp = await client.patch(cf2);
-      expect(patchResp.name).to.satisfy((msg: string) => msg.endsWith(testFunctionName)); // The response is the fully-qualified name
+      expect(patchResp.name).to.satisfy((msg: string) => msg.endsWith(TEST_FUNCTION_NAME)); // The response is the fully-qualified name
       expect(patchResp.runtime).to.eql('nodejs14');
       expect(patchResp.description).to.eql('test function2');
       expect(patchResp.availableMemoryMb).to.eql(256);
@@ -243,7 +240,7 @@ describe('CloudFunctionsClient', () => {
           ],
         },
       ]);
-      expect(patchResp.serviceAccountEmail).to.eql(testServiceAccountEmail);
+      expect(patchResp.serviceAccountEmail).to.eql(TEST_SERVICE_ACCOUNT_EMAIL);
       expect(patchResp.timeout).to.eql('30s');
       expect(patchResp.httpsTrigger?.securityLevel).to.eql('SECURE_OPTIONAL');
 

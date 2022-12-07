@@ -1,0 +1,36 @@
+name: 'Cleanup'
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: 'read'
+  id-token: 'write'
+
+jobs:
+  cleanup:
+    runs-on: 'ubuntu-latest'
+
+    steps:
+    - uses: 'actions/checkout@v3'
+
+    - uses: 'google-github-actions/auth@main'
+      with:
+        workload_identity_provider: '${{ secrets.WIF_PROVIDER_NAME }}'
+        service_account: '${{ secrets.SERVICE_ACCOUNT_EMAIL }}'
+
+    - uses: 'google-github-actions/setup-gcloud@main'
+
+    - name: Delete services
+      run: |-
+        BUFFER="$(TZ=GMT+4 date +%Y-%m-%d)"
+
+        gcloud config set core/project "${{ secrets.PROJECT_ID }}"
+        gcloud config set functions/region "us-central1"
+
+        (IFS=$'\n'; for NAME in $(gcloud functions list --format="value(name)" --filter="updateTime.date('%Y-%m-%d', Z) < '${BUFFER}'"); do
+          echo "Deleting ${NAME}..."
+          gcloud functions delete ${NAME} --quiet
+        done)
