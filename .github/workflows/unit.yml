@@ -48,11 +48,11 @@ jobs:
       if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
       with:
         workload_identity_provider: '${{ secrets.WIF_PROVIDER_NAME }}'
-        service_account: '${{ secrets.DEPLOY_CF_SA_EMAIL }}'
+        service_account: '${{ secrets.SERVICE_ACCOUNT_EMAIL }}'
 
     - name: 'npm test'
       env:
-        DEPLOY_CF_PROJECT_ID: '${{ secrets.DEPLOY_CF_PROJECT_ID }}'
-        DEPLOY_CF_SA_EMAIL: '${{ secrets.DEPLOY_CF_SA_EMAIL }}'
-        DEPLOY_CF_SECRET_VERSION_REF: '${{ secrets.DEPLOY_CF_SECRET_VERSION_REF }}'
+        TEST_PROJECT_ID: '${{ secrets.PROJECT_ID }}'
+        TEST_SERVICE_ACCOUNT_EMAIL: '${{ secrets.SERVICE_ACCOUNT_EMAIL }}'
+        TEST_SECRET_VERSION_NAME: '${{ secrets.SECRET_VERSION_NAME }}'
       run: 'npm run test'
