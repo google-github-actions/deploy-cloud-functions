@@ -2,10 +2,13 @@
 
 import 'mocha';
 import { expect } from 'chai';
+import * as sinon from 'sinon';
 
 import os from 'os';
 import path from 'path';
 import crypto from 'crypto';
+
+import { errorMessage } from '@google-github-actions/actions-utils';
 
 import { CloudFunctionsClient, CloudFunction } from '../src/client';
 import { SecretName } from '../src/secret';
@@ -247,6 +250,48 @@ describe('CloudFunctionsClient', () => {
       // Delete
       const deleteResp = await client.delete(createResp.name);
       expect(deleteResp.done).to.be.true;
+    });
+  });
+
+  describe('#getSafe', () => {
+    it('does not error on a 404', async () => {
+      const client = new CloudFunctionsClient();
+      sinon.stub(client, 'get').throws(
+        new Error(`
+        {
+          "error": {
+            "code": 404,
+            "message": "Function my-function does not exist",
+            "status": "NOT_FOUND"
+          }
+        }
+        `),
+      );
+
+      const result = await client.getSafe('projects/p/functions/f');
+      expect(result).to.eql(null);
+    });
+
+    it('errors on a 403', async () => {
+      const client = new CloudFunctionsClient();
+      sinon.stub(client, 'get').throws(
+        new Error(`
+        {
+          "error": {
+            "code": 403,
+            "message": "Permission denied",
+            "status": "PERMISSION_DENIED"
+          }
+        }
+        `),
+      );
+      try {
+        await client.getSafe('projects/p/functions/f');
+        throw new Error('expected error');
+      } catch (err) {
+        const msg = errorMessage(err);
+        expect(msg).to.include('failed to lookup existing function');
+      }
     });
   });
 
