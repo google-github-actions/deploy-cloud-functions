@@ -365,6 +365,27 @@ export class CloudFunctionsClient {
   }
 
   /**
+   * getSafe attempts to get the existing function by resource name.
+   * If the function exists, it returns the function. If the function does not
+   * exist, it returns null. If there are any errors besides a 404 returned, it
+   * throws that error.
+   */
+  async getSafe(name: string): Promise<CloudFunction | null> {
+    try {
+      return await this.get(name);
+    } catch (err) {
+      const msg = errorMessage(err);
+      if (!msg.includes('404') && !msg.includes('NOT_FOUND')) {
+        throw new Error(
+          `Failed to lookup existing function - does the caller have ` +
+            `cloudfunctions.functions.get permissions? ${err}`,
+        );
+      }
+      return null;
+    }
+  }
+
+  /**
    * patch updates fields on the function.
    *
    * @param cf Cloud Function to patch
@@ -479,13 +500,7 @@ export class CloudFunctionsClient {
     cf.sourceUploadUrl = uploadURL;
 
     // Get the existing function data.
-    const existingFunction = await (async (): Promise<CloudFunction | null> => {
-      try {
-        return await this.get(resourceName);
-      } catch (err) {
-        return null;
-      }
-    })();
+    const existingFunction = await this.getSafe(resourceName);
 
     // If the function already exists, create a new version
     if (existingFunction) {
