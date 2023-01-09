@@ -77,7 +77,7 @@ jobs:
 
 - `vpc_connector_egress_settings`: (Optional) The egress settings for the connector, controlling what traffic is diverted through it.
 
-- `ingress_settings`: (Optional) The ingress settings for the function, controlling what traffic can reach it.
+- `ingress_settings`: (Optional) The ingress settings for the function, controlling what traffic can reach it. Valid values: `ALLOW_ALL`, `ALLOW_INTERNAL_ONLY`, `ALLOW_INTERNAL_AND_GCLB` ([API Reference](https://cloud.google.com/functions/docs/reference/rest/v1/projects.locations.functions?hl=en_US#IngressSettings))
 
 - `secret_environment_variables`: (Optional) List of key-value pairs to set as
   environment variables at runtime of the format `KEY1=SECRET_VERSION_REF` where
