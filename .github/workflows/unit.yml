@@ -47,12 +47,12 @@ jobs:
     - uses: 'google-github-actions/auth@main'
       if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
       with:
-        workload_identity_provider: '${{ secrets.WIF_PROVIDER_NAME }}'
-        service_account: '${{ secrets.SERVICE_ACCOUNT_EMAIL }}'
+        workload_identity_provider: '${{ vars.WIF_PROVIDER_NAME }}'
+        service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
 
     - name: 'npm test'
       env:
-        TEST_PROJECT_ID: '${{ secrets.PROJECT_ID }}'
-        TEST_SERVICE_ACCOUNT_EMAIL: '${{ secrets.SERVICE_ACCOUNT_EMAIL }}'
-        TEST_SECRET_VERSION_NAME: '${{ secrets.SECRET_VERSION_NAME }}'
+        TEST_PROJECT_ID: '${{ vars.PROJECT_ID }}'
+        TEST_SERVICE_ACCOUNT_EMAIL: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+        TEST_SECRET_VERSION_NAME: '${{ vars.SECRET_VERSION_NAME }}'
       run: 'npm run test'
