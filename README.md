@@ -8,6 +8,12 @@ an existing Cloud Function deployment.** If you manually deployed a Cloud
 Function, you must specify **all** parameters in this action. Any unspecified
 values will be reverted to their default value (which is usually "null").
 
+**This is not an officially supported Google product, and it is not covered by a
+Google Cloud support contract. To report bugs or request features in a Google
+Cloud product, please contact [Google Cloud
+support](https://cloud.google.com/support).**
+
+
 ## Prerequisites
 
 -   This action requires Google Cloud credentials that are authorized to access
