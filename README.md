@@ -69,7 +69,7 @@ jobs:
 
 - `env_vars`: (Optional) List of key-value pairs to set as environment variables in the format: `KEY1=VALUE1,KEY2=VALUE2`. All existing environment variables will be removed, even if this parameter is not passed. Keys or values that contain a separator must be escaped with a backslash (`\,`, `\\n`). All leading and trailing whitespace is trimmed.
 
-- `env_vars_file`: (Optional) Path to a local YAML file with definitions for all environment variables. An example env_vars_file can be found [here](tests/env-var-files/test.good.yaml). All existing environment variables will be removed, even if this parameter is not passed. If `env_vars` is also given, values in `env_vars` take precendence over these values.
+- `env_vars_file`: (Optional) Path to a local YAML file with definitions for all environment variables. An example env_vars_file can be found [here](tests/env-var-files/test.good.yaml). All existing environment variables will be removed, even if this parameter is not passed. If `env_vars` is also given, values in `env_vars` take precedence over these values.
 
 - `labels`: (Optional) List of key-value pairs to set as function labels in the form `label1=VALUE1,label2=VALUE2`. All existing labels will be removed, even if this parameter is not passed.
 
