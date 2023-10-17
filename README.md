@@ -1,6 +1,6 @@
 # deploy-cloud-functions
 
-This action deploys your function source code to [Cloud Functions](cloud-functions) and makes the URL
+This action deploys your function source code to [Cloud Functions](https://cloud.google.com/functions/?hl=en) and makes the URL
 available to later build steps via outputs.
 
 **This GitHub Action is _declarative_, meaning it will overwrite any values on
