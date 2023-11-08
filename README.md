@@ -36,7 +36,7 @@ jobs:
       id-token: 'write'
 
     steps:
-    - uses: 'actions/checkout@v3'
+    - uses: 'actions/checkout@v4'
 
     - id: 'auth'
       uses: 'google-github-actions/auth@v1'
@@ -48,7 +48,7 @@ jobs:
       uses: 'google-github-actions/deploy-cloud-functions@v1'
       with:
         name: 'my-function'
-        runtime: 'nodejs16'
+        runtime: 'nodejs20'
 
     # Example of using the output
     - id: 'test'
@@ -196,7 +196,7 @@ automatically private services, while deploying a revision of a public
 
 - `version`: The version of the function (e.g. `1`)
 
-- `runtime`: The chosen runtime (e.g. `nodejs16`)
+- `runtime`: The chosen runtime (e.g. `nodejs20`)
 
 ## Authorization
 
@@ -234,7 +234,7 @@ jobs:
       id-token: 'write'
 
     steps:
-    - uses: 'actions/checkout@v3'
+    - uses: 'actions/checkout@v4'
 
     - id: 'auth'
       uses: 'google-github-actions/auth@v1'
@@ -246,7 +246,7 @@ jobs:
       uses: 'google-github-actions/deploy-cloud-functions@v1'
       with:
         name: 'my-function'
-        runtime: 'nodejs16'
+        runtime: 'nodejs20'
 ```
 
 ### Via Application Default Credentials
@@ -260,13 +260,13 @@ only works using a custom runner hosted on GCP.**
 jobs:
   job_id:
     steps:
-    - uses: 'actions/checkout@v3'
+    - uses: 'actions/checkout@v4'
 
     - id: 'deploy'
       uses: 'google-github-actions/deploy-cloud-functions@v1'
       with:
         name: 'my-function'
-        runtime: 'nodejs16'
+        runtime: 'nodejs20'
 ```
 
 The action will automatically detect and use the Application Default

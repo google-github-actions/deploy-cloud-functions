@@ -59,7 +59,7 @@ describe('CloudFunctionsClient', () => {
 
       const cf: CloudFunction = {
         name: TEST_FUNCTION_NAME,
-        runtime: 'nodejs16',
+        runtime: 'nodejs20',
         description: 'test function',
         availableMemoryMb: 512,
         buildEnvironmentVariables: { BUILDKEY1: 'VALUE1', BUILDKEY2: 'VALUE2' },
@@ -114,7 +114,7 @@ describe('CloudFunctionsClient', () => {
       // Read
       const getResp = await client.get(cf.name);
       expect(getResp.name).to.satisfy((msg: string) => msg.endsWith(TEST_FUNCTION_NAME)); // The response is the fully-qualified name
-      expect(getResp.runtime).to.eql('nodejs16');
+      expect(getResp.runtime).to.eql('nodejs20');
       expect(getResp.description).to.eql('test function');
       expect(getResp.availableMemoryMb).to.eql(512);
       expect(getResp.buildEnvironmentVariables).to.eql({
