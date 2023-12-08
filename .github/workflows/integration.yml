@@ -119,7 +119,7 @@ jobs:
     - name: 'npm build'
       run: 'npm ci && npm run build'
 
-    - uses: 'google-github-actions/setup-gcloud@master'
+    - uses: 'google-github-actions/setup-gcloud@main'
       with:
         service_account_email: '${{ secrets.DEPLOY_CF_SA_EMAIL }}'
         service_account_key: '${{ secrets.DEPLOY_CF_SA_KEY_JSON }}'
