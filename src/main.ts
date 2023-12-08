@@ -17,6 +17,7 @@
 import { posix } from 'path';
 
 import {
+  error as logError,
   getBooleanInput,
   getInput,
   info as logInfo,
@@ -44,6 +45,17 @@ import {
 import { SecretName } from './secret';
 
 async function run(): Promise<void> {
+  // v0 is deprecated and is no longer supported per our "two major versions"
+  // policy.
+  logError(
+    `The v0 series of google-github-actions/deploy-cloud-functions is no ` +
+      `longer maintained. It will not receive updates, improvements, or ` +
+      `security patches. Please upgrade to the latest supported versions: ` +
+      `\n` +
+      `\n` +
+      `    https://github.com/google-github-actions/deploy-cloud-functions`,
+  );
+
   try {
     // Get inputs
     const name = getInput('name', { required: true });
