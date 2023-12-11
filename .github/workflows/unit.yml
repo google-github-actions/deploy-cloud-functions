@@ -46,7 +46,7 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: 'npm run lint'
 
-    - uses: 'google-github-actions/auth@main'
+    - uses: 'google-github-actions/auth@v2'
       if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
       with:
         workload_identity_provider: '${{ vars.WIF_PROVIDER_NAME }}'

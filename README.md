@@ -39,13 +39,13 @@ jobs:
     - uses: 'actions/checkout@v4'
 
     - id: 'auth'
-      uses: 'google-github-actions/auth@v1'
+      uses: 'google-github-actions/auth@v2'
       with:
         workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
     - id: 'deploy'
-      uses: 'google-github-actions/deploy-cloud-functions@v1'
+      uses: 'google-github-actions/deploy-cloud-functions@v2'
       with:
         name: 'my-function'
         runtime: 'nodejs20'
@@ -237,13 +237,13 @@ jobs:
     - uses: 'actions/checkout@v4'
 
     - id: 'auth'
-      uses: 'google-github-actions/auth@v1'
+      uses: 'google-github-actions/auth@v2'
       with:
         workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
     - id: 'deploy'
-      uses: 'google-github-actions/deploy-cloud-functions@v1'
+      uses: 'google-github-actions/deploy-cloud-functions@v2'
       with:
         name: 'my-function'
         runtime: 'nodejs20'
@@ -263,7 +263,7 @@ jobs:
     - uses: 'actions/checkout@v4'
 
     - id: 'deploy'
-      uses: 'google-github-actions/deploy-cloud-functions@v1'
+      uses: 'google-github-actions/deploy-cloud-functions@v2'
       with:
         name: 'my-function'
         runtime: 'nodejs20'
