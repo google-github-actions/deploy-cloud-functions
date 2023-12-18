@@ -67,7 +67,7 @@ jobs:
 
 - `region`: (Optional) [Region](https://cloud.google.com/functions/docs/locations) in which the function should be deployed. Defaults to `us-central1`.
 
-- `env_vars`: (Optional) List of key-value pairs to set as environment variables in the format: `KEY1=VALUE1,KEY2=VALUE2`. All existing environment variables will be removed, even if this parameter is not passed. Keys or values that contain a separator must be escaped with a backslash (`\,`, `\\n`). All leading and trailing whitespace is trimmed.
+- `env_vars`: (Optional) List of comma-seperated key-value pairs to set as environment variables in the format: `KEY1=VALUE1,KEY2=VALUE2`. All existing environment variables will be removed, even if this parameter is not passed. Keys or values that contain a separator must be escaped with a backslash (`\,`, `\\n`). All leading and trailing whitespace is trimmed.
 
 - `env_vars_file`: (Optional) Path to a local YAML file with definitions for all environment variables. An example env_vars_file can be found [here](tests/env-var-files/test.good.yaml). All existing environment variables will be removed, even if this parameter is not passed. If `env_vars` is also given, values in `env_vars` take precedence over these values.
 
