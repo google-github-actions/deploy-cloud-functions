@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-'use strict';
-
-import 'mocha';
-import { expect } from 'chai';
+import { test } from 'node:test';
+import assert from 'node:assert';
 
 import { SecretName } from '../src/secret';
 
-describe('SecretName', function () {
+test('SecretName', { concurrency: true }, async (suite) => {
   const cases = [
     {
       name: 'empty string',
@@ -86,18 +84,18 @@ describe('SecretName', function () {
     },
   ];
 
-  cases.forEach((tc) => {
-    it(tc.name, async () => {
-      if (tc.expected !== undefined) {
-        const secret = new SecretName(tc.input);
-        expect(secret.project).to.eq(tc.expected.project);
-        expect(secret.name).to.eq(tc.expected.secret);
-        expect(secret.version).to.eq(tc.expected.version);
-      } else if (tc.error !== undefined) {
-        expect(() => {
+  for await (const tc of cases) {
+    await suite.test(tc.name, async () => {
+      if (tc.error) {
+        assert.throws(() => {
           new SecretName(tc.input);
-        }).to.throw(tc.error);
+        }, new RegExp(tc.error));
+      } else {
+        const secret = new SecretName(tc.input);
+        assert.deepStrictEqual(secret.project, tc.expected?.project);
+        assert.deepStrictEqual(secret.name, tc.expected?.secret);
+        assert.deepStrictEqual(secret.version, tc.expected?.version);
       }
     });
-  });
+  }
 });
