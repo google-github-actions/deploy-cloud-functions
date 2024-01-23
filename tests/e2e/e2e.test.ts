@@ -14,27 +14,29 @@
  * limitations under the License.
  */
 
-import 'mocha';
-import { expect } from 'chai';
+import { test } from 'node:test';
+import assert from 'node:assert';
+
+import { skipIfMissingEnv } from '@google-github-actions/actions-utils';
 
 import { GoogleAuth } from 'google-auth-library';
 
-describe('e2e tests', () => {
-  let URL: string;
-  before(function () {
-    if (process.env.URL) {
-      URL = process.env.URL;
-    } else {
-      throw Error('URL not found.');
-    }
-  });
+test(
+  'e2e tests',
+  {
+    concurrency: true,
+    skip: skipIfMissingEnv('URL'),
+  },
+  async (suite) => {
+    await suite.test('makes a request', async () => {
+      const url = process.env.URL!;
 
-  it('makes a request', async () => {
-    // Requires ADC to be set
-    const auth = new GoogleAuth();
-    const client = await auth.getIdTokenClient(URL);
-    const response = await client.request({ url: URL });
-    expect(response.status).to.be.equal(200);
-    expect(response.data).to.include('Hello World!!');
-  });
-});
+      // Requires ADC to be set
+      const auth = new GoogleAuth();
+      const client = await auth.getIdTokenClient(url);
+      const response = await client.request({ url: url });
+      assert.deepStrictEqual(response.status, 200);
+      assert.match(response.data as string, /Hello World!/);
+    });
+  },
+);
