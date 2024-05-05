@@ -25,36 +25,36 @@ jobs:
       fail-fast: false
       matrix:
         os:
-        - 'ubuntu-latest'
-        - 'windows-latest'
-        - 'macos-latest'
+          - 'ubuntu-latest'
+          - 'windows-latest'
+          - 'macos-latest'
     runs-on: '${{ matrix.os }}'
 
     steps:
-    - uses: 'actions/checkout@v4'
+      - uses: 'actions/checkout@v4'
 
-    - uses: 'actions/setup-node@v4'
-      with:
-        node-version: '20.x'
+      - uses: 'actions/setup-node@v4'
+        with:
+          node-version: '20.x'
 
-    - name: 'npm build'
-      run: 'npm ci && npm run build'
+      - name: 'npm build'
+        run: 'npm ci && npm run build'
 
-    - name: 'npm lint'
-      # There's no need to run the linter for each operating system, since it
-      # will find the same thing 3x and clog up the PR review.
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: 'npm run lint'
+      - name: 'npm lint'
+        # There's no need to run the linter for each operating system, since it
+        # will find the same thing 3x and clog up the PR review.
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: 'npm run lint'
 
-    - uses: 'google-github-actions/auth@v2'
-      if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
-      with:
-        workload_identity_provider: '${{ vars.WIF_PROVIDER_NAME }}'
-        service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+      - uses: 'google-github-actions/auth@v2'
+        if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
+        with:
+          workload_identity_provider: '${{ vars.WIF_PROVIDER_NAME }}'
+          service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
 
-    - name: 'npm test'
-      env:
-        TEST_PROJECT_ID: '${{ vars.PROJECT_ID }}'
-        TEST_SERVICE_ACCOUNT_EMAIL: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
-        TEST_SECRET_VERSION_NAME: '${{ vars.SECRET_VERSION_NAME }}'
-      run: 'npm run test'
+      - name: 'npm test'
+        env:
+          TEST_PROJECT_ID: '${{ vars.PROJECT_ID }}'
+          TEST_SERVICE_ACCOUNT_EMAIL: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+          TEST_SECRET_VERSION_NAME: '${{ vars.SECRET_VERSION_NAME }}'
+        run: 'npm run test'

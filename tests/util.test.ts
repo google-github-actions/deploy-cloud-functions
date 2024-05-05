@@ -20,7 +20,29 @@ import assert from 'node:assert';
 import StreamZip from 'node-stream-zip';
 import { assertMembers, randomFilepath } from '@google-github-actions/actions-utils';
 
-import { stringToInt, toEnum, zipDir } from '../src/util';
+import { parseKVWithEmpty, stringToInt, zipDir } from '../src/util';
+
+test('#parseKVWithEmpty', { concurrency: true }, async (suite) => {
+  const cases = [
+    {
+      name: 'both empty',
+      s: '',
+      expected: undefined,
+    },
+    {
+      name: 'braces {}',
+      s: '{}',
+      expected: {},
+    },
+  ];
+
+  for await (const tc of cases) {
+    await suite.test(tc.name, async () => {
+      const actual = parseKVWithEmpty(tc.s);
+      assert.deepStrictEqual(actual, tc.expected);
+    });
+  }
+});
 
 test('#zipDir', { concurrency: true }, async (suite) => {
   const cases = [
@@ -64,48 +86,6 @@ test('#zipDir', { concurrency: true }, async (suite) => {
         const filesInsideZip = await getFilesInZip(zf);
         assertMembers(filesInsideZip, tc.expectedFiles);
       }
-    });
-  }
-});
-
-test('#toEnum', { concurrency: true }, async (suite) => {
-  const cases = [
-    {
-      name: 'empty',
-      str: '',
-      exp: '',
-    },
-    {
-      name: 'uppers',
-      str: 'foo',
-      exp: 'FOO',
-    },
-    {
-      name: 'spaces',
-      str: 'foo bar',
-      exp: 'FOO_BAR',
-    },
-    {
-      name: 'dashes',
-      str: 'foo-bar',
-      exp: 'FOO_BAR',
-    },
-    {
-      name: 'multiple spaces',
-      str: 'foo bar   baz',
-      exp: 'FOO_BAR_BAZ',
-    },
-    {
-      name: 'multiple dashes',
-      str: 'foo-bar--baz',
-      exp: 'FOO_BAR_BAZ',
-    },
-  ];
-
-  for await (const tc of cases) {
-    await suite.test(tc.name, () => {
-      const actual = toEnum(tc.str);
-      assert.deepStrictEqual(actual, tc.exp);
     });
   }
 });

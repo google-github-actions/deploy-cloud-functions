@@ -17,74 +17,77 @@ concurrency:
 
 jobs:
   https_trigger:
-    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
+    timeout-minutes: 10
     permissions:
       contents: 'read'
       id-token: 'write'
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'actions/checkout@v4'
+      - uses: 'actions/checkout@v4'
 
-    - uses: 'actions/setup-node@v4'
-      with:
-        node-version: '20.x'
+      - uses: 'actions/setup-node@v4'
+        with:
+          node-version: '20.x'
 
-    - name: 'npm build'
-      run: 'npm ci && npm run build'
+      - name: 'npm build'
+        run: 'npm ci && npm run build'
 
-    - uses: 'google-github-actions/auth@v2'
-      with:
-        workload_identity_provider: '${{ vars.WIF_PROVIDER_NAME }}'
-        service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+      - uses: 'google-github-actions/auth@v2'
+        with:
+          project_id: '${{ vars.PROJECT_ID }}'
+          workload_identity_provider: '${{ vars.WIF_PROVIDER_NAME }}'
 
-    - id: 'deploy'
-      uses: './'
-      with:
-        name: 'https-trigger-${{ github.run_number }}'
-        runtime: 'nodejs16'
-        entry_point: 'helloWorld'
-        source_dir: './tests/test-node-func/'
-        https_trigger_security_level: 'secure_always'
+      - id: 'deploy'
+        uses: './'
+        with:
+          name: 'https-trigger-${{ github.run_number }}'
+          runtime: 'nodejs22'
+          entry_point: 'helloWorld'
+          source_dir: './tests/test-node-func/'
+          service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
 
   event_trigger:
-    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
+    timeout-minutes: 10
     permissions:
       contents: 'read'
       id-token: 'write'
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'actions/checkout@v4'
+      - uses: 'actions/checkout@v4'
 
-    - uses: 'actions/setup-node@v4'
-      with:
-        node-version: '20.x'
+      - uses: 'actions/setup-node@v4'
+        with:
+          node-version: '20.x'
 
-    - name: 'npm build'
-      run: 'npm ci && npm run build'
+      - name: 'npm build'
+        run: 'npm ci && npm run build'
 
-    - uses: 'google-github-actions/auth@v2'
-      with:
-        workload_identity_provider: '${{ vars.WIF_PROVIDER_NAME }}'
-        service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+      - uses: 'google-github-actions/auth@v2'
+        with:
+          project_id: '${{ vars.PROJECT_ID }}'
+          workload_identity_provider: '${{ vars.WIF_PROVIDER_NAME }}'
 
-    - id: 'deploy'
-      uses: './'
-      with:
-        name: 'event-trigger-${{ github.run_number }}'
-        runtime: 'nodejs16'
-        entry_point: 'helloWorld'
-        source_dir: './tests/test-node-func/'
-        event_trigger_type: 'providers/cloud.pubsub/eventTypes/topic.publish'
-        event_trigger_resource: '${{ vars.PUBSUB_TOPIC_NAME }}'
-        event_trigger_retry: true
-        env_vars_file: './tests/env-var-files/test.good.yaml'
-        build_environment_variables: 'FOO=bar, ZIP=zap'
-        build_environment_variables_file: './tests/env-var-files/test.good.yaml'
-        secret_environment_variables: |-
-          FOO=${{ vars.SECRET_VERSION_NAME }}
-          BAR=${{ vars.SECRET_NAME }}
-        secret_volumes: '/etc/secrets/foo=${{ vars.SECRET_VERSION_NAME }}'
-        service_account_email: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
-        min_instances: 2
-        max_instances: 5
-        timeout: 300
+      - id: 'deploy'
+        uses: './'
+        with:
+          name: 'event-trigger-${{ github.run_number }}'
+          runtime: 'nodejs22'
+          entry_point: 'helloWorld'
+          source_dir: './tests/test-node-func/'
+          event_trigger_type: 'google.cloud.pubsub.topic.v1.messagePublished'
+          event_trigger_pubsub_topic: '${{ vars.PUBSUB_TOPIC_NAME }}'
+          event_trigger_retry: true
+          event_trigger_service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+          environment_variables: |-
+            FOO=bar
+            ZIP=zap
+          build_environment_variables: |-
+            FRUIT=apple
+            MEAT=bacon
+          secrets: |-
+            SECRET_FOO=${{ vars.SECRET_VERSION_NAME }}
+            SECRET_BAR=${{ vars.SECRET_NAME }}
+            /etc/secrets/foo=${{ vars.SECRET_VERSION_NAME }}
+          service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+          min_instance_count: 2
+          max_instance_count: 5
