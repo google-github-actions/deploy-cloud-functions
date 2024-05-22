@@ -14,204 +14,154 @@
  * limitations under the License.
  */
 
-import { posix } from 'path';
-
 import { EntryData } from 'archiver';
-import {
-  debug as logDebug,
-  getBooleanInput,
-  getInput,
-  info as logInfo,
-  setFailed,
-  setOutput,
-  warning as logWarning,
-} from '@actions/core';
+import { debug as logDebug, getInput, info as logInfo, setFailed, setOutput } from '@actions/core';
 import {
   errorMessage,
+  parseBoolean,
   parseDuration,
-  parseKVString,
-  parseKVStringAndFile,
   presence,
 } from '@google-github-actions/actions-utils';
 
-import { CloudFunction, CloudFunctionsClient, SecretEnvVar, SecretVolume } from './client';
-import { SecretName } from './secret';
-import { formatEntry, stringToInt, toEnum } from './util';
+import {
+  CloudFunction,
+  CloudFunctionsClient,
+  Environment,
+  IngressSettings,
+  RetryPolicy,
+  VpcConnectorEgressSettings,
+} from './client';
+import { formatEntry, parseKVWithEmpty, parseSecrets, stringToInt, toEnum } from './util';
 
-async function run(): Promise<void> {
+async function run() {
   try {
-    // Get inputs
-    const name = getInput('name', { required: true });
-    const runtime = getInput('runtime', { required: true });
-    const description = presence(getInput('description'));
+    // Google Cloud inputs
     const projectID = presence(getInput('project_id')) || presence(process.env?.GCLOUD_PROJECT);
-    const availableMemoryMb = stringToInt(getInput('memory_mb'));
-    const region = presence(getInput('region') || 'us-central1');
-    const envVars = presence(getInput('env_vars'));
-    const envVarsFile = presence(getInput('env_vars_file'));
-    const entryPoint = presence(getInput('entry_point'));
-    const sourceDir = presence(getInput('source_dir'));
-    const vpcConnector = presence(getInput('vpc_connector'));
-    const vpcConnectorEgressSettings = presence(getInput('vpc_connector_egress_settings'));
-    const ingressSettings = presence(getInput('ingress_settings'));
-    const serviceAccountEmail = presence(getInput('service_account_email'));
-    const timeout = parseDuration(getInput('timeout'));
-    const maxInstances = presence(getInput('max_instances'));
-    const minInstances = presence(getInput('min_instances'));
-    const httpsTriggerSecurityLevel = presence(getInput('https_trigger_security_level'));
-    const eventTriggerType = presence(getInput('event_trigger_type'));
-    const eventTriggerResource = presence(getInput('event_trigger_resource'));
-    const eventTriggerService = presence(getInput('event_trigger_service'));
-    const eventTriggerRetry = getBooleanInput('event_trigger_retry');
-    const deployTimeout = presence(getInput('deploy_timeout'));
-    const labels = parseKVString(getInput('labels'));
+    const region = presence(getInput('region')) || 'us-central1';
+    const universe = getInput('universe') || 'googleapis.com';
 
-    const buildEnvVars = presence(getInput('build_environment_variables'));
-    const buildEnvVarsFile = presence(getInput('build_environment_variables_file'));
-    const buildWorkerPool = presence(getInput('build_worker_pool'));
-
-    const secretEnvVars = parseKVString(getInput('secret_environment_variables'));
-    const secretVols = parseKVString(getInput('secret_volumes'));
-
-    const dockerRegistry = presence(toEnum(getInput('docker_registry')));
-    const dockerRepository = presence(getInput('docker_repository'));
+    // top-level inputs
+    const name = getInput('name', { required: true });
+    const description = presence(getInput('description'));
+    const environment = toEnum(Environment, getInput('environment') || Environment.GEN_2);
     const kmsKeyName = presence(getInput('kms_key_name'));
+    const labels = parseKVWithEmpty(getInput('labels'));
+    const sourceDir = presence(getInput('source_dir')) || process.cwd();
+
+    // buildConfig
+    const runtime = getInput('runtime', { required: true });
+    const buildEnvironmentVariables = parseKVWithEmpty(getInput('build_environment_variables'));
+    const buildServiceAccount = presence(getInput('build_service_account'));
+    const buildWorkerPool = presence(getInput('build_worker_pool'));
+    const dockerRepository = presence(getInput('docker_repository'));
+    const entryPoint = presence(getInput('entry_point'));
+
+    // serviceConfig
+    const allTrafficOnLatestRevision = parseBoolean(
+      getInput('all_traffic_on_latest_revision'),
+      true,
+    );
+    const availableCpu = presence(getInput('available_cpu'));
+    const availableMemory = presence(getInput('memory')) || '256Mi';
+    const environmentVariables = parseKVWithEmpty(getInput('environment_variables'));
+    const ingressSettings = toEnum(
+      IngressSettings,
+      getInput('ingress_settings') || IngressSettings.ALLOW_ALL,
+    );
+    const maxInstanceCount = presence(getInput('max_instance_count'));
+    const maxInstanceRequestConcurrency = stringToInt(getInput('max_instance_request_concurrency'));
+    const minInstanceCount = presence(getInput('min_instance_count'));
+    const [secretEnvironmentVariables, secretVolumes] = parseSecrets(getInput('secrets'));
+    const serviceAccount = presence(getInput('service_account'));
+    const serviceTimeout = parseDuration(getInput('service_timeout'));
+    const vpcConnector = presence(getInput('vpc_connector'));
+    const vpcConnectorEgressSettings = toEnum(
+      VpcConnectorEgressSettings,
+      getInput('vpc_connector_egress_settings') || VpcConnectorEgressSettings.PRIVATE_RANGES_ONLY,
+    );
+
+    // eventTrigger
+    const eventTriggerLocation = presence(getInput('event_trigger_location'));
+    const eventTriggerType = presence(getInput('event_trigger_type'));
+    const eventTriggerPubSubTopic = presence(getInput('event_trigger_pubsub_topic'));
+    const eventTriggerServiceAccount = presence(getInput('event_trigger_service_account'));
+    const eventTriggerRetryPolicy = parseBoolean(getInput('event_trigger_retry'), true)
+      ? RetryPolicy.RETRY_POLICY_RETRY
+      : RetryPolicy.RETRY_POLICY_DO_NOT_RETRY;
+    const eventTriggerChannel = presence(getInput('event_trigger_channel'));
+    const eventTriggerService = presence(getInput('event_trigger_service'));
 
     // Validation
-    if (
-      httpsTriggerSecurityLevel &&
-      httpsTriggerSecurityLevel.toUpperCase() != 'SECURITY_LEVEL_UNSPECIFIED' &&
-      eventTriggerType
-    ) {
+    if (serviceTimeout <= 0) {
       throw new Error(
-        `Only one of 'https_trigger_security_level' or 'event_trigger_type' ` + `may be specified.`,
+        `The 'service_timeout' parameter must be > 0 seconds (got ${serviceTimeout})`,
       );
-    }
-    if (!sourceDir) {
-      // Note: this validation will need to go away once we support deploying
-      // from a docker repo.
-      throw new Error(`Missing required value 'source_dir'`);
-    }
-    if (dockerRepository || kmsKeyName) {
-      if (!dockerRepository) {
-        throw new Error(
-          `Missing required field 'docker_repository'. This is required when ` +
-            `'kms_key_name' is set.`,
-        );
-      }
-      if (!kmsKeyName) {
-        throw new Error(
-          `Missing required field 'kms_key_name'. This is required when ` +
-            `'docker_repository' is set.`,
-        );
-      }
-    }
-    if (timeout <= 0) {
-      throw new Error(`The 'timeout' parameter must be > 0 seconds (got ${timeout})`);
-    }
-
-    // Build environment variables.
-    const buildEnvironmentVariables = parseKVStringAndFile(buildEnvVars, buildEnvVarsFile);
-    const environmentVariables = parseKVStringAndFile(envVars, envVarsFile);
-
-    // Build secret environment variables.
-    const secretEnvironmentVariables: SecretEnvVar[] = [];
-    if (secretEnvVars) {
-      for (const [key, value] of Object.entries(secretEnvVars)) {
-        const secretRef = new SecretName(value);
-        secretEnvironmentVariables.push({
-          key: key,
-          projectId: secretRef.project,
-          secret: secretRef.name,
-          version: secretRef.version,
-        });
-      }
-    }
-
-    // Build secret volumes.
-    const secretVolumes: SecretVolume[] = [];
-    if (secretVols) {
-      for (const [key, value] of Object.entries(secretVols)) {
-        const mountPath = posix.dirname(key);
-        const pth = posix.basename(key);
-
-        const secretRef = new SecretName(value);
-        secretVolumes.push({
-          mountPath: mountPath,
-          projectId: secretRef.project,
-          secret: secretRef.name,
-          versions: [
-            {
-              path: pth,
-              version: secretRef.version,
-            },
-          ],
-        });
-      }
     }
 
     // Create Cloud Functions client
     const client = new CloudFunctionsClient({
       projectID: projectID,
       location: region,
+      universe: universe,
     });
 
     // Create Function definition
     const cf: CloudFunction = {
       name: name,
-      runtime: runtime,
       description: description,
-      availableMemoryMb: availableMemoryMb,
-      buildEnvironmentVariables: buildEnvironmentVariables,
-      buildWorkerPool: buildWorkerPool,
-      dockerRegistry: dockerRegistry,
-      dockerRepository: dockerRepository,
-      entryPoint: entryPoint,
-      environmentVariables: environmentVariables,
-      ingressSettings: ingressSettings,
+      environment: environment,
       kmsKeyName: kmsKeyName,
       labels: labels,
-      maxInstances: maxInstances ? +maxInstances : undefined,
-      minInstances: minInstances ? +minInstances : undefined,
-      secretEnvironmentVariables: secretEnvironmentVariables,
-      secretVolumes: secretVolumes,
-      serviceAccountEmail: serviceAccountEmail,
-      timeout: `${timeout}s`,
-      vpcConnector: vpcConnector,
-      vpcConnectorEgressSettings: vpcConnectorEgressSettings,
+
+      buildConfig: {
+        runtime: runtime,
+        entryPoint: entryPoint,
+        dockerRepository: dockerRepository,
+        environmentVariables: buildEnvironmentVariables,
+        serviceAccount: buildServiceAccount,
+        workerPool: buildWorkerPool,
+      },
+
+      serviceConfig: {
+        allTrafficOnLatestRevision: allTrafficOnLatestRevision,
+        availableCpu: availableCpu,
+        availableMemory: availableMemory,
+        environmentVariables: environmentVariables,
+        ingressSettings: ingressSettings,
+        maxInstanceCount: maxInstanceCount ? +maxInstanceCount : undefined,
+        maxInstanceRequestConcurrency: maxInstanceRequestConcurrency,
+        minInstanceCount: minInstanceCount ? +minInstanceCount : undefined,
+        secretEnvironmentVariables: secretEnvironmentVariables,
+        secretVolumes: secretVolumes,
+        serviceAccountEmail: serviceAccount,
+        timeoutSeconds: serviceTimeout,
+        vpcConnector: vpcConnector,
+        vpcConnectorEgressSettings: vpcConnectorEgressSettings,
+      },
+
+      eventTrigger: {
+        triggerRegion: eventTriggerLocation,
+        eventType: eventTriggerType,
+        pubsubTopic: eventTriggerPubSubTopic,
+        serviceAccountEmail: eventTriggerServiceAccount,
+        retryPolicy: eventTriggerRetryPolicy,
+        channel: eventTriggerChannel,
+        service: eventTriggerService,
+      },
     };
 
-    if (eventTriggerType && eventTriggerResource) {
-      // Set event trigger properties.
-      cf.eventTrigger = {
-        eventType: eventTriggerType,
-        resource: eventTriggerResource,
-        service: eventTriggerService,
-      };
+    // Ensure eventTrigger isn't set if no eventTrigger was given
+    if (!cf.eventTrigger?.eventType) {
+      delete cf.eventTrigger;
+    }
 
-      if (eventTriggerRetry) {
-        cf.eventTrigger.failurePolicy = {
-          // No, there's no value here. Retry is a oneof, and this is the
-          // translation to javascript.
-          retry: {},
-        };
-      }
-    } else if (eventTriggerType || eventTriggerResource || eventTriggerService) {
-      throw new Error(
-        `Event triggered functions must define 'event_trigger_type' and 'event_trigger_resource'`,
-      );
-    } else {
-      // Set https trigger properties.
-      cf.httpsTrigger = {};
-
-      if (httpsTriggerSecurityLevel) {
-        cf.httpsTrigger.securityLevel = httpsTriggerSecurityLevel.toUpperCase();
-      }
+    // Ensure vpcConnectorEgressSettings isn't set if no vpcConnector was given
+    if (!cf.serviceConfig?.vpcConnector) {
+      delete cf.serviceConfig?.vpcConnectorEgressSettings;
     }
 
     // Deploy the Cloud Function
     const resp = await client.deployFromLocalSource(cf, sourceDir, {
-      timeout: deployTimeout ? +deployTimeout : undefined,
       onZip: (sourceDir: string, zipPath: string) => {
         logInfo(`Created zip file from '${sourceDir}' at '${zipPath}'`);
       },
@@ -222,45 +172,35 @@ async function run(): Promise<void> {
         logDebug(`Ignoring ${entry.name}`);
       },
       onNew: () => {
-        logInfo('Creating new Cloud Function deployment');
+        logInfo('Creating new Cloud Functions deployment');
       },
       onExisting: () => {
-        logInfo('Creating new Cloud Function revision');
+        logInfo('Updating existing Cloud Functions deployment');
       },
       onPoll: ((): (() => void) => {
         let iteration = 0;
         return () => {
           if (iteration === 0) {
-            logInfo('Deploying Cloud Function');
+            process.stdout.write(`Deploying Cloud Function...`);
           } else {
-            logInfo(`Still deploying Cloud Function (${iteration}/n)`);
+            process.stdout.write(`.`);
           }
           iteration++;
         };
       })(),
     });
 
-    if (resp.status !== 'ACTIVE') {
+    if (resp.state !== 'ACTIVE') {
       throw new Error(
         `Cloud Function deployment finished, but the function not in the ` +
-          `"ACTIVE" status. The current status is "${resp.status}", which ` +
+          `"ACTIVE" status. The current status is "${resp.state}", which ` +
           `could indicate a failed deployment. Check the Cloud Function ` +
           `logs for more information.`,
       );
     }
 
-    if (resp.httpsTrigger?.url) {
-      setOutput('url', resp.httpsTrigger.url);
-    } else {
-      logWarning(
-        `Output 'url' was not set - only httpsTrigger Cloud Functions return this attribute.`,
-      );
-    }
-
-    setOutput('id', resp.name);
-    setOutput('status', resp.status);
-    setOutput('version', resp.versionId);
-    setOutput('runtime', resp.runtime);
+    setOutput('name', resp.name);
+    setOutput('url', resp.url);
   } catch (err) {
     const msg = errorMessage(err);
     setFailed(`google-github-actions/deploy-cloud-functions failed with: ${msg}`);

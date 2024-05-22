@@ -23,7 +23,7 @@ import crypto from 'crypto';
 
 import { skipIfMissingEnv } from '@google-github-actions/actions-utils';
 
-import { CloudFunctionsClient, CloudFunction } from '../src/client';
+import { CloudFunctionsClient, CloudFunction, Environment, IngressSettings } from '../src/client';
 import { SecretName } from '../src/secret';
 import { zipDir } from '../src/util';
 
@@ -64,83 +64,85 @@ test(
       const zipPath = await zipDir('tests/test-node-func', outputPath);
 
       // Generate upload URL
-      const sourceURL = await client.generateUploadURL(
+      const sourceUploadResp = await client.generateUploadURL(
         `projects/${TEST_PROJECT_ID}/locations/${TEST_LOCATION}`,
       );
 
       // Upload source
-      await client.uploadSource(sourceURL, zipPath);
+      await client.uploadSource(sourceUploadResp.uploadUrl, zipPath);
 
       const cf: CloudFunction = {
         name: TEST_FUNCTION_NAME,
-        runtime: 'nodejs20',
         description: 'test function',
-        availableMemoryMb: 512,
-        buildEnvironmentVariables: { BUILDKEY1: 'VALUE1', BUILDKEY2: 'VALUE2' },
-        // buildWorkerPool: string,
-        dockerRegistry: 'ARTIFACT_REGISTRY',
-        // dockerRepository: string,
-        entryPoint: 'helloWorld',
-        environmentVariables: { KEY1: 'VALUE1', KEY2: 'VALUE2' },
-        ingressSettings: 'ALLOW_ALL',
-        // kmsKeyName: string,
+        environment: Environment.GEN_2,
         labels: { key1: 'value1', key2: 'value2' },
-        maxInstances: 5,
-        minInstances: 2,
-        // network: string,
-        secretEnvironmentVariables: [
-          {
-            key: 'SECRET1',
-            projectId: secret.project,
-            secret: secret.name,
-            version: secret.version,
-          },
-        ],
-        secretVolumes: [
-          {
-            mountPath: '/etc/secrets/one',
-            projectId: secret.project,
-            secret: secret.name,
-            versions: [
-              {
-                path: '/value1',
-                version: secret.version,
-              },
-            ],
-          },
-        ],
-        serviceAccountEmail: TEST_SERVICE_ACCOUNT_EMAIL,
-        timeout: '60s',
-        // vpcConnector: string,
-        // vpcConnectorEgressSettings: string,
 
-        sourceUploadUrl: sourceURL,
-        httpsTrigger: {
-          securityLevel: 'SECURE_ALWAYS',
+        buildConfig: {
+          runtime: 'nodejs22',
+          entryPoint: 'helloWorld',
+          source: sourceUploadResp,
+          environmentVariables: { BUILDKEY1: 'VALUE1', BUILDKEY2: 'VALUE2' },
+        },
+
+        serviceConfig: {
+          allTrafficOnLatestRevision: true,
+          availableCpu: '1',
+          availableMemory: '512m',
+          environmentVariables: { KEY1: 'VALUE1', KEY2: 'VALUE2' },
+          ingressSettings: IngressSettings.ALLOW_ALL,
+          maxInstanceCount: 5,
+          minInstanceCount: 2,
+          secretEnvironmentVariables: [
+            {
+              key: 'SECRET1',
+              projectId: secret.project,
+              secret: secret.name,
+              version: secret.version,
+            },
+          ],
+          secretVolumes: [
+            {
+              mountPath: '/etc/secrets/one',
+              projectId: secret.project,
+              secret: secret.name,
+              versions: [
+                {
+                  path: '/value1',
+                  version: secret.version,
+                },
+              ],
+            },
+          ],
+          serviceAccountEmail: TEST_SERVICE_ACCOUNT_EMAIL,
+          timeoutSeconds: 300,
         },
       };
 
       // Create
       const createResp = await client.create(cf);
-      assert.ok(createResp?.httpsTrigger?.url);
+      assert.ok(createResp?.url);
 
       // Read
       const getResp = await client.get(cf.name);
       assert.ok(getResp.name.endsWith(TEST_FUNCTION_NAME)); // The response is the fully-qualified name
-      assert.deepStrictEqual(getResp.runtime, 'nodejs20');
       assert.deepStrictEqual(getResp.description, 'test function');
-      assert.deepStrictEqual(getResp.availableMemoryMb, 512);
-      assert.deepStrictEqual(getResp.buildEnvironmentVariables, {
+      assert.deepStrictEqual(getResp.labels, { key1: 'value1', key2: 'value2' });
+      assert.deepStrictEqual(getResp.buildConfig.runtime, 'nodejs20');
+      assert.deepStrictEqual(getResp.buildConfig.environmentVariables, {
         BUILDKEY1: 'VALUE1',
         BUILDKEY2: 'VALUE2',
       });
-      assert.deepStrictEqual(getResp.entryPoint, 'helloWorld');
-      assert.deepStrictEqual(getResp.environmentVariables, { KEY1: 'VALUE1', KEY2: 'VALUE2' });
-      assert.deepStrictEqual(getResp.ingressSettings, 'ALLOW_ALL');
-      assert.deepStrictEqual(getResp.labels, { key1: 'value1', key2: 'value2' });
-      assert.deepStrictEqual(getResp.maxInstances, 5);
-      assert.deepStrictEqual(getResp.minInstances, 2);
-      assert.deepStrictEqual(getResp.secretEnvironmentVariables, [
+      assert.deepStrictEqual(getResp.buildConfig.entryPoint, 'helloWorld');
+      assert.deepStrictEqual(getResp.serviceConfig.availableCpu, 1);
+      assert.deepStrictEqual(getResp.serviceConfig.availableMemory, 512);
+      assert.deepStrictEqual(getResp.serviceConfig.environmentVariables, {
+        KEY1: 'VALUE1',
+        KEY2: 'VALUE2',
+      });
+      assert.deepStrictEqual(getResp.serviceConfig.ingressSettings, 'ALLOW_ALL');
+      assert.deepStrictEqual(getResp.serviceConfig.maxInstanceCount, 5);
+      assert.deepStrictEqual(getResp.serviceConfig.minInstanceCount, 2);
+      assert.deepStrictEqual(getResp.serviceConfig.secretEnvironmentVariables, [
         {
           key: 'SECRET1',
           projectId: secret.project,
@@ -148,7 +150,7 @@ test(
           version: secret.version,
         },
       ]);
-      assert.deepStrictEqual(getResp.secretVolumes, [
+      assert.deepStrictEqual(getResp.serviceConfig.secretVolumes, [
         {
           mountPath: '/etc/secrets/one',
           projectId: secret.project,
@@ -161,81 +163,79 @@ test(
           ],
         },
       ]);
-      assert.deepStrictEqual(getResp.serviceAccountEmail, TEST_SERVICE_ACCOUNT_EMAIL);
-      assert.deepStrictEqual(getResp.timeout, '60s');
-      assert.deepStrictEqual(getResp.httpsTrigger?.securityLevel, 'SECURE_ALWAYS');
+      assert.deepStrictEqual(getResp.serviceConfig.serviceAccountEmail, TEST_SERVICE_ACCOUNT_EMAIL);
+      assert.deepStrictEqual(getResp.serviceConfig.timeoutSeconds, 300);
 
       // Update
-      const updateSourceUrl = await client.generateUploadURL(
+      const sourceUploadUpdateResp = await client.generateUploadURL(
         `projects/${TEST_PROJECT_ID}/locations/${TEST_LOCATION}`,
       );
-      await client.uploadSource(updateSourceUrl, zipPath);
+      await client.uploadSource(sourceUploadUpdateResp.uploadUrl, zipPath);
 
       const cf2: CloudFunction = {
         name: TEST_FUNCTION_NAME,
-        runtime: 'nodejs14',
         description: 'test function2',
-        availableMemoryMb: 256,
-        buildEnvironmentVariables: { BUILDKEY3: 'VALUE3', BUILDKEY4: 'VALUE4' },
-        // buildWorkerPool: string,
-        dockerRegistry: 'CONTAINER_REGISTRY',
-        // dockerRepository: string,
-        entryPoint: 'helloWorld',
-        environmentVariables: { KEY3: 'VALUE3', KEY4: 'VALUE4' },
-        ingressSettings: 'ALLOW_INTERNAL_AND_GCLB',
-        // kmsKeyName: string,
         labels: { key3: 'value3', key4: 'value4' },
-        maxInstances: 3,
-        minInstances: 1,
-        // network: string,
-        secretEnvironmentVariables: [
-          {
-            key: 'SECRET2',
-            projectId: secret.project,
-            secret: secret.name,
-            version: secret.version,
-          },
-        ],
-        secretVolumes: [
-          {
-            mountPath: '/etc/secrets/two',
-            projectId: secret.project,
-            secret: secret.name,
-            versions: [
-              {
-                path: '/value2',
-                version: secret.version,
-              },
-            ],
-          },
-        ],
-        serviceAccountEmail: TEST_SERVICE_ACCOUNT_EMAIL,
-        timeout: '30s',
-        // vpcConnector: string,
-        // vpcConnectorEgressSettings: string,
 
-        sourceUploadUrl: updateSourceUrl,
-        httpsTrigger: {
-          securityLevel: 'SECURE_OPTIONAL',
+        buildConfig: {
+          runtime: 'nodejs20',
+          entryPoint: 'helloWorld',
+          source: sourceUploadUpdateResp,
+          environmentVariables: { BUILDKEY3: 'VALUE3', BUILDKEY4: 'VALUE4' },
+        },
+
+        serviceConfig: {
+          allTrafficOnLatestRevision: true,
+          availableMemory: '256Mi',
+          environmentVariables: { KEY3: 'VALUE3', KEY4: 'VALUE4' },
+          ingressSettings: IngressSettings.ALLOW_INTERNAL_AND_GCLB,
+          maxInstanceCount: 3,
+          minInstanceCount: 1,
+          secretEnvironmentVariables: [
+            {
+              key: 'SECRET2',
+              projectId: secret.project,
+              secret: secret.name,
+              version: secret.version,
+            },
+          ],
+          secretVolumes: [
+            {
+              mountPath: '/etc/secrets/two',
+              projectId: secret.project,
+              secret: secret.name,
+              versions: [
+                {
+                  path: '/value2',
+                  version: secret.version,
+                },
+              ],
+            },
+          ],
+          serviceAccountEmail: TEST_SERVICE_ACCOUNT_EMAIL,
+          timeoutSeconds: 30,
         },
       };
 
       const patchResp = await client.patch(cf2);
       assert.ok(patchResp.name.endsWith(TEST_FUNCTION_NAME)); // The response is the fully-qualified name
-      assert.deepStrictEqual(patchResp.runtime, 'nodejs14');
       assert.deepStrictEqual(patchResp.description, 'test function2');
-      assert.deepStrictEqual(patchResp.availableMemoryMb, 256);
-      assert.deepStrictEqual(patchResp.buildEnvironmentVariables, {
+      assert.deepStrictEqual(patchResp.labels, { key3: 'value3', key4: 'value4' });
+      assert.deepStrictEqual(patchResp.buildConfig.runtime, 'nodejs20');
+      assert.deepStrictEqual(patchResp.buildConfig.entryPoint, 'helloWorld');
+      assert.deepStrictEqual(patchResp.buildConfig.environmentVariables, {
         BUILDKEY3: 'VALUE3',
         BUILDKEY4: 'VALUE4',
       });
-      assert.deepStrictEqual(patchResp.entryPoint, 'helloWorld');
-      assert.deepStrictEqual(patchResp.environmentVariables, { KEY3: 'VALUE3', KEY4: 'VALUE4' });
-      assert.deepStrictEqual(patchResp.ingressSettings, 'ALLOW_INTERNAL_AND_GCLB');
-      assert.deepStrictEqual(patchResp.labels, { key3: 'value3', key4: 'value4' });
-      assert.deepStrictEqual(patchResp.maxInstances, 3);
-      assert.deepStrictEqual(patchResp.minInstances, 1);
-      assert.deepStrictEqual(patchResp.secretEnvironmentVariables, [
+      assert.deepStrictEqual(patchResp.serviceConfig.availableMemory, '256');
+      assert.deepStrictEqual(patchResp.serviceConfig.environmentVariables, {
+        KEY3: 'VALUE3',
+        KEY4: 'VALUE4',
+      });
+      assert.deepStrictEqual(patchResp.serviceConfig.ingressSettings, 'ALLOW_INTERNAL_AND_GCLB');
+      assert.deepStrictEqual(patchResp.serviceConfig.maxInstanceCount, 3);
+      assert.deepStrictEqual(patchResp.serviceConfig.minInstanceCount, 1);
+      assert.deepStrictEqual(patchResp.serviceConfig.secretEnvironmentVariables, [
         {
           key: 'SECRET2',
           projectId: secret.project,
@@ -243,7 +243,7 @@ test(
           version: secret.version,
         },
       ]);
-      assert.deepStrictEqual(patchResp.secretVolumes, [
+      assert.deepStrictEqual(patchResp.serviceConfig.secretVolumes, [
         {
           mountPath: '/etc/secrets/two',
           projectId: secret.project,
@@ -256,9 +256,11 @@ test(
           ],
         },
       ]);
-      assert.deepStrictEqual(patchResp.serviceAccountEmail, TEST_SERVICE_ACCOUNT_EMAIL);
-      assert.deepStrictEqual(patchResp.timeout, '30s');
-      assert.deepStrictEqual(patchResp.httpsTrigger?.securityLevel, 'SECURE_OPTIONAL');
+      assert.deepStrictEqual(
+        patchResp.serviceConfig.serviceAccountEmail,
+        TEST_SERVICE_ACCOUNT_EMAIL,
+      );
+      assert.deepStrictEqual(patchResp.serviceConfig.timeoutSeconds, 30);
 
       // Delete
       const deleteResp = await client.delete(createResp.name);

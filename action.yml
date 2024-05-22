@@ -1,0 +1,400 @@
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: 'Deploy to Cloud Functions'
+author: 'Google LLC'
+description: |-
+  Use this action to deploy code to Google Cloud Functions.
+
+inputs:
+  #
+  # Google Cloud
+  # ------------
+  project_id:
+    description: |-
+      ID of the Google Cloud project in which to deploy the service. The default
+      value is computed from the environment.
+    required: false
+
+  region:
+    description: |-
+      Region in which the function should be deployed.
+    default: 'us-central1'
+    required: false
+
+  universe:
+    description: |-
+      The Google Cloud universe to use for constructing API endpoints. Trusted
+      Partner Cloud and Google Distributed Hosted Cloud should set this to their
+      universe address.
+
+      You can also override individual API endpoints by setting the environment
+      variable `GHA_ENDPOINT_OVERRIDE_<endpoint>` where `<endpoint>` is the API
+      endpoint to override. For example:
+
+          env:
+            GHA_ENDPOINT_OVERRIDE_oauth2: 'https://oauth2.myapi.endpoint/v1'
+
+      For more information about universes, see the Google Cloud documentation.
+    default: 'googleapis.com'
+    required: false
+
+
+  #
+  # Top-level
+  # ---------
+  name:
+    description: |-
+      Name of the Cloud Function.
+    required: true
+
+  description:
+    description: |-
+      Human-friendly description of the Cloud Function.
+    required: false
+
+  environment:
+    description: |-
+      Runtime environment for the Cloud Function. Allowed values are "GEN_1" and
+      "GEN_2", but this GitHub Action only provides support for "GEN_2".
+    default: 'GEN_2'
+    required: false
+
+  kms_key_name:
+    description: |-
+      Resource name of a Google Cloud KMS crypto key used to encrypt/decrypt
+      function resources. If specified, you must also provide an artifact
+      registry repository using the 'docker_repository' field that was created
+      with the same key.
+    required: false
+
+  labels:
+    description: |-
+      List of labels that should be set on the function. These are
+      comma-separated or newline-separated `KEY=VALUE`. Keys or values that
+      contain separators must be escaped with a backslash (e.g. `\,` or `\\n`)
+      unless quoted. Any leading or trailing whitespace is trimmed unless values
+      are quoted.
+
+          labels: |-
+            labela=my-label
+            labelb=my-other-label
+
+      This value will only be set if the input is a non-empty value. If a
+      non-empty value is given, the field values will be overwritten (not
+      merged). To remove all values, set the value to the literal string `{}`.
+
+      Google Cloud restricts the allowed values and length for labels. Please
+      see the Google Cloud documentation for labels for more information.
+    required: false
+
+  source_dir:
+    description: |-
+      Path on disk to the root of the the function's source code. Defaults to
+      current directory. This does NOT follow symlinks to directories or files
+      when generating the upload artifact.
+
+      **NOTE:** The function source code must exist on the GitHub Actions
+      filesystem. This means you must have `use: actions/checkout@v4` before the
+      deployment step!.
+    default: './'
+    required: false
+
+
+  #
+  # buildConfig
+  # -----------
+  runtime:
+    description: |-
+      Runtime for the function, such as "nodejs20". For a list of all available
+      runtimes, run:
+
+          $ gcloud functions runtimes list
+
+      The available runtimes change over time.
+    required: true
+
+  build_environment_variables:
+    description: |-
+      List of environment variables that should be set in the build environment.
+      These are comma-separated or newline-separated `KEY=VALUE`. Keys or values
+      that contain separators must be escaped with a backslash (e.g. `\,` or
+      `\\n`) unless quoted. Any leading or trailing whitespace is trimmed unless
+      values are quoted.
+
+          build_environment_variables: |-
+            FRUIT=apple
+            SENTENCE=" this will retain leading and trailing spaces "
+
+      This value will only be set if the input is a non-empty value. If a
+      non-empty value is given, the field values will be overwritten (not
+      merged). To remove all values, set the value to the literal string `{}`.
+
+      Previous versions of this GitHub Action also included a separate input for
+      sourcing values from a value, but this is no longer supported. Use a
+      community action or script to read the file in a separate step and import
+      the contents as an output.
+    required: false
+
+  build_service_account:
+    description: |-
+      Service account to be used for building the container.
+    required: false
+
+  build_worker_pool:
+    description: |-
+      Name of the Cloud Build Custom Worker Pool that should be used to build
+      the function. The format of this field is:
+
+          projects/<project>/locations/<region>/workerPools/<workerPool>
+
+      where `<project>` and `<region>` are the project id and region
+      respectively where the worker pool is defined and `<workerPool>` is the
+      short name of the worker pool.
+
+      If the project ID is not the same as the function, then the Cloud
+      Functions Service Agent must be granted the role Cloud Build Custom
+      Workers Builder in the project.
+    required: false
+
+  docker_repository:
+    description: |-
+      Repository in Artifact Registry to which the function docker image will be
+      pushed after it is built by Cloud Build. If unspecified, Cloud Functions
+      will create and use a repository named 'gcf-artifacts' for every deployed
+      region.
+
+      The value must match the pattern:
+
+          projects/<project>/locations/<location>/repositories/<repository>.
+
+      Cross-project repositories are not supported. Cross-location repositories
+      are not supported. Repository format must be 'DOCKER'.
+    required: false
+
+  entry_point:
+    description: |-
+      Name of a Google Cloud Function (as defined in source code) that will be
+      executed. Defaults to the resource name suffix (ID of the function), if
+      not specified.
+    required: false
+
+  #
+  # serviceConfig
+  # -------------
+  all_traffic_on_latest_revision:
+    description: |-
+      If true, the latest function revision will be served all traffic.
+    default: true
+    required: false
+
+  available_cpu:
+    description: |-
+      The number of available CPUs to set (e.g. 0.5, 2, 2000m). By default, a
+      new function's available CPUs is determined based on its memory value.
+    required: false
+
+  available_memory:
+    description: |-
+      The amount of memory available for the function to use. Allowed values are
+      of the format: <number><unit> with allowed units of "k", "M", "G", "Ki",
+      "Mi", "Gi" (e.g 128M, 10Mb, 1024Gib).
+
+      For all generations, the default value is 256MB of memory.
+    required: false
+
+  environment_variables:
+    description: |-
+      List of environment variables that should be set in the runtime
+      environment. These are comma-separated or newline-separated `KEY=VALUE`.
+      Keys or values that contain separators must be escaped with a backslash
+      (e.g. `\,` or `\\n`) unless quoted. Any leading or trailing whitespace is
+      trimmed unless values are quoted.
+
+          environment_variables: |-
+            FRUIT=apple
+            SENTENCE=" this will retain leading and trailing spaces "
+
+      This value will only be set if the input is a non-empty value. If a
+      non-empty value is given, the field values will be overwritten (not
+      merged). To remove all values, set the value to the literal string `{}`.
+
+      Previous versions of this GitHub Action also included a separate input for
+      sourcing values from a value, but this is no longer supported. Use a
+      community action or script to read the file in a separate step and import
+      the contents as an output.
+    required: false
+
+  ingress_settings:
+    description: |-
+      Ingress settings controls what traffic can reach the function. Valid
+      values are "ALLOW_ALL", "ALLOW_INTERNAL_ONLY", and
+      "ALLOW_INTERNAL_AND_GCLB".
+    default: 'ALLOW_ALL'
+    required: false
+
+  max_instance_count:
+    description: |-
+      Sets the maximum number of instances for the function. A function
+      execution that would exceed max-instances times out.
+    required: false
+
+  max_instance_request_concurrency:
+    description: |-
+      Sets the maximum number of concurrent requests allowed per container
+      instance.
+    required: false
+
+  min_instance_count:
+    description: |-
+      Sets the minimum number of instances for the function. This is helpful for
+      reducing cold start times.
+    required: false
+
+  secrets:
+    description: |-
+      List of KEY=VALUE pairs to use as secrets. These are comma-separated or
+      newline-separated `KEY=VALUE`. Keys or values that contain separators must
+      be escaped with a backslash (e.g. `\,` or `\\n`) unless quoted. Any
+      leading or trailing whitespace is trimmed unless values are quoted.
+
+      These can either be injected as environment variables or mounted as
+      volumes. Keys starting with a forward slash '/' are mount paths. All other
+      keys correspond to environment variables:
+
+          with:
+            secrets: |-
+              # As an environment variable:
+              KEY1=secret-key-1:latest
+
+              # As a volume mount:
+              /secrets/api/key=secret-key-2:latest
+
+      This value will only be set if the input is a non-empty value. If a
+      non-empty value is given, the field values will be overwritten (not
+      merged). To remove all values, set the value to the literal string `{}`.
+    required: false
+
+  service_account:
+    description: |-
+      The email address of the IAM service account associated with the Cloud Run
+      service for the function. The service account represents the identity of
+      the running function, and determines what permissions the function has. If
+      not provided, the function will use the project's default service account
+      for Compute Engine.
+
+      Note this differs from the service account used to deploy the Cloud
+      Function, which is the currently-authenticated principal. However, the
+      deploying service account must have permission to impersonate the runtime
+      service account, which can be achieved by granting the deployment service
+      account "roles/iam.serviceAccountUser" permission on the runtime service
+      account.
+    required: false
+
+  service_timeout:
+    description: |-
+      The function execution timeout, specified as a time duration (e.g. "30s"
+      for 30 seconds).
+    default: '60s'
+    required: false
+
+  vpc_connector:
+    description: |-
+      ID of the connector or fully qualified identifier for the connector.
+    required: false
+
+  vpc_connector_egress_settings:
+    description: |-
+      Egress settings controls what traffic is diverted through the VPC Access
+      Connector resource. Allowed values are "PRIVATE_RANGES_ONLY" and
+      "ALL_TRAFFIC".
+    default: 'PRIVATE_RANGES_ONLY'
+    required: false
+
+  #
+  # eventTrigger
+  # -------------
+  event_trigger_location:
+    description: |-
+      The location of the trigger, which must be a region or multi-region where
+      the relevant events originate.
+    required: false
+
+  event_trigger_type:
+    description: |-
+      Specifies which action should trigger the function. For a list of
+      acceptable values, run:
+
+          $ gcloud functions event-types list
+
+      This usually requires the eventarc API to be enabled:
+
+          $ gcloud services enable eventarc.googleapis.com
+
+      The available trigger types may change over time.
+    required: false
+
+  event_trigger_pubsub_topic:
+    description: |-
+      Name of Google Cloud Pub/Sub topic. Every message published in this topic
+      will trigger function execution with message contents passed as input
+      data of the format:
+
+          projects/<project_id>/topics/<topic_id>
+
+      The service account must have permissions on this topic.
+    required: false
+
+  event_trigger_service_account:
+    description: |-
+      The email address of the IAM service account associated with the Eventarc
+      trigger for the function. This is used for authenticated invocation.
+    required: false
+
+  event_trigger_retry:
+    description: |-
+      Describes whether event triggers should retry in case of function's
+      execution failure.
+    default: true
+    required: false
+
+  event_trigger_channel:
+    description: |-
+      The name of the channel associated with the trigger in the format:
+
+          projects/<project>/locations/<location>/channels/<channel>
+
+      You must provide a channel to receive events from Eventarc SaaS partners.
+    required: false
+
+
+outputs:
+  name:
+    description: |-
+      Full resource name of the Cloud Function, of the format:
+
+          projects/<project>/locations/<location>/functions/<function>
+
+  url:
+    description: |-
+      The URL of your Cloud Function.
+
+
+branding:
+  icon: 'code'
+  color: 'blue'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

@@ -21,7 +21,12 @@ import { tmpdir } from 'os';
 
 import { HttpClient } from '@actions/http-client';
 import { GoogleAuth } from 'google-auth-library';
-import { errorMessage, forceRemove } from '@google-github-actions/actions-utils';
+import {
+  errorMessage,
+  expandUniverseEndpoints,
+  forceRemove,
+  KVPair,
+} from '@google-github-actions/actions-utils';
 
 import { zipDir, ZipOptions } from './util';
 
@@ -32,12 +37,6 @@ const { version: appVersion } = require('../package.json');
 // userAgent is the default user agent.
 const userAgent = `google-github-actions:deploy-cloud-functions/${appVersion}`;
 
-// defaultBaseURL is the URL for Cloud Functions.
-const defaultBaseURL = 'https://cloudfunctions.googleapis.com/v1';
-
-// defaultTimeout is the default timeout in seconds.
-const defaultTimeout = 300;
-
 // cloudFunctionResourceNamePattern is the regular expression to use to match
 // resource names.
 const cloudFunctionResourceNamePattern = new RegExp(
@@ -47,12 +46,10 @@ const cloudFunctionResourceNamePattern = new RegExp(
 export type CloudFunctionClientOptions = {
   projectID?: string;
   location?: string;
-  baseURL?: string;
+  universe?: string;
 };
 
 export type PollOperationOptions = {
-  retries: number;
-  interval: number;
   onPoll?: OnFunction;
 };
 
@@ -69,41 +66,37 @@ export type OperationStatus = {
   message: string;
 };
 
-export type KVPair = Record<string, string>;
+export type CloudFunctionResponse = CloudFunction & {
+  buildConfig: {
+    build: string;
+  };
+  serviceConfig: {
+    service: string;
+    uri: string;
+    revision: string;
+  };
+  eventTrigger: {
+    trigger: string;
+  };
+  state: 'STATE_UNSPECIFIED' | 'ACTIVE' | 'FAILED' | 'DEPLOYING' | 'DELETING' | 'UNKNOWN';
+  updateTime: string;
+  stateMessages: {
+    severity: 'SEVERITY_UNSPECIFIED' | 'ERROR' | 'WARNING' | 'INFO';
+    type: string;
+    message: string;
+  }[];
+  url: string;
+};
 
-export type CloudFunction = {
-  name: string;
-  runtime: string;
-  description?: string;
-  availableMemoryMb?: number;
-  buildEnvironmentVariables?: KVPair;
-  buildWorkerPool?: string;
-  dockerRegistry?: string;
-  dockerRepository?: string;
-  entryPoint?: string;
-  environmentVariables?: KVPair;
-  ingressSettings?: string;
-  kmsKeyName?: string;
-  labels?: KVPair;
-  maxInstances?: number;
-  minInstances?: number;
-  network?: string;
-  secretEnvironmentVariables?: SecretEnvVar[];
-  secretVolumes?: SecretVolume[];
-  serviceAccountEmail?: string;
-  sourceToken?: string;
-  timeout?: string;
-  vpcConnector?: string;
-  vpcConnectorEgressSettings?: string;
+type GenerateUploadUrlResponse = {
+  uploadUrl: string;
+  storageSource: StorageSource;
+};
 
-  // oneof
-  sourceArchiveUrl?: string;
-  sourceRepository?: SourceRepository;
-  sourceUploadUrl?: string;
-
-  // oneof
-  httpsTrigger?: HTTPSTrigger;
-  eventTrigger?: EventTrigger;
+export type StorageSource = {
+  bucket: string;
+  object: string;
+  generation?: string;
 };
 
 export type SecretEnvVar = {
@@ -123,52 +116,92 @@ export type SecretVolume = {
   }[];
 };
 
-export type CloudFunctionResponse = CloudFunction & {
-  status: string;
-  updateTime: string;
-  versionId: string;
-  buildName?: string;
-  buildId?: string;
-};
+export enum Environment {
+  GEN_1 = 'GEN_1',
+  GEN_2 = 'GEN_2',
+}
 
-export type SourceRepository = {
-  url: string;
-  deployedUrl: string;
-};
+export enum VpcConnectorEgressSettings {
+  PRIVATE_RANGES_ONLY = 'PRIVATE_RANGES_ONLY',
+  ALL_TRAFFIC = 'ALL_TRAFFIC',
+}
 
-export type HTTPSTrigger = {
-  url?: string;
-  securityLevel?: string;
-};
+export enum IngressSettings {
+  ALLOW_ALL = 'ALLOW_ALL',
+  ALLOW_INTERNAL_ONLY = 'ALLOW_INTERNAL_ONLY',
+  ALLOW_INTERNAL_AND_GCLB = 'ALLOW_INTERNAL_AND_GCLB',
+}
 
-export type EventTrigger = {
-  eventType: string;
-  resource: string;
-  service?: string;
-  failurePolicy?: FailurePolicy;
-};
+export enum RetryPolicy {
+  RETRY_POLICY_DO_NOT_RETRY = 'RETRY_POLICY_DO_NOT_RETRY',
+  RETRY_POLICY_RETRY = 'RETRY_POLICY_RETRY',
+}
 
-export type FailurePolicy = {
-  retry: Record<string, string>;
+export type CloudFunction = {
+  name: string;
+  description?: string;
+  environment?: Environment;
+  kmsKeyName?: string;
+  labels?: KVPair;
+
+  buildConfig?: {
+    runtime?: string;
+    entryPoint?: string;
+    source?: {
+      storageSource?: StorageSource;
+    };
+    dockerRepository?: string;
+    environmentVariables?: KVPair;
+    serviceAccount?: string;
+    workerPool?: string;
+  };
+
+  serviceConfig?: {
+    allTrafficOnLatestRevision?: boolean;
+    availableCpu?: string;
+    availableMemory?: string;
+    environmentVariables?: KVPair;
+    ingressSettings: IngressSettings;
+    maxInstanceCount?: number;
+    maxInstanceRequestConcurrency?: number;
+    minInstanceCount?: number;
+    secretEnvironmentVariables?: SecretEnvVar[];
+    secretVolumes?: SecretVolume[];
+    serviceAccountEmail?: string;
+    timeoutSeconds?: number;
+    vpcConnector?: string;
+    vpcConnectorEgressSettings?: VpcConnectorEgressSettings;
+  };
+
+  eventTrigger?: {
+    triggerRegion?: string;
+    eventType?: string;
+    eventFilters?: {
+      attribute: string;
+      value: string;
+      operator?: string;
+    }[];
+    pubsubTopic?: string;
+    serviceAccountEmail?: string;
+    retryPolicy?: RetryPolicy;
+    channel?: string;
+    service?: string;
+  };
 };
 
 export type CreateOptions = {
-  timeout?: number;
   onPoll?: OnFunction;
 };
 
 export type DeleteOptions = {
-  timeout?: number;
   onPoll?: OnFunction;
 };
 
 export type PatchOptions = {
-  timeout?: number;
   onPoll?: OnFunction;
 };
 
 export type DeployOptions = {
-  timeout?: number;
   onPoll?: OnFunction;
   onZip?: OnZipFunction;
   onNew?: OnFunction;
@@ -179,12 +212,6 @@ export type OnFunction = () => void;
 export type OnZipFunction = (sourceDir: string, zipPath: string) => void;
 
 export class CloudFunctionsClient {
-  /**
-   * baseURL is the cloud functions endpoint. By default, this is the public
-   * cloud functions endpoint, but it can be overridden for testing.
-   */
-  readonly #baseURL: string;
-
   /**
    * auth is the authentication client.
    */
@@ -205,9 +232,14 @@ export class CloudFunctionsClient {
    */
   readonly #client: HttpClient;
 
-  constructor(opts?: CloudFunctionClientOptions) {
-    this.#baseURL = opts?.baseURL || defaultBaseURL;
+  /**
+   * endpoints are the universe-aware API endpoints.
+   */
+  readonly #endpoints = {
+    cloudfunctions: 'https://cloudfunctions.{universe}/v2',
+  };
 
+  constructor(opts?: CloudFunctionClientOptions) {
     this.#auth = new GoogleAuth({
       scopes: ['https://www.googleapis.com/auth/cloud-platform'],
       projectId: opts?.projectID,
@@ -217,6 +249,7 @@ export class CloudFunctionsClient {
     this.#location = opts?.location;
 
     this.#client = new HttpClient(userAgent);
+    this.#endpoints = expandUniverseEndpoints(this.#endpoints, opts?.universe);
   }
 
   async #request(
@@ -255,13 +288,10 @@ export class CloudFunctionsClient {
    * @param name Name of the operation, of the format `operations/{name}`.
    * @param opts Options for polling
    */
-  async #pollOperation(
-    name: string,
-    opts: PollOperationOptions = { interval: 5, retries: 60 },
-  ): Promise<Operation> {
-    const intervalMs: number = +opts.interval * 1000;
+  async #pollOperation(name: string, opts: PollOperationOptions): Promise<Operation> {
+    const pollInterval = 5000; // ms
 
-    for (let i = 0; i < opts.retries; i++) {
+    for (;;) {
       // If a poll function was given, call it.
       if (opts.onPoll) opts.onPoll();
 
@@ -273,10 +303,8 @@ export class CloudFunctionsClient {
         return resp;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
     }
-
-    throw new Error(`Operation timed out`);
   }
 
   /**
@@ -285,11 +313,11 @@ export class CloudFunctionsClient {
    * @param name Name of the operation, of the format `operations/{name}`.
    */
   async getOperation(name: string): Promise<Operation> {
-    if (!name.startsWith('operations/')) {
-      name = `operations/${name}`;
+    if (name.startsWith('operations/')) {
+      name.slice(11);
     }
 
-    const u = `${this.#baseURL}/${name}`;
+    const u = `${this.#endpoints.cloudfunctions}/${name}`;
     const resp: Operation = await this.#request('GET', u);
     return resp;
   }
@@ -300,18 +328,17 @@ export class CloudFunctionsClient {
    * @param cf Cloud Function to deploy.
    */
   async create(cf: CloudFunction, opts?: CreateOptions): Promise<CloudFunctionResponse> {
-    const timeout = opts?.timeout || defaultTimeout;
-
     const resourceName = this.fullResourceName(cf.name);
     cf.name = resourceName;
 
     const parent = this.parentFromName(resourceName);
-    const u = `${this.#baseURL}/${parent}/functions`;
+    const functionName = resourceName.split('/').at(-1);
+
+    const u = `${this.#endpoints.cloudfunctions}/${parent}/functions?functionId=${functionName}`;
     const body = JSON.stringify(cf);
+
     const resp: Operation = await this.#request('POST', u, body);
     const op = await this.#pollOperation(resp.name, {
-      interval: 5,
-      retries: timeout / 5,
       onPoll: opts?.onPoll,
     });
 
@@ -327,14 +354,10 @@ export class CloudFunctionsClient {
    * @param name Full resource name of the Cloud Function.
    */
   async delete(name: string, opts?: DeleteOptions): Promise<Operation> {
-    const timeout = opts?.timeout || defaultTimeout;
-
     const resourceName = this.fullResourceName(name);
-    const u = `${this.#baseURL}/${resourceName}`;
+    const u = `${this.#endpoints.cloudfunctions}/${resourceName}`;
     const resp: Operation = await this.#request('DELETE', u);
     return await this.#pollOperation(resp.name, {
-      interval: 5,
-      retries: timeout / 5,
       onPoll: opts?.onPoll,
     });
   }
@@ -345,10 +368,13 @@ export class CloudFunctionsClient {
    * @param parent Name of the location in which to deploy the function, of the
    * format `projects/p/locations/l`.
    */
-  async generateUploadURL(parent: string): Promise<string> {
-    const u = `${this.#baseURL}/${parent}/functions:generateUploadUrl`;
-    const resp = await this.#request('POST', u);
-    return resp.uploadUrl;
+  async generateUploadURL(parent: string): Promise<GenerateUploadUrlResponse> {
+    const u = `${this.#endpoints.cloudfunctions}/${parent}/functions:generateUploadUrl`;
+    const body = JSON.stringify({
+      environment: Environment.GEN_2,
+    });
+    const resp: GenerateUploadUrlResponse = await this.#request('POST', u, body);
+    return resp;
   }
 
   /**
@@ -359,7 +385,7 @@ export class CloudFunctionsClient {
    */
   async get(name: string): Promise<CloudFunctionResponse> {
     const resourceName = this.fullResourceName(name);
-    const u = `${this.#baseURL}/${resourceName}`;
+    const u = `${this.#endpoints.cloudfunctions}/${resourceName}`;
     const resp: CloudFunctionResponse = await this.#request('GET', u);
     return resp;
   }
@@ -391,63 +417,13 @@ export class CloudFunctionsClient {
    * @param cf Cloud Function to patch
    */
   async patch(cf: CloudFunction, opts?: PatchOptions): Promise<CloudFunctionResponse> {
-    const timeout = opts?.timeout || defaultTimeout;
-
-    // fieldMasks are used if we are overwriting only specific fields of the
-    // resource in the case we assume we will always need to replace.
-    //
-    // https://cloud.google.com/functions/docs/reference/rest/v1/projects.locations.functions#CloudFunction
-    const updateMasks = [
-      'availableMemoryMb',
-      'buildEnvironmentVariables',
-      'buildWorkerPool',
-      'description',
-      'dockerRegistry',
-      'dockerRepository',
-      'entryPoint',
-      'environmentVariables',
-      'eventTrigger',
-      'httpsTrigger',
-      'ingressSettings',
-      'kmsKeyName',
-      'labels',
-      'maxInstances',
-      'minInstances',
-      'name',
-      'network',
-      'runtime',
-      'secretEnvironmentVariables',
-      'secretVolumes',
-      'serviceAccountEmail',
-      'timeout',
-      'vpcConnector',
-      'vpcConnectorEgressSettings',
-    ];
-
-    // These values cannot be set on the updateMask unless they are also given
-    // in the request.
-    if (cf.sourceArchiveUrl?.length) {
-      updateMasks.push('sourceArchiveUrl');
-    }
-    if (cf.sourceRepository?.url?.length) {
-      updateMasks.push('sourceRepository');
-    }
-    if (cf.sourceToken?.length) {
-      updateMasks.push('sourceToken');
-    }
-    if (cf.sourceUploadUrl?.length) {
-      updateMasks.push('sourceUploadUrl');
-    }
-
     const resourceName = this.fullResourceName(cf.name);
     cf.name = resourceName;
 
-    const u = `${this.#baseURL}/${resourceName}?updateMask=${updateMasks.join(',')}`;
+    const u = `${this.#endpoints.cloudfunctions}/${resourceName}`;
     const body = JSON.stringify(cf);
     const resp: Operation = await this.#request('PATCH', u, body);
     const op = await this.#pollOperation(resp.name, {
-      interval: 5,
-      retries: timeout / 5,
       onPoll: opts?.onPoll,
     });
 
@@ -469,8 +445,6 @@ export class CloudFunctionsClient {
     sourceDir: string,
     opts?: DeployOptions,
   ): Promise<CloudFunctionResponse> {
-    const timeout = opts?.timeout || defaultTimeout;
-
     const randomName = randomBytes(12).toString('hex');
     const zipPath = path.join(tmpdir(), `cfsrc-${randomName}.zip`);
     try {
@@ -487,17 +461,23 @@ export class CloudFunctionsClient {
     const parent = this.parentFromName(resourceName);
 
     // Upload source code to the upload URL.
-    let uploadURL;
+    let sourceUploadResp: GenerateUploadUrlResponse;
     try {
-      uploadURL = await this.generateUploadURL(parent);
-      await this.uploadSource(uploadURL, zipPath);
+      sourceUploadResp = await this.generateUploadURL(parent);
+      await this.uploadSource(sourceUploadResp.uploadUrl, zipPath);
     } catch (err) {
       throw new Error(`Failed to upload zip file: ${err}`);
     }
 
     // Delete temp zip file after upload
-    forceRemove(zipPath);
-    cf.sourceUploadUrl = uploadURL;
+    await forceRemove(zipPath);
+    if (!cf.buildConfig) {
+      cf.buildConfig = {};
+    }
+    if (!cf.buildConfig.source) {
+      cf.buildConfig.source = {};
+    }
+    cf.buildConfig.source.storageSource = sourceUploadResp.storageSource;
 
     // Get the existing function data.
     const existingFunction = await this.getSafe(resourceName);
@@ -505,17 +485,13 @@ export class CloudFunctionsClient {
     // If the function already exists, create a new version
     if (existingFunction) {
       if (opts?.onExisting) opts.onExisting();
-
       const resp: CloudFunctionResponse = await this.patch(cf, {
-        timeout: timeout,
         onPoll: opts?.onPoll,
       });
       return resp;
     } else {
       if (opts?.onNew) opts.onNew();
-
       const resp: CloudFunctionResponse = await this.create(cf, {
-        timeout: timeout,
         onPoll: opts?.onPoll,
       });
       return resp;
@@ -537,7 +513,6 @@ export class CloudFunctionsClient {
       // not return JSON.
       const response = await this.#client.request('PUT', uploadURL, zipFile, {
         'content-type': 'application/zip',
-        'x-goog-content-length-range': '0,104857600',
       });
 
       const body = await response.readBody();
