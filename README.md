@@ -3,6 +3,12 @@
 This action deploys your function source code to [Cloud Functions][cloud-functions] and makes the URL
 available to later build steps via outputs.
 
+> [!CAUTION]
+>
+> **This README corresponds to the "v3" GitHub Action**, which is currently in
+> beta. If you are using "v2", see the [documentation for
+> google-github-actions/deploy-cloud-functions@v2](https://github.com/google-github-actions/deploy-cloud-functions/tree/release/v2).
+
 **This is not an officially supported Google product, and it is not covered by a
 Google Cloud support contract. To report bugs or request features in a Google
 Cloud product, please contact [Google Cloud
@@ -41,6 +47,7 @@ jobs:
 
     - id: 'deploy'
       uses: 'google-github-actions/deploy-cloud-functions@v3'
+      timeout-minutes: 10
       with:
         name: 'my-function'
         runtime: 'nodejs22'
@@ -52,9 +59,10 @@ jobs:
 
 ## Inputs
 
-> [!TIP]
+> [!IMPORTANT]
 >
-> In addition to these inputs, we recommend setting [job and step-level
+> In addition to these inputs, we **highly recommend** setting [job and
+> step-level
 > timeouts](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepstimeout-minutes),
 > which can be used to control total deployment time.
 
@@ -361,6 +369,7 @@ jobs:
 
     - id: 'deploy'
       uses: 'google-github-actions/deploy-cloud-functions@v3'
+      timeout-minutes: 10
       with:
         name: 'my-function'
         runtime: 'nodejs22'
@@ -381,6 +390,7 @@ jobs:
 
     - id: 'deploy'
       uses: 'google-github-actions/deploy-cloud-functions@v3'
+      timeout-minutes: 10
       with:
         name: 'my-function'
         runtime: 'nodejs22'
