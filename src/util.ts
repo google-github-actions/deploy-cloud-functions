@@ -20,10 +20,8 @@ import * as path from 'path';
 
 import * as Archiver from 'archiver';
 import {
-  KVPair,
   parseGcloudIgnore,
   parseKVString,
-  presence,
   toPlatformPath,
 } from '@google-github-actions/actions-utils';
 import ignore from 'ignore';
@@ -131,28 +129,6 @@ export function formatEntry(entry: RealEntryData): string {
 }
 
 /**
- * toEnum converts the input value to the best enum value. If no enum value
- * exists, it throws an error.
- *
- * @param e Enum to check against.
- * @param s String to enumerize.
- * @returns string
- */
-export function toEnum<E extends Record<string, string>>(e: E, s: string): E[keyof E] {
-  const originalValue = (s || '').toUpperCase();
-  const mutatedValue = originalValue.replace(/[\s-]+/g, '_');
-
-  if (originalValue in e) {
-    return e[originalValue] as E[keyof E];
-  } else if (mutatedValue in e) {
-    return e[mutatedValue] as E[keyof E];
-  } else {
-    const keys = Object.keys(e) as Array<keyof E>;
-    throw new Error(`Invalid value ${s}, valid values are ${JSON.stringify(keys)}`);
-  }
-}
-
-/**
  * stringToInt is a helper that converts the given string into an integer. If
  * the given string is empty, it returns undefined. If the string is not empty
  * and parseInt fails (returns NaN), it throws an error. Otherwise, it returns
@@ -173,18 +149,6 @@ export function stringToInt(str: string): number | undefined {
   }
   return result;
 }
-
-/**
- * parseKVWithEmpty parses the given string as a KEY=VALUE string and the given
- * file as a KV file. As a special case, if the given string is the literal
- * "{}", it returns the empty object. This allows callers to explicitly remove
- * all environment variables.
- */
-export function parseKVWithEmpty(s: string): KVPair | undefined {
-  const sp = presence(s) === '{}' ? '' : presence(s);
-  if (sp !== undefined) return parseKVString(sp);
-}
-
 /**
  * parseSecrets parses the input as environment variable and volume mounted
  * secrets.
@@ -192,7 +156,7 @@ export function parseKVWithEmpty(s: string): KVPair | undefined {
 export function parseSecrets(
   val: string,
 ): [SecretEnvVar[] | undefined, SecretVolume[] | undefined] {
-  const kv = parseKVWithEmpty(val);
+  const kv = parseKVString(val);
   if (kv === undefined) {
     return [undefined, undefined];
   }

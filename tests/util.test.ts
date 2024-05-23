@@ -20,29 +20,7 @@ import assert from 'node:assert';
 import StreamZip from 'node-stream-zip';
 import { assertMembers, randomFilepath } from '@google-github-actions/actions-utils';
 
-import { parseKVWithEmpty, stringToInt, zipDir } from '../src/util';
-
-test('#parseKVWithEmpty', { concurrency: true }, async (suite) => {
-  const cases = [
-    {
-      name: 'both empty',
-      s: '',
-      expected: undefined,
-    },
-    {
-      name: 'braces {}',
-      s: '{}',
-      expected: {},
-    },
-  ];
-
-  for await (const tc of cases) {
-    await suite.test(tc.name, async () => {
-      const actual = parseKVWithEmpty(tc.s);
-      assert.deepStrictEqual(actual, tc.expected);
-    });
-  }
-});
+import { stringToInt, zipDir } from '../src/util';
 
 test('#zipDir', { concurrency: true }, async (suite) => {
   const cases = [
