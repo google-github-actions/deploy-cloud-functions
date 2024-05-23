@@ -20,7 +20,9 @@ import {
   errorMessage,
   parseBoolean,
   parseDuration,
+  parseKVString,
   presence,
+  toEnum,
 } from '@google-github-actions/actions-utils';
 
 import {
@@ -31,7 +33,7 @@ import {
   RetryPolicy,
   VpcConnectorEgressSettings,
 } from './client';
-import { formatEntry, parseKVWithEmpty, parseSecrets, stringToInt, toEnum } from './util';
+import { formatEntry, parseSecrets, stringToInt } from './util';
 
 async function run() {
   try {
@@ -45,12 +47,12 @@ async function run() {
     const description = presence(getInput('description'));
     const environment = toEnum(Environment, getInput('environment') || Environment.GEN_2);
     const kmsKeyName = presence(getInput('kms_key_name'));
-    const labels = parseKVWithEmpty(getInput('labels'));
+    const labels = parseKVString(getInput('labels'));
     const sourceDir = presence(getInput('source_dir')) || process.cwd();
 
     // buildConfig
     const runtime = getInput('runtime', { required: true });
-    const buildEnvironmentVariables = parseKVWithEmpty(getInput('build_environment_variables'));
+    const buildEnvironmentVariables = parseKVString(getInput('build_environment_variables'));
     const buildServiceAccount = presence(getInput('build_service_account'));
     const buildWorkerPool = presence(getInput('build_worker_pool'));
     const dockerRepository = presence(getInput('docker_repository'));
@@ -63,7 +65,7 @@ async function run() {
     );
     const availableCpu = presence(getInput('available_cpu'));
     const availableMemory = presence(getInput('memory')) || '256Mi';
-    const environmentVariables = parseKVWithEmpty(getInput('environment_variables'));
+    const environmentVariables = parseKVString(getInput('environment_variables'));
     const ingressSettings = toEnum(
       IngressSettings,
       getInput('ingress_settings') || IngressSettings.ALLOW_ALL,
