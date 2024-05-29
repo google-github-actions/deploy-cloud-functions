@@ -1,6 +1,6 @@
 {
   "name": "deploy-cloud-functions",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Deploy a Cloud Function",
   "main": "dist/index.js",
   "scripts": {
