@@ -63,7 +63,7 @@ async function run() {
       getInput('all_traffic_on_latest_revision'),
       true,
     );
-    const availableCpu = presence(getInput('available_cpu'));
+    const availableCpu = presence(getInput('cpu'));
     const availableMemory = presence(getInput('memory')) || '256Mi';
     const environmentVariables = parseKVString(getInput('environment_variables'));
     const ingressSettings = toEnum(
