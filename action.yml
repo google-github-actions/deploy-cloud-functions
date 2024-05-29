@@ -199,13 +199,13 @@ inputs:
     default: true
     required: false
 
-  available_cpu:
+  cpu:
     description: |-
       The number of available CPUs to set (e.g. 0.5, 2, 2000m). By default, a
       new function's available CPUs is determined based on its memory value.
     required: false
 
-  available_memory:
+  memory:
     description: |-
       The amount of memory available for the function to use. Allowed values are
       of the format: <number><unit> with allowed units of "k", "M", "G", "Ki",

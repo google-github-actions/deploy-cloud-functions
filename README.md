@@ -182,10 +182,10 @@ jobs:
 
 -   <a name="all_traffic_on_latest_revision"></a><a href="#user-content-all_traffic_on_latest_revision"><code>all_traffic_on_latest_revision</code></a>: _(Optional, default: `true`)_ If true, the latest function revision will be served all traffic.
 
--   <a name="available_cpu"></a><a href="#user-content-available_cpu"><code>available_cpu</code></a>: _(Optional)_ The number of available CPUs to set (e.g. 0.5, 2, 2000m). By default, a
+-   <a name="cpu"></a><a href="#user-content-cpu"><code>cpu</code></a>: _(Optional)_ The number of available CPUs to set (e.g. 0.5, 2, 2000m). By default, a
     new function's available CPUs is determined based on its memory value.
 
--   <a name="available_memory"></a><a href="#user-content-available_memory"><code>available_memory</code></a>: _(Optional)_ The amount of memory available for the function to use. Allowed values are
+-   <a name="memory"></a><a href="#user-content-memory"><code>memory</code></a>: _(Optional)_ The amount of memory available for the function to use. Allowed values are
     of the format: <number><unit> with allowed units of "k", "M", "G", "Ki",
     "Mi", "Gi" (e.g 128M, 10Mb, 1024Gib).
 
