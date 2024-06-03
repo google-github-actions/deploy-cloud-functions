@@ -20,7 +20,7 @@ import assert from 'node:assert';
 import StreamZip from 'node-stream-zip';
 import { assertMembers, randomFilepath } from '@google-github-actions/actions-utils';
 
-import { stringToInt, zipDir } from '../src/util';
+import { parseEventTriggerFilters, stringToInt, zipDir } from '../src/util';
 
 test('#zipDir', { concurrency: true }, async (suite) => {
   const cases = [
@@ -117,6 +117,51 @@ test('#stringToInt', { concurrency: true }, async (suite) => {
         const actual = stringToInt(tc.input);
         assert.deepStrictEqual(actual, tc.expected);
       }
+    });
+  }
+});
+
+test('#parseEventTriggerFilters', { concurrency: true }, async (suite) => {
+  const cases = [
+    {
+      name: 'empty',
+      input: '',
+      expected: undefined,
+    },
+    {
+      name: 'braces',
+      input: '{}',
+      expected: [],
+    },
+    {
+      name: 'braces',
+      input: `
+        type=google.cloud.audit.log.v1.written
+        serviceName=compute.googleapis.com
+        methodName=PATTERN:compute.instances.*
+      `,
+      expected: [
+        {
+          attribute: 'type',
+          value: 'google.cloud.audit.log.v1.written',
+        },
+        {
+          attribute: 'serviceName',
+          value: 'compute.googleapis.com',
+        },
+        {
+          attribute: 'methodName',
+          value: 'compute.instances.*',
+          operator: 'match-path-pattern',
+        },
+      ],
+    },
+  ];
+
+  for await (const tc of cases) {
+    await suite.test(tc.name, async () => {
+      const actual = parseEventTriggerFilters(tc.input);
+      assert.deepStrictEqual(actual, tc.expected);
     });
   }
 });

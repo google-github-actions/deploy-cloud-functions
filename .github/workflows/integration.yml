@@ -74,8 +74,10 @@ jobs:
           runtime: 'nodejs22'
           entry_point: 'helloWorld'
           source_dir: './tests/test-node-func/'
-          event_trigger_type: 'google.cloud.pubsub.topic.v1.messagePublished'
-          event_trigger_pubsub_topic: '${{ vars.PUBSUB_TOPIC_NAME }}'
+          event_trigger_type: 'google.cloud.audit.log.v1.written'
+          event_trigger_filters: |-
+            serviceName=storage.googleapis.com
+            methodName=storage.objects.create
           event_trigger_retry: true
           event_trigger_service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
           environment_variables: |-

@@ -81,8 +81,10 @@ jobs:
     variable `GHA_ENDPOINT_OVERRIDE_<endpoint>` where `<endpoint>` is the API
     endpoint to override. For example:
 
-        env:
-          GHA_ENDPOINT_OVERRIDE_oauth2: 'https://oauth2.myapi.endpoint/v1'
+    ```yaml
+    env:
+      GHA_ENDPOINT_OVERRIDE_oauth2: 'https://oauth2.myapi.endpoint/v1'
+    ```
 
     For more information about universes, see the Google Cloud documentation.
 
@@ -104,9 +106,11 @@ jobs:
     unless quoted. Any leading or trailing whitespace is trimmed unless values
     are quoted.
 
-        labels: |-
-          labela=my-label
-          labelb=my-other-label
+    ```yaml
+    labels: |-
+      labela=my-label
+      labelb=my-other-label
+    ```
 
     This value will only be set if the input is a non-empty value. If a
     non-empty value is given, the field values will be overwritten (not
@@ -136,9 +140,11 @@ jobs:
     `\\n`) unless quoted. Any leading or trailing whitespace is trimmed unless
     values are quoted.
 
-        build_environment_variables: |-
-          FRUIT=apple
-          SENTENCE=" this will retain leading and trailing spaces "
+    ```yaml
+    build_environment_variables: |-
+      FRUIT=apple
+      SENTENCE=" this will retain leading and trailing spaces "
+    ```
 
     This value will only be set if the input is a non-empty value. If a
     non-empty value is given, the field values will be overwritten (not
@@ -197,9 +203,11 @@ jobs:
     (e.g. `\,` or `\\n`) unless quoted. Any leading or trailing whitespace is
     trimmed unless values are quoted.
 
-        environment_variables: |-
-          FRUIT=apple
-          SENTENCE=" this will retain leading and trailing spaces "
+    ```yaml
+    environment_variables: |-
+      FRUIT=apple
+      SENTENCE=" this will retain leading and trailing spaces "
+    ```
 
     This value will only be set if the input is a non-empty value. If a
     non-empty value is given, the field values will be overwritten (not
@@ -232,13 +240,16 @@ jobs:
     volumes. Keys starting with a forward slash '/' are mount paths. All other
     keys correspond to environment variables:
 
-        with:
-          secrets: |-
-            # As an environment variable:
-            KEY1=secret-key-1:latest
 
-            # As a volume mount:
-            /secrets/api/key=secret-key-2:latest
+    ```yaml
+    with:
+      secrets: |-
+        # As an environment variable:
+        KEY1=secret-key-1:latest
+
+        # As a volume mount:
+        /secrets/api/key=secret-key-2:latest
+    ```
 
     This value will only be set if the input is a non-empty value. If a
     non-empty value is given, the field values will be overwritten (not
@@ -279,6 +290,30 @@ jobs:
         $ gcloud services enable eventarc.googleapis.com
 
     The available trigger types may change over time.
+
+-   <a name="event_trigger_filters"></a><a href="#user-content-event_trigger_filters"><code>event_trigger_filters</code></a>: _(Optional)_ List of event filters that the trigger should monitor. An event that
+    matches all the filteres will trigger calls to the function. These are
+    comma-separated or newline-separated `ATTRIBUTE=VALUE`. Attributes or
+    values that contain separators must be escaped with a backslash (e.g. `\,`
+    or `\\n`) unless quoted. To treat a value as a path pattern, prefix the
+    value with the literal string `PATTERN:`. Any leading or trailing
+    whitespace is trimmed unless values are quoted.
+
+    ```yaml
+    event_trigger_type: 'google.cloud.audit.log.v1.written'
+    event_trigger_filters: |-
+      serviceName=compute.googleapis.com
+      methodName=PATTERN:compute.instances.*
+    ```
+
+    This value will only be set if the input is a non-empty value. If a
+    non-empty value is given, the field values will be overwritten (not
+    merged). To remove all values, set the value to the literal string `{}`.
+
+    For more information, see [Eventarc
+    Triggers](https://cloud.google.com/functions/docs/calling/eventarc) and
+    [Eventarc Path
+    Patterns](https://cloud.google.com/eventarc/docs/path-patterns).
 
 -   <a name="event_trigger_pubsub_topic"></a><a href="#user-content-event_trigger_pubsub_topic"><code>event_trigger_pubsub_topic</code></a>: _(Optional)_ Name of Google Cloud Pub/Sub topic. Every message published in this topic
     will trigger function execution with message contents passed as input
