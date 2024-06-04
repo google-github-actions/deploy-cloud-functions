@@ -26,7 +26,7 @@ import {
 } from '@google-github-actions/actions-utils';
 import ignore from 'ignore';
 
-import { SecretEnvVar, SecretVolume } from './client';
+import { EventFilter, SecretEnvVar, SecretVolume } from './client';
 import { SecretName } from './secret';
 
 /**
@@ -149,6 +149,36 @@ export function stringToInt(str: string): number | undefined {
   }
   return result;
 }
+
+/**
+ * parseEventTriggerFilters is a helper that parses the inputs into a list of event
+ * filters.
+ */
+export function parseEventTriggerFilters(val: string): EventFilter[] | undefined {
+  const kv = parseKVString(val);
+  if (kv === undefined) {
+    return undefined;
+  }
+
+  const result: EventFilter[] = [];
+  for (const [key, value] of Object.entries(kv)) {
+    if (value.startsWith('PATTERN:')) {
+      result.push({
+        attribute: key,
+        value: value.slice(8),
+        operator: 'match-path-pattern',
+      });
+    } else {
+      result.push({
+        attribute: key,
+        value: value,
+      });
+    }
+  }
+
+  return result;
+}
+
 /**
  * parseSecrets parses the input as environment variable and volume mounted
  * secrets.

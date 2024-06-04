@@ -116,6 +116,12 @@ export type SecretVolume = {
   }[];
 };
 
+export type EventFilter = {
+  attribute: string;
+  value: string;
+  operator?: string;
+};
+
 export enum Environment {
   GEN_1 = 'GEN_1',
   GEN_2 = 'GEN_2',
@@ -176,11 +182,7 @@ export type CloudFunction = {
   eventTrigger?: {
     triggerRegion?: string;
     eventType?: string;
-    eventFilters?: {
-      attribute: string;
-      value: string;
-      operator?: string;
-    }[];
+    eventFilters?: EventFilter[];
     pubsubTopic?: string;
     serviceAccountEmail?: string;
     retryPolicy?: RetryPolicy;

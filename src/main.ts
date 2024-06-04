@@ -33,7 +33,7 @@ import {
   RetryPolicy,
   VpcConnectorEgressSettings,
 } from './client';
-import { formatEntry, parseSecrets, stringToInt } from './util';
+import { formatEntry, parseEventTriggerFilters, parseSecrets, stringToInt } from './util';
 
 async function run() {
   try {
@@ -85,6 +85,7 @@ async function run() {
     // eventTrigger
     const eventTriggerLocation = presence(getInput('event_trigger_location'));
     const eventTriggerType = presence(getInput('event_trigger_type'));
+    const eventTriggerFilters = parseEventTriggerFilters(getInput('event_trigger_filters'));
     const eventTriggerPubSubTopic = presence(getInput('event_trigger_pubsub_topic'));
     const eventTriggerServiceAccount = presence(getInput('event_trigger_service_account'));
     const eventTriggerRetryPolicy = parseBoolean(getInput('event_trigger_retry'), true)
@@ -144,6 +145,7 @@ async function run() {
       eventTrigger: {
         triggerRegion: eventTriggerLocation,
         eventType: eventTriggerType,
+        eventFilters: eventTriggerFilters,
         pubsubTopic: eventTriggerPubSubTopic,
         serviceAccountEmail: eventTriggerServiceAccount,
         retryPolicy: eventTriggerRetryPolicy,
