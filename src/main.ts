@@ -92,7 +92,6 @@ async function run() {
       ? RetryPolicy.RETRY_POLICY_RETRY
       : RetryPolicy.RETRY_POLICY_DO_NOT_RETRY;
     const eventTriggerChannel = presence(getInput('event_trigger_channel'));
-    const eventTriggerService = presence(getInput('event_trigger_service'));
 
     // Validation
     if (serviceTimeout <= 0) {
@@ -150,7 +149,6 @@ async function run() {
         serviceAccountEmail: eventTriggerServiceAccount,
         retryPolicy: eventTriggerRetryPolicy,
         channel: eventTriggerChannel,
-        service: eventTriggerService,
       },
     };
 
