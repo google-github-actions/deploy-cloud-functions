@@ -15,7 +15,14 @@
  */
 
 import { EntryData } from 'archiver';
-import { debug as logDebug, getInput, info as logInfo, setFailed, setOutput } from '@actions/core';
+import {
+  debug as logDebug,
+  getInput,
+  info as logInfo,
+  isDebug,
+  setFailed,
+  setOutput,
+} from '@actions/core';
 import {
   errorMessage,
   parseBoolean,
@@ -190,6 +197,11 @@ async function run() {
           iteration++;
         };
       })(),
+      onDebug: (f) => {
+        if (isDebug()) {
+          logDebug(f());
+        }
+      },
     });
 
     if (resp.state !== 'ACTIVE') {

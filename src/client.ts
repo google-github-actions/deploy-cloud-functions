@@ -51,6 +51,7 @@ export type CloudFunctionClientOptions = {
 
 export type PollOperationOptions = {
   onPoll?: OnFunction;
+  onDebug?: OnDebugFunction;
 };
 
 export type Operation = {
@@ -193,14 +194,17 @@ export type CloudFunction = {
 
 export type CreateOptions = {
   onPoll?: OnFunction;
+  onDebug?: OnDebugFunction;
 };
 
 export type DeleteOptions = {
   onPoll?: OnFunction;
+  onDebug?: OnDebugFunction;
 };
 
 export type PatchOptions = {
   onPoll?: OnFunction;
+  onDebug?: OnDebugFunction;
 };
 
 export type DeployOptions = {
@@ -208,9 +212,11 @@ export type DeployOptions = {
   onZip?: OnZipFunction;
   onNew?: OnFunction;
   onExisting?: OnFunction;
+  onDebug?: OnDebugFunction;
 } & ZipOptions;
 
 export type OnFunction = () => void;
+export type OnDebugFunction = (f: () => string) => void;
 export type OnZipFunction = (sourceDir: string, zipPath: string) => void;
 
 export class CloudFunctionsClient {
@@ -332,6 +338,11 @@ export class CloudFunctionsClient {
   async create(cf: CloudFunction, opts?: CreateOptions): Promise<CloudFunctionResponse> {
     const resourceName = this.fullResourceName(cf.name);
     cf.name = resourceName;
+    if (opts?.onDebug) {
+      opts.onDebug((): string => {
+        return `create: computed Cloud Function:\n${JSON.stringify(cf, null, 2)}`;
+      });
+    }
 
     const parent = this.parentFromName(resourceName);
     const functionName = resourceName.split('/').at(-1);
@@ -342,6 +353,7 @@ export class CloudFunctionsClient {
     const resp: Operation = await this.#request('POST', u, body);
     const op = await this.#pollOperation(resp.name, {
       onPoll: opts?.onPoll,
+      onDebug: opts?.onDebug,
     });
 
     if (!op.response) {
@@ -361,6 +373,7 @@ export class CloudFunctionsClient {
     const resp: Operation = await this.#request('DELETE', u);
     return await this.#pollOperation(resp.name, {
       onPoll: opts?.onPoll,
+      onDebug: opts?.onDebug,
     });
   }
 
@@ -421,12 +434,25 @@ export class CloudFunctionsClient {
   async patch(cf: CloudFunction, opts?: PatchOptions): Promise<CloudFunctionResponse> {
     const resourceName = this.fullResourceName(cf.name);
     cf.name = resourceName;
+    if (opts?.onDebug) {
+      opts.onDebug((): string => {
+        return `patch: computed Cloud Function:\n${JSON.stringify(cf, null, 2)}`;
+      });
+    }
 
-    const u = `${this.#endpoints.cloudfunctions}/${resourceName}`;
+    const updateMask = this.computeUpdateMask(cf);
+    if (opts?.onDebug) {
+      opts.onDebug((): string => {
+        return `Computed updateMask: ${updateMask}`;
+      });
+    }
+
+    const u = `${this.#endpoints.cloudfunctions}/${resourceName}?updateMask=${updateMask}`;
     const body = JSON.stringify(cf);
     const resp: Operation = await this.#request('PATCH', u, body);
     const op = await this.#pollOperation(resp.name, {
       onPoll: opts?.onPoll,
+      onDebug: opts?.onDebug,
     });
 
     if (!op.response) {
@@ -489,12 +515,14 @@ export class CloudFunctionsClient {
       if (opts?.onExisting) opts.onExisting();
       const resp: CloudFunctionResponse = await this.patch(cf, {
         onPoll: opts?.onPoll,
+        onDebug: opts?.onDebug,
       });
       return resp;
     } else {
       if (opts?.onNew) opts.onNew();
       const resp: CloudFunctionResponse = await this.create(cf, {
         onPoll: opts?.onPoll,
+        onDebug: opts?.onDebug,
       });
       return resp;
     }
@@ -570,5 +598,28 @@ export class CloudFunctionsClient {
     }
     const parent = parts.slice(0, parts.length - 2).join('/');
     return parent;
+  }
+
+  computeUpdateMask(cf: CloudFunction): string {
+    const keys: string[] = [];
+
+    const iter = (obj: object, root?: string) => {
+      for (const [k, v] of Object.entries(obj)) {
+        if (v === undefined) {
+          continue;
+        }
+
+        const pth = root ? root + '.' + k : k;
+        if (typeof v === 'object' && !Array.isArray(v)) {
+          iter(v, pth);
+        } else {
+          keys.push(pth);
+        }
+      }
+    };
+
+    iter(cf);
+
+    return keys.join(',');
   }
 }
