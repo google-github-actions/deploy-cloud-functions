@@ -15,7 +15,14 @@
  */
 
 import { EntryData } from 'archiver';
-import { debug as logDebug, getInput, info as logInfo, setFailed, setOutput } from '@actions/core';
+import {
+  debug as logDebug,
+  getInput,
+  info as logInfo,
+  isDebug,
+  setFailed,
+  setOutput,
+} from '@actions/core';
 import {
   errorMessage,
   parseBoolean,
@@ -160,6 +167,11 @@ async function run() {
     // Ensure vpcConnectorEgressSettings isn't set if no vpcConnector was given
     if (!cf.serviceConfig?.vpcConnector) {
       delete cf.serviceConfig?.vpcConnectorEgressSettings;
+    }
+
+    if (isDebug()) {
+      const definition = JSON.stringify(cf, null, 2);
+      logDebug(`Compiled Cloud Function definition: ${definition}`);
     }
 
     // Deploy the Cloud Function
