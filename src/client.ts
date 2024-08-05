@@ -31,7 +31,6 @@ import {
 import { zipDir, ZipOptions } from './util';
 
 // Do not listen to the linter - this can NOT be rewritten as an ES6 import statement.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version: appVersion } = require('../package.json');
 
 // userAgent is the default user agent.
@@ -56,7 +55,7 @@ export type PollOperationOptions = {
 
 export type Operation = {
   name: string;
-  metadata: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  metadata: Record<string, any>;
   done: boolean;
   error: OperationStatus;
   response?: CloudFunctionResponse;
@@ -260,11 +259,7 @@ export class CloudFunctionsClient {
     this.#endpoints = expandUniverseEndpoints(this.#endpoints, opts?.universe);
   }
 
-  async #request(
-    method: string,
-    url: string,
-    data?: any, // eslint-disable-line @typescript-eslint/no-explicit-any
-  ) {
+  async #request(method: string, url: string, data?: any) {
     const authToken = await this.#auth.getAccessToken();
     if (!authToken) {
       throw new Error(`Failed to get auth token for ${method} ${url}`);
