@@ -1,5 +1,5 @@
 {
-  "name": "deploy-cloud-functions",
+  "name": "@google-github-actions/deploy-cloud-functions",
   "version": "3.0.4",
   "description": "Deploy a Cloud Function",
   "main": "dist/index.js",
