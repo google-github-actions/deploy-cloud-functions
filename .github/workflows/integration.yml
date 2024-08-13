@@ -40,7 +40,7 @@ jobs:
       - id: 'deploy'
         uses: './'
         with:
-          name: 'https-trigger-${{ github.run_number }}'
+          name: 'integration-https-trigger-${{ github.run_number }}-${{ github.run_attempt }}'
           runtime: 'nodejs22'
           entry_point: 'helloWorld'
           source_dir: './tests/test-node-func/'
@@ -70,7 +70,7 @@ jobs:
       - id: 'deploy'
         uses: './'
         with:
-          name: 'event-trigger-${{ github.run_number }}'
+          name: 'integration-event-trigger-${{ github.run_number }}-${{ github.run_attempt }}'
           runtime: 'nodejs22'
           entry_point: 'helloWorld'
           source_dir: './tests/test-node-func/'

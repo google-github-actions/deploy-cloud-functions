@@ -46,14 +46,16 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: 'npm run lint'
 
-      - uses: 'google-github-actions/auth@v2'
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
         if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
         with:
+          project_id: '${{ vars.PROJECT_ID }}'
           workload_identity_provider: '${{ vars.WIF_PROVIDER_NAME }}'
-          service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
 
       - name: 'npm test'
         env:
+          TEST_AUTHENTICATED: '${{ !!steps.auth.outputs.auth_token }}'
           TEST_PROJECT_ID: '${{ vars.PROJECT_ID }}'
           TEST_SERVICE_ACCOUNT_EMAIL: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
           TEST_SECRET_VERSION_NAME: '${{ vars.SECRET_VERSION_NAME }}'

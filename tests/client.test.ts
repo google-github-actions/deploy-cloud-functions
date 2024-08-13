@@ -29,13 +29,15 @@ import { zipDir } from '../src/util';
 
 const { TEST_PROJECT_ID, TEST_SERVICE_ACCOUNT_EMAIL, TEST_SECRET_VERSION_NAME } = process.env;
 const TEST_LOCATION = 'us-central1';
-const TEST_FUNCTION_NAME = 'test-' + crypto.randomBytes(12).toString('hex');
+const TEST_SEED = crypto.randomBytes(12).toString('hex').toLowerCase();
+const TEST_SEED_UPPER = TEST_SEED.toUpperCase();
+const TEST_FUNCTION_NAME = `unit-${TEST_SEED}`;
 
 test(
   'lifecycle',
   {
     concurrency: true,
-    skip: skipIfMissingEnv('TEST_PROJECT_ID', 'TEST_LOCATION'),
+    skip: skipIfMissingEnv('TEST_AUTHENTICATED'),
   },
   async (suite) => {
     // Always try to delete the function
@@ -52,7 +54,7 @@ test(
       }
     });
 
-    suite.test('can create, read, update, and delete', async () => {
+    await suite.test('can create, read, update, and delete', async () => {
       const secret = new SecretName(TEST_SECRET_VERSION_NAME);
 
       const client = new CloudFunctionsClient({
@@ -75,26 +77,37 @@ test(
         name: TEST_FUNCTION_NAME,
         description: 'test function',
         environment: Environment.GEN_2,
-        labels: { key1: 'value1', key2: 'value2' },
+        labels: {
+          [`label1-${TEST_SEED}`]: `value1_${TEST_SEED}`,
+          [`label2-${TEST_SEED}`]: `value2_${TEST_SEED}`,
+        },
 
         buildConfig: {
           runtime: 'nodejs22',
           entryPoint: 'helloWorld',
-          source: sourceUploadResp,
-          environmentVariables: { BUILDKEY1: 'VALUE1', BUILDKEY2: 'VALUE2' },
+          source: {
+            storageSource: sourceUploadResp.storageSource,
+          },
+          environmentVariables: {
+            [`BUILD_ENV_KEY1_${TEST_SEED_UPPER}`]: `VALUE1_${TEST_SEED}`,
+            [`BUILD_ENV_KEY2_${TEST_SEED_UPPER}`]: `VALUE2_${TEST_SEED}`,
+          },
         },
 
         serviceConfig: {
           allTrafficOnLatestRevision: true,
           availableCpu: '1',
-          availableMemory: '512m',
-          environmentVariables: { KEY1: 'VALUE1', KEY2: 'VALUE2' },
+          availableMemory: '512Mi',
+          environmentVariables: {
+            [`SERVICE_ENV_KEY1_${TEST_SEED_UPPER}`]: `VALUE1_${TEST_SEED}`,
+            [`SERVICE_ENV_KEY2_${TEST_SEED_UPPER}`]: `VALUE2_${TEST_SEED}`,
+          },
           ingressSettings: IngressSettings.ALLOW_ALL,
           maxInstanceCount: 5,
           minInstanceCount: 2,
           secretEnvironmentVariables: [
             {
-              key: 'SECRET1',
+              key: `SECRET1_${TEST_SEED_UPPER}`,
               projectId: secret.project,
               secret: secret.name,
               version: secret.version,
@@ -102,12 +115,12 @@ test(
           ],
           secretVolumes: [
             {
-              mountPath: '/etc/secrets/one',
+              mountPath: `/etc/secrets/one_${TEST_SEED}`,
               projectId: secret.project,
               secret: secret.name,
               versions: [
                 {
-                  path: '/value1',
+                  path: 'value1',
                   version: secret.version,
                 },
               ],
@@ -119,32 +132,42 @@ test(
       };
 
       // Create
-      const createResp = await client.create(cf);
+      const createResp = await client.create(cf, {
+        onDebug: (f) => {
+          process.stdout.write('\n\n\n\n');
+          process.stdout.write(f());
+          process.stdout.write('\n\n\n\n');
+        },
+      });
       assert.ok(createResp?.url);
 
       // Read
       const getResp = await client.get(cf.name);
       assert.ok(getResp.name.endsWith(TEST_FUNCTION_NAME)); // The response is the fully-qualified name
       assert.deepStrictEqual(getResp.description, 'test function');
-      assert.deepStrictEqual(getResp.labels, { key1: 'value1', key2: 'value2' });
-      assert.deepStrictEqual(getResp.buildConfig.runtime, 'nodejs20');
+      assert.deepStrictEqual(getResp.labels, {
+        [`label1-${TEST_SEED}`]: `value1_${TEST_SEED}`,
+        [`label2-${TEST_SEED}`]: `value2_${TEST_SEED}`,
+      });
+      assert.deepStrictEqual(getResp.buildConfig.runtime, 'nodejs22');
       assert.deepStrictEqual(getResp.buildConfig.environmentVariables, {
-        BUILDKEY1: 'VALUE1',
-        BUILDKEY2: 'VALUE2',
+        [`BUILD_ENV_KEY1_${TEST_SEED_UPPER}`]: `VALUE1_${TEST_SEED}`,
+        [`BUILD_ENV_KEY2_${TEST_SEED_UPPER}`]: `VALUE2_${TEST_SEED}`,
       });
       assert.deepStrictEqual(getResp.buildConfig.entryPoint, 'helloWorld');
-      assert.deepStrictEqual(getResp.serviceConfig.availableCpu, 1);
-      assert.deepStrictEqual(getResp.serviceConfig.availableMemory, 512);
+      assert.deepStrictEqual(getResp.serviceConfig.availableCpu, '1');
+      assert.deepStrictEqual(getResp.serviceConfig.availableMemory, '512Mi');
       assert.deepStrictEqual(getResp.serviceConfig.environmentVariables, {
-        KEY1: 'VALUE1',
-        KEY2: 'VALUE2',
+        LOG_EXECUTION_ID: 'true', // inserted by GCP
+        [`SERVICE_ENV_KEY1_${TEST_SEED_UPPER}`]: `VALUE1_${TEST_SEED}`,
+        [`SERVICE_ENV_KEY2_${TEST_SEED_UPPER}`]: `VALUE2_${TEST_SEED}`,
       });
       assert.deepStrictEqual(getResp.serviceConfig.ingressSettings, 'ALLOW_ALL');
       assert.deepStrictEqual(getResp.serviceConfig.maxInstanceCount, 5);
       assert.deepStrictEqual(getResp.serviceConfig.minInstanceCount, 2);
       assert.deepStrictEqual(getResp.serviceConfig.secretEnvironmentVariables, [
         {
-          key: 'SECRET1',
+          key: `SECRET1_${TEST_SEED_UPPER}`,
           projectId: secret.project,
           secret: secret.name,
           version: secret.version,
@@ -152,12 +175,12 @@ test(
       ]);
       assert.deepStrictEqual(getResp.serviceConfig.secretVolumes, [
         {
-          mountPath: '/etc/secrets/one',
+          mountPath: `/etc/secrets/one_${TEST_SEED}`,
           projectId: secret.project,
           secret: secret.name,
           versions: [
             {
-              path: '/value1',
+              path: 'value1',
               version: secret.version,
             },
           ],
@@ -175,25 +198,36 @@ test(
       const cf2: CloudFunction = {
         name: TEST_FUNCTION_NAME,
         description: 'test function2',
-        labels: { key3: 'value3', key4: 'value4' },
+        labels: {
+          [`label3-${TEST_SEED}`]: `value3_${TEST_SEED}`,
+          [`label4-${TEST_SEED}`]: `value4_${TEST_SEED}`,
+        },
 
         buildConfig: {
           runtime: 'nodejs20',
           entryPoint: 'helloWorld',
-          source: sourceUploadUpdateResp,
-          environmentVariables: { BUILDKEY3: 'VALUE3', BUILDKEY4: 'VALUE4' },
+          source: {
+            storageSource: sourceUploadResp.storageSource,
+          },
+          environmentVariables: {
+            [`BUILD_ENV_KEY3_${TEST_SEED_UPPER}`]: `VALUE3_${TEST_SEED}`,
+            [`BUILD_ENV_KEY4_${TEST_SEED_UPPER}`]: `VALUE4_${TEST_SEED}`,
+          },
         },
 
         serviceConfig: {
           allTrafficOnLatestRevision: true,
-          availableMemory: '256Mi',
-          environmentVariables: { KEY3: 'VALUE3', KEY4: 'VALUE4' },
+          availableMemory: '1Gi',
+          environmentVariables: {
+            [`SERVICE_ENV_KEY3_${TEST_SEED_UPPER}`]: `VALUE3_${TEST_SEED}`,
+            [`SERVICE_ENV_KEY4_${TEST_SEED_UPPER}`]: `VALUE4_${TEST_SEED}`,
+          },
           ingressSettings: IngressSettings.ALLOW_INTERNAL_AND_GCLB,
           maxInstanceCount: 3,
           minInstanceCount: 1,
           secretEnvironmentVariables: [
             {
-              key: 'SECRET2',
+              key: `SECRET2_${TEST_SEED_UPPER}`,
               projectId: secret.project,
               secret: secret.name,
               version: secret.version,
@@ -201,12 +235,12 @@ test(
           ],
           secretVolumes: [
             {
-              mountPath: '/etc/secrets/two',
+              mountPath: `/etc/secrets/two_${TEST_SEED}`,
               projectId: secret.project,
               secret: secret.name,
               versions: [
                 {
-                  path: '/value2',
+                  path: 'value2',
                   version: secret.version,
                 },
               ],
@@ -217,27 +251,37 @@ test(
         },
       };
 
-      const patchResp = await client.patch(cf2);
+      const patchResp = await client.patch(cf2, {
+        onDebug: (f) => {
+          process.stdout.write('\n\n\n\n');
+          process.stdout.write(f());
+          process.stdout.write('\n\n\n\n');
+        },
+      });
       assert.ok(patchResp.name.endsWith(TEST_FUNCTION_NAME)); // The response is the fully-qualified name
       assert.deepStrictEqual(patchResp.description, 'test function2');
-      assert.deepStrictEqual(patchResp.labels, { key3: 'value3', key4: 'value4' });
+      assert.deepStrictEqual(patchResp.labels, {
+        [`label3-${TEST_SEED}`]: `value3_${TEST_SEED}`,
+        [`label4-${TEST_SEED}`]: `value4_${TEST_SEED}`,
+      });
       assert.deepStrictEqual(patchResp.buildConfig.runtime, 'nodejs20');
       assert.deepStrictEqual(patchResp.buildConfig.entryPoint, 'helloWorld');
       assert.deepStrictEqual(patchResp.buildConfig.environmentVariables, {
-        BUILDKEY3: 'VALUE3',
-        BUILDKEY4: 'VALUE4',
+        [`BUILD_ENV_KEY3_${TEST_SEED_UPPER}`]: `VALUE3_${TEST_SEED}`,
+        [`BUILD_ENV_KEY4_${TEST_SEED_UPPER}`]: `VALUE4_${TEST_SEED}`,
       });
-      assert.deepStrictEqual(patchResp.serviceConfig.availableMemory, '256');
+      assert.deepStrictEqual(patchResp.serviceConfig.availableMemory, '1Gi');
       assert.deepStrictEqual(patchResp.serviceConfig.environmentVariables, {
-        KEY3: 'VALUE3',
-        KEY4: 'VALUE4',
+        LOG_EXECUTION_ID: 'true', // inserted by GCP
+        [`SERVICE_ENV_KEY3_${TEST_SEED_UPPER}`]: `VALUE3_${TEST_SEED}`,
+        [`SERVICE_ENV_KEY4_${TEST_SEED_UPPER}`]: `VALUE4_${TEST_SEED}`,
       });
       assert.deepStrictEqual(patchResp.serviceConfig.ingressSettings, 'ALLOW_INTERNAL_AND_GCLB');
       assert.deepStrictEqual(patchResp.serviceConfig.maxInstanceCount, 3);
       assert.deepStrictEqual(patchResp.serviceConfig.minInstanceCount, 1);
       assert.deepStrictEqual(patchResp.serviceConfig.secretEnvironmentVariables, [
         {
-          key: 'SECRET2',
+          key: `SECRET2_${TEST_SEED_UPPER}`,
           projectId: secret.project,
           secret: secret.name,
           version: secret.version,
@@ -245,12 +289,12 @@ test(
       ]);
       assert.deepStrictEqual(patchResp.serviceConfig.secretVolumes, [
         {
-          mountPath: '/etc/secrets/two',
+          mountPath: `/etc/secrets/two_${TEST_SEED}`,
           projectId: secret.project,
           secret: secret.name,
           versions: [
             {
-              path: '/value2',
+              path: 'value2',
               version: secret.version,
             },
           ],
