@@ -598,22 +598,53 @@ export class CloudFunctionsClient {
   computeUpdateMask(cf: CloudFunction): string {
     const keys: string[] = [];
 
-    const iter = (obj: object, root?: string) => {
-      for (const [k, v] of Object.entries(obj)) {
-        if (v === undefined) {
-          continue;
-        }
+    if (cf.name !== undefined) keys.push('name');
+    if (cf.description !== undefined) keys.push('description');
+    if (cf.environment !== undefined) keys.push('environment');
+    if (cf.kmsKeyName !== undefined) keys.push('kmsKeyName');
+    if (cf.labels !== undefined) keys.push('labels');
 
-        const pth = root ? root + '.' + k : k;
-        if (typeof v === 'object' && !Array.isArray(v)) {
-          iter(v, pth);
-        } else {
-          keys.push(pth);
-        }
-      }
-    };
+    if (cf.buildConfig?.runtime !== undefined) keys.push('buildConfig.runtime');
+    if (cf.buildConfig?.entryPoint !== undefined) keys.push('buildConfig.entryPoint');
+    if (cf.buildConfig?.source !== undefined) keys.push('buildConfig.source');
+    if (cf.buildConfig?.dockerRepository !== undefined) keys.push('buildConfig.dockerRepository');
+    if (cf.buildConfig?.environmentVariables !== undefined)
+      keys.push('buildConfig.environmentVariables');
+    if (cf.buildConfig?.serviceAccount !== undefined) keys.push('buildConfig.serviceAccount');
+    if (cf.buildConfig?.workerPool !== undefined) keys.push('buildConfig.workerPool');
 
-    iter(cf);
+    if (cf.serviceConfig?.allTrafficOnLatestRevision !== undefined)
+      keys.push('serviceConfig.allTrafficOnLatestRevision');
+    if (cf.serviceConfig?.availableCpu !== undefined) keys.push('serviceConfig.availableCpu');
+    if (cf.serviceConfig?.availableMemory !== undefined) keys.push('serviceConfig.availableMemory');
+    if (cf.serviceConfig?.environmentVariables !== undefined)
+      keys.push('serviceConfig.environmentVariables');
+    if (cf.serviceConfig?.ingressSettings !== undefined) keys.push('serviceConfig.ingressSettings');
+    if (cf.serviceConfig?.maxInstanceCount !== undefined)
+      keys.push('serviceConfig.maxInstanceCount');
+    if (cf.serviceConfig?.maxInstanceRequestConcurrency !== undefined)
+      keys.push('serviceConfig.maxInstanceRequestConcurrency');
+    if (cf.serviceConfig?.minInstanceCount !== undefined)
+      keys.push('serviceConfig.minInstanceCount');
+    if (cf.serviceConfig?.secretEnvironmentVariables !== undefined)
+      keys.push('serviceConfig.secretEnvironmentVariables');
+    if (cf.serviceConfig?.secretVolumes !== undefined) keys.push('serviceConfig.secretVolumes');
+    if (cf.serviceConfig?.serviceAccountEmail !== undefined)
+      keys.push('serviceConfig.serviceAccountEmail');
+    if (cf.serviceConfig?.timeoutSeconds !== undefined) keys.push('serviceConfig.timeoutSeconds');
+    if (cf.serviceConfig?.vpcConnector !== undefined) keys.push('serviceConfig.vpcConnector');
+    if (cf.serviceConfig?.vpcConnectorEgressSettings !== undefined)
+      keys.push('serviceConfig.vpcConnectorEgressSettings');
+
+    if (cf.eventTrigger?.triggerRegion !== undefined) keys.push('eventTrigger.triggerRegion');
+    if (cf.eventTrigger?.eventType !== undefined) keys.push('eventTrigger.eventType');
+    if (cf.eventTrigger?.eventFilters !== undefined) keys.push('eventTrigger.eventFilters');
+    if (cf.eventTrigger?.pubsubTopic !== undefined) keys.push('eventTrigger.pubsubTopic');
+    if (cf.eventTrigger?.serviceAccountEmail !== undefined)
+      keys.push('eventTrigger.serviceAccountEmail');
+    if (cf.eventTrigger?.retryPolicy !== undefined) keys.push('eventTrigger.retryPolicy');
+    if (cf.eventTrigger?.channel !== undefined) keys.push('eventTrigger.channel');
+    if (cf.eventTrigger?.service !== undefined) keys.push('eventTrigger.service');
 
     return keys.join(',');
   }
