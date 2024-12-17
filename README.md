@@ -367,7 +367,7 @@ service](https://cloud.google.com/functions/docs/securing/managing-access-iam).
 
 The _deployment_ service account must have the following IAM permissions:
 
--   Cloud Functions Deployer (`roles/cloudfunctions.deployer`)
+-   Cloud Functions Developer (`roles/cloudfunctions.developer`)
 
 Additionally, the _deployment_ service account must have permissions to act as
 (impersonate) the _runtime_ service account, which can be achieved by granting
