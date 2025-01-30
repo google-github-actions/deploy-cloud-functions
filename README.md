@@ -162,6 +162,9 @@ jobs:
 - `build_environment_variables_file`: (Optional) Path to a local YAML file
   containing variables. See 'env_vars_file' for syntax.
 
+- `docker_registry`: (Optional) Registry to use for storing Docker containers. This must be one of 
+  `artifact-registry` or `container-registry`. Default is `container-registry`.
+
 - `docker_repository`: (Optional) User managed repository created in Artifact
   Registry optionally with a customer managed encryption key. If specified,
   deployments will use Artifact Registry and must be of the format
