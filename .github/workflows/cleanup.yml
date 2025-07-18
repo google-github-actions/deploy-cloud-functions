@@ -9,6 +9,10 @@ permissions:
   contents: 'read'
   id-token: 'write'
 
+defaults:
+  run:
+    shell: 'bash'
+
 jobs:
   cleanup:
     runs-on: 'ubuntu-latest'
