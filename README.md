@@ -193,7 +193,7 @@ jobs:
 
 -   <a name="memory"></a><a href="#user-content-memory"><code>memory</code></a>: _(Optional)_ The amount of memory available for the function to use. Allowed values are
     of the format: <number><unit> with allowed units of "k", "M", "G", "Ki",
-    "Mi", "Gi" (e.g 128M, 10Mb, 1024Gi).
+    "Mi", "Gi" (e.g 128M, 10Mb, 1024Gib).
 
     For all generations, the default value is 256MB of memory.
 

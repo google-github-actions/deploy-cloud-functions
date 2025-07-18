@@ -1,6 +1,6 @@
 {
   "name": "@google-github-actions/deploy-cloud-functions",
-  "version": "3.0.8",
+  "version": "3.0.9",
   "description": "Deploy a Cloud Function",
   "main": "dist/index.js",
   "scripts": {
