@@ -245,10 +245,10 @@ jobs:
     with:
       secrets: |-
         # As an environment variable:
-        KEY1=secret-key-1:latest
+        KEY1=projects/my-project/secrets/my-secret/versions/latest
 
         # As a volume mount:
-        /secrets/api/key=secret-key-2:latest
+        /secrets/api/key=projects/my-project/secrets/my-secret/versions/123
     ```
 
     This value will only be set if the input is a non-empty value. If a

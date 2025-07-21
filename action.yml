@@ -215,7 +215,7 @@ inputs:
     description: |-
       The amount of memory available for the function to use. Allowed values are
       of the format: <number><unit> with allowed units of "k", "M", "G", "Ki",
-      "Mi", "Gi" (e.g 128M, 10Mb, 1024Gib).
+      "Mi", "Gi" (e.g 128M, 10Mb, 1024Gi).
 
       For all generations, the default value is 256MB of memory.
     required: false
@@ -286,10 +286,10 @@ inputs:
       with:
         secrets: |-
           # As an environment variable:
-          KEY1=secret-key-1:latest
+          KEY1=projects/my-project/secrets/my-secret/versions/latest
 
           # As a volume mount:
-          /secrets/api/key=secret-key-2:latest
+          /secrets/api/key=projects/my-project/secrets/my-secret/versions/123
       ```
 
       This value will only be set if the input is a non-empty value. If a
