@@ -3,12 +3,6 @@
 This action deploys your function source code to [Cloud Functions][cloud-functions] and makes the URL
 available to later build steps via outputs.
 
-> [!CAUTION]
->
-> **This README corresponds to the "v3" GitHub Action**, which is currently in
-> beta. If you are using "v2", see the [documentation for
-> google-github-actions/deploy-cloud-functions@v2](https://github.com/google-github-actions/deploy-cloud-functions/tree/release/v2).
-
 **This is not an officially supported Google product, and it is not covered by a
 Google Cloud support contract. To report bugs or request features in a Google
 Cloud product, please contact [Google Cloud
@@ -21,9 +15,10 @@ support](https://cloud.google.com/support).**
     the secrets being requested. See [Authorization](#authorization) for more
     information.
 
--   This action runs using Node 20. If you are using self-hosted GitHub Actions
-    runners, you must use a version of the GitHub Actions runner that supports
-    Node 20 or higher.
+-  This action runs using Node 24. If you are using self-hosted GitHub Actions
+   runners, you must use a [runner
+   version](https://github.com/actions/virtual-environments) that supports this
+   version or later.
 
 
 ## Usage
@@ -40,13 +35,13 @@ jobs:
     - uses: 'actions/checkout@v4'
 
     - id: 'auth'
-      uses: 'google-github-actions/auth@v2'
+      uses: 'google-github-actions/auth@v3'
       with:
         project_id: 'my-project'
         workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
 
     - id: 'deploy'
-      uses: 'google-github-actions/deploy-cloud-functions@v3'
+      uses: 'google-github-actions/deploy-cloud-functions@v4'
       timeout-minutes: 10
       with:
         name: 'my-function'
@@ -130,7 +125,9 @@ jobs:
 -   <a name="__input_runtime"></a><a href="#user-content-__input_runtime"><code>runtime</code></a>: _(Required)_ Runtime for the function, such as "nodejs20". For a list of all available
     runtimes, run:
 
-        $ gcloud functions runtimes list
+    ```sh
+    $ gcloud functions runtimes list
+    ```
 
     The available runtimes change over time.
 
@@ -160,10 +157,10 @@ jobs:
 -   <a name="__input_build_worker_pool"></a><a href="#user-content-__input_build_worker_pool"><code>build_worker_pool</code></a>: _(Optional)_ Name of the Cloud Build Custom Worker Pool that should be used to build
     the function. The format of this field is:
 
-        projects/<project>/locations/<region>/workerPools/<workerPool>
+        projects/[PROJECT]/locations/[REGION]/workerPools/[WORKER_POOL]
 
-    where `<project>` and `<region>` are the project id and region
-    respectively where the worker pool is defined and `<workerPool>` is the
+    where `[PROJECT]` and `[REGION]` are the project id and region
+    respectively where the worker pool is defined and `[WORKER_POOL]` is the
     short name of the worker pool.
 
     If the project ID is not the same as the function, then the Cloud
@@ -177,7 +174,7 @@ jobs:
 
     The value must match the pattern:
 
-        projects/<project>/locations/<location>/repositories/<repository>.
+        projects/[PROJECT]/locations/[LOCATION]/repositories/[REPOSITORY].
 
     Cross-project repositories are not supported. Cross-location repositories
     are not supported. Repository format must be 'DOCKER'.
@@ -240,7 +237,6 @@ jobs:
     volumes. Keys starting with a forward slash '/' are mount paths. All other
     keys correspond to environment variables:
 
-
     ```yaml
     with:
       secrets: |-
@@ -283,11 +279,15 @@ jobs:
 -   <a name="__input_event_trigger_type"></a><a href="#user-content-__input_event_trigger_type"><code>event_trigger_type</code></a>: _(Optional)_ Specifies which action should trigger the function. For a list of
     acceptable values, run:
 
-        $ gcloud functions event-types list
+    ```sh
+    $ gcloud functions event-types list
+    ```
 
     This usually requires the eventarc API to be enabled:
 
-        $ gcloud services enable eventarc.googleapis.com
+    ```sh
+    $ gcloud services enable eventarc.googleapis.com
+    ```
 
     The available trigger types may change over time.
 
@@ -319,7 +319,7 @@ jobs:
     will trigger function execution with message contents passed as input
     data of the format:
 
-        projects/<project_id>/topics/<topic_id>
+        projects/[PROJECT]/topics/[TOPIC]
 
     The service account must have permissions on this topic.
 
@@ -331,7 +331,7 @@ jobs:
 
 -   <a name="__input_event_trigger_channel"></a><a href="#user-content-__input_event_trigger_channel"><code>event_trigger_channel</code></a>: _(Optional)_ The name of the channel associated with the trigger in the format:
 
-        projects/<project>/locations/<location>/channels/<channel>
+        projects/[PROJECT]/locations/[LOCATION]/channels/<channel>
 
     You must provide a channel to receive events from Eventarc SaaS partners.
 
@@ -355,7 +355,7 @@ service](https://cloud.google.com/functions/docs/securing/managing-access-iam).
 
 -   <a name="__output_name"></a><a href="#user-content-__output_name"><code>name</code></a>: Full resource name of the Cloud Function, of the format:
 
-        projects/<project>/locations/<location>/functions/<function>
+        projects/[PROJECT]/locations/[LOCATION]/functions/<function>
 
 -   <a name="__output_url"></a><a href="#user-content-__output_url"><code>url</code></a>: The URL of your Cloud Function.
 
@@ -397,13 +397,13 @@ jobs:
     - uses: 'actions/checkout@v4'
 
     - id: 'auth'
-      uses: 'google-github-actions/auth@v2'
+      uses: 'google-github-actions/auth@v3'
       with:
         project_id: 'my-project'
         workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
 
     - id: 'deploy'
-      uses: 'google-github-actions/deploy-cloud-functions@v3'
+      uses: 'google-github-actions/deploy-cloud-functions@v4'
       timeout-minutes: 10
       with:
         name: 'my-function'
@@ -424,7 +424,7 @@ jobs:
     - uses: 'actions/checkout@v4'
 
     - id: 'deploy'
-      uses: 'google-github-actions/deploy-cloud-functions@v3'
+      uses: 'google-github-actions/deploy-cloud-functions@v4'
       timeout-minutes: 10
       with:
         name: 'my-function'

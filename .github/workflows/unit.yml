@@ -45,7 +45,7 @@ jobs:
         run: 'npm ci && npm run build'
 
       - id: 'auth'
-        uses: 'google-github-actions/auth@v2' # ratchet:exclude
+        uses: 'google-github-actions/auth@v3' # ratchet:exclude
         if: |-
           ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
         with:
