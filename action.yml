@@ -124,7 +124,9 @@ inputs:
       Runtime for the function, such as "nodejs20". For a list of all available
       runtimes, run:
 
-          $ gcloud functions runtimes list
+      ```sh
+      $ gcloud functions runtimes list
+      ```
 
       The available runtimes change over time.
     required: true
@@ -163,10 +165,10 @@ inputs:
       Name of the Cloud Build Custom Worker Pool that should be used to build
       the function. The format of this field is:
 
-          projects/<project>/locations/<region>/workerPools/<workerPool>
+          projects/[PROJECT]/locations/[REGION]/workerPools/[WORKER_POOL]
 
-      where `<project>` and `<region>` are the project id and region
-      respectively where the worker pool is defined and `<workerPool>` is the
+      where `[PROJECT]` and `[REGION]` are the project id and region
+      respectively where the worker pool is defined and `[WORKER_POOL]` is the
       short name of the worker pool.
 
       If the project ID is not the same as the function, then the Cloud
@@ -183,7 +185,7 @@ inputs:
 
       The value must match the pattern:
 
-          projects/<project>/locations/<location>/repositories/<repository>.
+          projects/[PROJECT]/locations/[LOCATION]/repositories/[REPOSITORY].
 
       Cross-project repositories are not supported. Cross-location repositories
       are not supported. Repository format must be 'DOCKER'.
@@ -281,7 +283,6 @@ inputs:
       volumes. Keys starting with a forward slash '/' are mount paths. All other
       keys correspond to environment variables:
 
-
       ```yaml
       with:
         secrets: |-
@@ -347,11 +348,15 @@ inputs:
       Specifies which action should trigger the function. For a list of
       acceptable values, run:
 
-          $ gcloud functions event-types list
+      ```sh
+      $ gcloud functions event-types list
+      ```
 
       This usually requires the eventarc API to be enabled:
 
-          $ gcloud services enable eventarc.googleapis.com
+      ```sh
+      $ gcloud services enable eventarc.googleapis.com
+      ```
 
       The available trigger types may change over time.
     required: false
@@ -388,7 +393,7 @@ inputs:
       will trigger function execution with message contents passed as input
       data of the format:
 
-          projects/<project_id>/topics/<topic_id>
+          projects/[PROJECT]/topics/[TOPIC]
 
       The service account must have permissions on this topic.
     required: false
@@ -410,7 +415,7 @@ inputs:
     description: |-
       The name of the channel associated with the trigger in the format:
 
-          projects/<project>/locations/<location>/channels/<channel>
+          projects/[PROJECT]/locations/[LOCATION]/channels/<channel>
 
       You must provide a channel to receive events from Eventarc SaaS partners.
     required: false
@@ -421,7 +426,7 @@ outputs:
     description: |-
       Full resource name of the Cloud Function, of the format:
 
-          projects/<project>/locations/<location>/functions/<function>
+          projects/[PROJECT]/locations/[LOCATION]/functions/<function>
 
   url:
     description: |-
@@ -433,5 +438,5 @@ branding:
   color: 'blue'
 
 runs:
-  using: 'node20'
-  main: 'dist/index.js'
+  using: 'node24'
+  main: 'dist/main/index.js'
