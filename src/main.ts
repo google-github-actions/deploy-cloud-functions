@@ -40,7 +40,13 @@ import {
   RetryPolicy,
   VpcConnectorEgressSettings,
 } from './client';
-import { formatEntry, parseEventTriggerFilters, parseSecrets, stringToInt } from './util';
+import {
+  formatEntry,
+  parseEventTriggerFilters,
+  parseSecrets,
+  stringToInt,
+  validateUniverse,
+} from './util';
 
 async function run() {
   try {
@@ -48,6 +54,11 @@ async function run() {
     const projectID = presence(getInput('project_id')) || presence(process.env?.GCLOUD_PROJECT);
     const region = presence(getInput('region')) || 'us-central1';
     const universe = getInput('universe') || 'googleapis.com';
+
+    // Validate universe before it is interpolated into the Cloud Functions
+    // endpoint URL, otherwise a value carrying URL syntax can route the
+    // credentialed request to an attacker-controlled host (SSRF).
+    validateUniverse(universe);
 
     // top-level inputs
     const name = getInput('name', { required: true });

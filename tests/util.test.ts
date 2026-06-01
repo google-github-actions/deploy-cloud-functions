@@ -20,7 +20,7 @@ import assert from 'node:assert';
 import StreamZip from 'node-stream-zip';
 import { assertMembers, randomFilepath } from '@google-github-actions/actions-utils';
 
-import { parseEventTriggerFilters, stringToInt, zipDir } from '../src/util';
+import { parseEventTriggerFilters, stringToInt, validateUniverse, zipDir } from '../src/util';
 
 test('#zipDir', { concurrency: true }, async (suite) => {
   const cases = [
@@ -182,3 +182,30 @@ async function getFilesInZip(zipFilePath: string): Promise<string[]> {
   }
   return filesInsideZip;
 }
+
+test('#validateUniverse', { concurrency: true }, async (suite) => {
+  await suite.test('accepts legitimate universes (public, TPC, GDC)', () => {
+    for (const universe of ['googleapis.com', 'us-central1.rep.googleapis.com', 'apis-tpc.goog']) {
+      assert.doesNotThrow(() => validateUniverse(universe), `expected "${universe}" to be valid`);
+    }
+  });
+
+  await suite.test('rejects values carrying URL syntax (SSRF guard)', () => {
+    for (const universe of [
+      'attacker.com#.googleapis.com', // fragment truncates the real host
+      'attacker.com#',
+      'attacker.com/path',
+      'attacker.com:8080',
+      'user@attacker.com',
+      'https://attacker.com',
+      'attacker .com',
+      '',
+    ]) {
+      assert.throws(
+        () => validateUniverse(universe),
+        /Invalid universe/,
+        `expected "${universe}" to be rejected`,
+      );
+    }
+  });
+});

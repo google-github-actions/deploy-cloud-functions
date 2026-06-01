@@ -225,3 +225,33 @@ export function parseSecrets(
 
   return [secretEnvVars, secretVolumes];
 }
+
+/**
+ * universePattern matches a well-formed DNS hostname (RFC 1123 labels, total
+ * length <= 253). It deliberately excludes scheme, path, port, userinfo, query,
+ * and fragment characters so the value can only ever be a host.
+ */
+const universePattern =
+  /^(?=.{1,253}$)[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/;
+
+/**
+ * validateUniverse ensures the universe value is a bare DNS hostname before it
+ * is interpolated into the Cloud Functions API endpoint
+ * (`https://cloudfunctions.${universe}/v2`). A value carrying URL syntax can
+ * redirect the credentialed request — including the GCP access token in the
+ * Authorization header — to an attacker-controlled host (e.g. "attacker.com#"
+ * truncates the real host via the fragment delimiter). Validating hostname form
+ * (rather than allowlisting googleapis.com) still accepts every legitimate
+ * universe — googleapis.com, Trusted Partner Cloud, and Google Distributed
+ * Cloud domains — without breaking sovereign deployments.
+ *
+ * @param universe Universe value to validate.
+ */
+export function validateUniverse(universe: string): void {
+  if (!universePattern.test(universe)) {
+    throw new Error(
+      `Invalid universe "${universe}": must be a bare DNS hostname ` +
+        `(e.g. "googleapis.com"), with no scheme, path, port, or other URL characters.`,
+    );
+  }
+}
