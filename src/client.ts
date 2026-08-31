@@ -132,6 +132,17 @@ export enum VpcConnectorEgressSettings {
   ALL_TRAFFIC = 'ALL_TRAFFIC',
 }
 
+export enum DirectVpcEgress {
+  VPC_EGRESS_PRIVATE_RANGES_ONLY = 'VPC_EGRESS_PRIVATE_RANGES_ONLY',
+  VPC_EGRESS_ALL_TRAFFIC = 'VPC_EGRESS_ALL_TRAFFIC',
+}
+
+export type DirectVpcNetworkInterface = {
+  network?: string;
+  subnetwork?: string;
+  tags?: string[];
+};
+
 export enum IngressSettings {
   ALLOW_ALL = 'ALLOW_ALL',
   ALLOW_INTERNAL_ONLY = 'ALLOW_INTERNAL_ONLY',
@@ -177,6 +188,8 @@ export type CloudFunction = {
     timeoutSeconds?: number;
     vpcConnector?: string;
     vpcConnectorEgressSettings?: VpcConnectorEgressSettings;
+    directVpcEgress?: DirectVpcEgress;
+    directVpcNetworkInterface?: DirectVpcNetworkInterface[];
   };
 
   eventTrigger?: {
@@ -635,6 +648,9 @@ export class CloudFunctionsClient {
     if (cf.serviceConfig?.vpcConnector !== undefined) keys.push('serviceConfig.vpcConnector');
     if (cf.serviceConfig?.vpcConnectorEgressSettings !== undefined)
       keys.push('serviceConfig.vpcConnectorEgressSettings');
+    if (cf.serviceConfig?.directVpcEgress !== undefined) keys.push('serviceConfig.directVpcEgress');
+    if (cf.serviceConfig?.directVpcNetworkInterface !== undefined)
+      keys.push('serviceConfig.directVpcNetworkInterface');
 
     if (cf.eventTrigger?.triggerRegion !== undefined) keys.push('eventTrigger.triggerRegion');
     if (cf.eventTrigger?.eventType !== undefined) keys.push('eventTrigger.eventType');

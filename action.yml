@@ -213,6 +213,14 @@ inputs:
       new function's available CPUs is determined based on its memory value.
     required: false
 
+  direct_vpc_egress:
+    description: |-
+      Egress settings that control what outbound traffic is diverted through
+      the Direct VPC network. Allowed values are "PRIVATE_RANGES_ONLY" and
+      "ALL_TRAFFIC" (or "private-ranges-only" and "all-traffic"). Defaults to
+      "PRIVATE_RANGES_ONLY" when Direct VPC network or subnet is specified.
+    required: false
+
   memory:
     description: |-
       The amount of memory available for the function to use. Allowed values are
@@ -272,6 +280,19 @@ inputs:
       reducing cold start times.
     required: false
 
+  network:
+    description: |-
+      The VPC network name or fully-qualified identifier to which the function
+      will be connected via Direct VPC Egress (Cloud Functions 2nd gen only).
+      Specify network, subnet, or both. Mutually exclusive with `vpc_connector`.
+    required: false
+
+  network_tags:
+    description: |-
+      Comma-separated list of Compute Engine network tags to apply to Direct VPC
+      egress traffic (e.g. `tag-a,tag-b`).
+    required: false
+
   secrets:
     description: |-
       List of KEY=VALUE pairs to use as secrets. These are comma-separated or
@@ -319,6 +340,14 @@ inputs:
       The function execution timeout, specified as a time duration (e.g. "30s"
       for 30 seconds).
     default: '60s'
+    required: false
+
+  subnet:
+    description: |-
+      The VPC subnetwork name or fully-qualified identifier from which the
+      function will obtain IP addresses via Direct VPC Egress (Cloud Functions
+      2nd gen only). Specify network, subnet, or both. Mutually exclusive with
+      `vpc_connector`.
     required: false
 
   vpc_connector:

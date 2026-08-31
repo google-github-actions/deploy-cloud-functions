@@ -40,7 +40,13 @@ import {
   RetryPolicy,
   VpcConnectorEgressSettings,
 } from './client';
-import { formatEntry, parseEventTriggerFilters, parseSecrets, stringToInt } from './util';
+import {
+  formatEntry,
+  parseDirectVpc,
+  parseEventTriggerFilters,
+  parseSecrets,
+  stringToInt,
+} from './util';
 
 async function run() {
   try {
@@ -88,6 +94,19 @@ async function run() {
       VpcConnectorEgressSettings,
       getInput('vpc_connector_egress_settings') || VpcConnectorEgressSettings.PRIVATE_RANGES_ONLY,
     );
+    const network = presence(getInput('network'));
+    const subnet = presence(getInput('subnet'));
+    const networkTags = presence(getInput('network_tags'));
+    const directVpcEgress = presence(getInput('direct_vpc_egress'));
+
+    const { directVpcNetworkInterface, directVpcEgress: parsedDirectVpcEgress } = parseDirectVpc({
+      environment,
+      vpcConnector,
+      network,
+      subnet,
+      networkTags,
+      directVpcEgress,
+    });
 
     // eventTrigger
     const eventTriggerLocation = presence(getInput('event_trigger_location'));
@@ -146,6 +165,8 @@ async function run() {
         timeoutSeconds: serviceTimeout,
         vpcConnector: vpcConnector,
         vpcConnectorEgressSettings: vpcConnectorEgressSettings,
+        directVpcEgress: parsedDirectVpcEgress,
+        directVpcNetworkInterface: directVpcNetworkInterface,
       },
 
       eventTrigger: {
