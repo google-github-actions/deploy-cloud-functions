@@ -52,6 +52,20 @@ jobs:
       run: 'curl "${{ steps.deploy.outputs.url }}"'
 ```
 
+### Direct VPC Egress (2nd gen)
+
+```yaml
+- name: 'Deploy Cloud Function with Direct VPC Egress'
+  uses: 'google-github-actions/deploy-cloud-functions@v4'
+  with:
+    name: 'my-function'
+    runtime: 'nodejs22'
+    network: 'default'
+    subnet: 'default'
+    network_tags: 'internal-egress,db-client'
+    direct_vpc_egress: 'private-ranges-only'
+```
+
 ## Inputs
 
 > [!IMPORTANT]
@@ -188,6 +202,11 @@ jobs:
 -   <a name="__input_cpu"></a><a href="#user-content-__input_cpu"><code>cpu</code></a>: _(Optional)_ The number of available CPUs to set (e.g. 0.5, 2, 2000m). By default, a
     new function's available CPUs is determined based on its memory value.
 
+-   <a name="__input_direct_vpc_egress"></a><a href="#user-content-__input_direct_vpc_egress"><code>direct_vpc_egress</code></a>: _(Optional)_ Egress settings that control what outbound traffic is diverted through
+    the Direct VPC network. Allowed values are "PRIVATE_RANGES_ONLY" and
+    "ALL_TRAFFIC" (or "private-ranges-only" and "all-traffic"). Defaults to
+    "PRIVATE_RANGES_ONLY" when Direct VPC network or subnet is specified.
+
 -   <a name="__input_memory"></a><a href="#user-content-__input_memory"><code>memory</code></a>: _(Optional)_ The amount of memory available for the function to use. Allowed values are
     of the format: <number><unit> with allowed units of "k", "M", "G", "Ki",
     "Mi", "Gi" (e.g 128M, 10Mb, 1024Gi).
@@ -228,6 +247,13 @@ jobs:
 -   <a name="__input_min_instance_count"></a><a href="#user-content-__input_min_instance_count"><code>min_instance_count</code></a>: _(Optional)_ Sets the minimum number of instances for the function. This is helpful for
     reducing cold start times.
 
+-   <a name="__input_network"></a><a href="#user-content-__input_network"><code>network</code></a>: _(Optional)_ The VPC network name or fully-qualified identifier to which the function
+    will be connected via Direct VPC Egress (Cloud Functions 2nd gen only).
+    Specify network, subnet, or both. Mutually exclusive with `vpc_connector`.
+
+-   <a name="__input_network_tags"></a><a href="#user-content-__input_network_tags"><code>network_tags</code></a>: _(Optional)_ Comma-separated list of Compute Engine network tags to apply to Direct VPC
+    egress traffic (e.g. `tag-a,tag-b`).
+
 -   <a name="__input_secrets"></a><a href="#user-content-__input_secrets"><code>secrets</code></a>: _(Optional)_ List of KEY=VALUE pairs to use as secrets. These are comma-separated or
     newline-separated `KEY=VALUE`. Keys or values that contain separators must
     be escaped with a backslash (e.g. `\,` or `\\n`) unless quoted. Any
@@ -266,6 +292,11 @@ jobs:
 
 -   <a name="__input_service_timeout"></a><a href="#user-content-__input_service_timeout"><code>service_timeout</code></a>: _(Optional, default: `60s`)_ The function execution timeout, specified as a time duration (e.g. "30s"
     for 30 seconds).
+
+-   <a name="__input_subnet"></a><a href="#user-content-__input_subnet"><code>subnet</code></a>: _(Optional)_ The VPC subnetwork name or fully-qualified identifier from which the
+    function will obtain IP addresses via Direct VPC Egress (Cloud Functions
+    2nd gen only). Specify network, subnet, or both. Mutually exclusive with
+    `vpc_connector`.
 
 -   <a name="__input_vpc_connector"></a><a href="#user-content-__input_vpc_connector"><code>vpc_connector</code></a>: _(Optional)_ ID of the connector or fully qualified identifier for the connector.
 

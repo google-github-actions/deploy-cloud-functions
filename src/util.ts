@@ -20,13 +20,21 @@ import * as path from 'path';
 
 import * as Archiver from 'archiver';
 import {
+  parseCSV,
   parseGcloudIgnore,
   parseKVString,
   toPlatformPath,
 } from '@google-github-actions/actions-utils';
 import ignore from 'ignore';
 
-import { EventFilter, SecretEnvVar, SecretVolume } from './client';
+import {
+  DirectVpcEgress,
+  DirectVpcNetworkInterface,
+  Environment,
+  EventFilter,
+  SecretEnvVar,
+  SecretVolume,
+} from './client';
 import { SecretName } from './secret';
 
 /**
@@ -224,4 +232,88 @@ export function parseSecrets(
   }
 
   return [secretEnvVars, secretVolumes];
+}
+
+/**
+ * DirectVpcInputs holds raw user inputs related to Direct VPC Egress.
+ */
+export type DirectVpcInputs = {
+  environment?: Environment;
+  vpcConnector?: string;
+  network?: string;
+  subnet?: string;
+  networkTags?: string;
+  directVpcEgress?: string;
+};
+
+/**
+ * DirectVpcConfig holds parsed Direct VPC configuration for CloudFunction.
+ */
+export type DirectVpcConfig = {
+  directVpcNetworkInterface?: DirectVpcNetworkInterface[];
+  directVpcEgress?: DirectVpcEgress;
+};
+
+/**
+ * parseDirectVpcEgress parses direct_vpc_egress input into DirectVpcEgress enum.
+ */
+export function parseDirectVpcEgress(val?: string): DirectVpcEgress | undefined {
+  if (!val) {
+    return undefined;
+  }
+  const normalized = val.trim().toUpperCase().replace(/-/g, '_');
+  if (normalized === 'ALL_TRAFFIC' || normalized === 'VPC_EGRESS_ALL_TRAFFIC') {
+    return DirectVpcEgress.VPC_EGRESS_ALL_TRAFFIC;
+  }
+  if (normalized === 'PRIVATE_RANGES_ONLY' || normalized === 'VPC_EGRESS_PRIVATE_RANGES_ONLY') {
+    return DirectVpcEgress.VPC_EGRESS_PRIVATE_RANGES_ONLY;
+  }
+  throw new Error(
+    `Invalid value '${val}' for 'direct_vpc_egress', valid values are 'all-traffic', 'private-ranges-only'`,
+  );
+}
+
+/**
+ * parseDirectVpc validates and parses Direct VPC inputs into DirectVpcConfig.
+ */
+export function parseDirectVpc(inputs: DirectVpcInputs): DirectVpcConfig {
+  const { environment, vpcConnector, network, subnet, networkTags, directVpcEgress } = inputs;
+  const hasDirectVpcSettings = Boolean(network || subnet || networkTags || directVpcEgress);
+
+  if (!hasDirectVpcSettings) {
+    return {};
+  }
+
+  if (environment === Environment.GEN_1) {
+    throw new Error(
+      `Direct VPC Egress is only supported on 2nd gen Cloud Functions (got environment: 'GEN_1')`,
+    );
+  }
+
+  if (vpcConnector) {
+    throw new Error(
+      `Cannot specify both 'vpc_connector' and Direct VPC settings ('network'/'subnet')`,
+    );
+  }
+
+  if (!network && !subnet) {
+    throw new Error(
+      `Cannot specify 'network_tags' or 'direct_vpc_egress' without specifying 'network' or 'subnet'`,
+    );
+  }
+
+  const tags = networkTags ? parseCSV(networkTags) : undefined;
+  const egress = directVpcEgress
+    ? parseDirectVpcEgress(directVpcEgress)
+    : DirectVpcEgress.VPC_EGRESS_PRIVATE_RANGES_ONLY;
+
+  const directVpcInterface: DirectVpcNetworkInterface = {};
+  if (network) directVpcInterface.network = network;
+  if (subnet) directVpcInterface.subnetwork = subnet;
+  if (tags && tags.length > 0) directVpcInterface.tags = tags;
+
+  return {
+    directVpcNetworkInterface: [directVpcInterface],
+    directVpcEgress: egress,
+  };
 }

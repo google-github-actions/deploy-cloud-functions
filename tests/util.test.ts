@@ -20,7 +20,14 @@ import assert from 'node:assert';
 import StreamZip from 'node-stream-zip';
 import { assertMembers, randomFilepath } from '@google-github-actions/actions-utils';
 
-import { parseEventTriggerFilters, stringToInt, zipDir } from '../src/util';
+import {
+  parseDirectVpc,
+  parseDirectVpcEgress,
+  parseEventTriggerFilters,
+  stringToInt,
+  zipDir,
+} from '../src/util';
+import { DirectVpcEgress, Environment } from '../src/client';
 
 test('#zipDir', { concurrency: true }, async (suite) => {
   const cases = [
@@ -162,6 +169,214 @@ test('#parseEventTriggerFilters', { concurrency: true }, async (suite) => {
     await suite.test(tc.name, async () => {
       const actual = parseEventTriggerFilters(tc.input);
       assert.deepStrictEqual(actual, tc.expected);
+    });
+  }
+});
+
+test('#parseDirectVpcEgress', { concurrency: true }, async (suite) => {
+  const cases = [
+    {
+      name: 'empty',
+      input: '',
+      expected: undefined,
+    },
+    {
+      name: 'undefined',
+      input: undefined,
+      expected: undefined,
+    },
+    {
+      name: 'kebab-case private-ranges-only',
+      input: 'private-ranges-only',
+      expected: DirectVpcEgress.VPC_EGRESS_PRIVATE_RANGES_ONLY,
+    },
+    {
+      name: 'upper case PRIVATE_RANGES_ONLY',
+      input: 'PRIVATE_RANGES_ONLY',
+      expected: DirectVpcEgress.VPC_EGRESS_PRIVATE_RANGES_ONLY,
+    },
+    {
+      name: 'full enum VPC_EGRESS_PRIVATE_RANGES_ONLY',
+      input: 'VPC_EGRESS_PRIVATE_RANGES_ONLY',
+      expected: DirectVpcEgress.VPC_EGRESS_PRIVATE_RANGES_ONLY,
+    },
+    {
+      name: 'kebab-case all-traffic',
+      input: 'all-traffic',
+      expected: DirectVpcEgress.VPC_EGRESS_ALL_TRAFFIC,
+    },
+    {
+      name: 'upper case ALL_TRAFFIC',
+      input: 'ALL_TRAFFIC',
+      expected: DirectVpcEgress.VPC_EGRESS_ALL_TRAFFIC,
+    },
+    {
+      name: 'full enum VPC_EGRESS_ALL_TRAFFIC',
+      input: 'VPC_EGRESS_ALL_TRAFFIC',
+      expected: DirectVpcEgress.VPC_EGRESS_ALL_TRAFFIC,
+    },
+    {
+      name: 'invalid string throws error',
+      input: 'invalid-egress',
+      error: /Invalid value 'invalid-egress' for 'direct_vpc_egress'/,
+    },
+  ];
+
+  for await (const tc of cases) {
+    await suite.test(tc.name, async () => {
+      if (tc.error) {
+        assert.throws(() => {
+          parseDirectVpcEgress(tc.input);
+        }, tc.error);
+      } else {
+        const actual = parseDirectVpcEgress(tc.input);
+        assert.strictEqual(actual, tc.expected);
+      }
+    });
+  }
+});
+
+test('#parseDirectVpc', { concurrency: true }, async (suite) => {
+  const cases = [
+    {
+      name: 'no direct vpc inputs returns empty object',
+      input: {},
+      expected: {},
+    },
+    {
+      name: 'network alone sets network and default egress',
+      input: {
+        network: 'projects/p/global/networks/my-net',
+      },
+      expected: {
+        directVpcNetworkInterface: [
+          {
+            network: 'projects/p/global/networks/my-net',
+          },
+        ],
+        directVpcEgress: DirectVpcEgress.VPC_EGRESS_PRIVATE_RANGES_ONLY,
+      },
+    },
+    {
+      name: 'subnet alone sets subnetwork and default egress',
+      input: {
+        subnet: 'projects/p/regions/r/subnetworks/my-subnet',
+      },
+      expected: {
+        directVpcNetworkInterface: [
+          {
+            subnetwork: 'projects/p/regions/r/subnetworks/my-subnet',
+          },
+        ],
+        directVpcEgress: DirectVpcEgress.VPC_EGRESS_PRIVATE_RANGES_ONLY,
+      },
+    },
+    {
+      name: 'network and subnet with tags and explicit egress',
+      input: {
+        network: 'my-net',
+        subnet: 'my-subnet',
+        networkTags: 'tag1, tag2,tag3',
+        directVpcEgress: 'all-traffic',
+      },
+      expected: {
+        directVpcNetworkInterface: [
+          {
+            network: 'my-net',
+            subnetwork: 'my-subnet',
+            tags: ['tag1', 'tag2', 'tag3'],
+          },
+        ],
+        directVpcEgress: DirectVpcEgress.VPC_EGRESS_ALL_TRAFFIC,
+      },
+    },
+    {
+      name: 'network and subnet with spaced tags trims whitespace',
+      input: {
+        network: 'my-net',
+        subnet: 'my-subnet',
+        networkTags: '  tag-a  ,   tag-b   , tag-c ',
+      },
+      expected: {
+        directVpcNetworkInterface: [
+          {
+            network: 'my-net',
+            subnetwork: 'my-subnet',
+            tags: ['tag-a', 'tag-b', 'tag-c'],
+          },
+        ],
+        directVpcEgress: DirectVpcEgress.VPC_EGRESS_PRIVATE_RANGES_ONLY,
+      },
+    },
+    {
+      name: 'network and subnet alone without tags or explicit egress',
+      input: {
+        network: 'my-net',
+        subnet: 'my-subnet',
+      },
+      expected: {
+        directVpcNetworkInterface: [
+          {
+            network: 'my-net',
+            subnetwork: 'my-subnet',
+          },
+        ],
+        directVpcEgress: DirectVpcEgress.VPC_EGRESS_PRIVATE_RANGES_ONLY,
+      },
+    },
+    {
+      name: 'throws when both vpc_connector and network are specified',
+      input: {
+        vpcConnector: 'my-connector',
+        network: 'my-net',
+      },
+      error: /Cannot specify both 'vpc_connector' and Direct VPC settings/,
+    },
+    {
+      name: 'throws when both vpc_connector and subnet are specified',
+      input: {
+        vpcConnector: 'my-connector',
+        subnet: 'my-subnet',
+      },
+      error: /Cannot specify both 'vpc_connector' and Direct VPC settings/,
+    },
+    {
+      name: 'throws when network_tags specified without network or subnet',
+      input: {
+        networkTags: 'tag1',
+      },
+      error:
+        /Cannot specify 'network_tags' or 'direct_vpc_egress' without specifying 'network' or 'subnet'/,
+    },
+    {
+      name: 'throws when direct_vpc_egress specified without network or subnet',
+      input: {
+        directVpcEgress: 'all-traffic',
+      },
+      error:
+        /Cannot specify 'network_tags' or 'direct_vpc_egress' without specifying 'network' or 'subnet'/,
+    },
+    {
+      name: 'throws when GEN_1 environment specified with Direct VPC settings',
+      input: {
+        environment: Environment.GEN_1,
+        network: 'my-net',
+      },
+      error:
+        /Direct VPC Egress is only supported on 2nd gen Cloud Functions \(got environment: 'GEN_1'\)/,
+    },
+  ];
+
+  for await (const tc of cases) {
+    await suite.test(tc.name, async () => {
+      if (tc.error) {
+        assert.throws(() => {
+          parseDirectVpc(tc.input);
+        }, tc.error);
+      } else {
+        const actual = parseDirectVpc(tc.input);
+        assert.deepStrictEqual(actual, tc.expected);
+      }
     });
   }
 });

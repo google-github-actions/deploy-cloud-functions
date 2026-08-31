@@ -23,7 +23,14 @@ import crypto from 'crypto';
 
 import { skipIfMissingEnv } from '@google-github-actions/actions-utils';
 
-import { CloudFunctionsClient, CloudFunction, Environment, IngressSettings } from '../src/client';
+import {
+  CloudFunctionsClient,
+  CloudFunction,
+  DirectVpcEgress,
+  DirectVpcNetworkInterface,
+  Environment,
+  IngressSettings,
+} from '../src/client';
 import { SecretName } from '../src/secret';
 import { zipDir } from '../src/util';
 
@@ -442,6 +449,120 @@ test('#parentFromName', { concurrency: true }, async (suite) => {
         assert.throws(() => {
           client.parentFromName(tc.input);
         }, new RegExp(tc.error));
+      }
+    });
+  }
+});
+
+test('DirectVpc types and enums', { concurrency: true }, async (suite) => {
+  await suite.test('enum values match Google Cloud API definitions', () => {
+    assert.strictEqual(
+      DirectVpcEgress.VPC_EGRESS_PRIVATE_RANGES_ONLY,
+      'VPC_EGRESS_PRIVATE_RANGES_ONLY',
+    );
+    assert.strictEqual(DirectVpcEgress.VPC_EGRESS_ALL_TRAFFIC, 'VPC_EGRESS_ALL_TRAFFIC');
+  });
+
+  await suite.test(
+    'can construct CloudFunction definition with directVpcNetworkInterface and directVpcEgress',
+    () => {
+      const directVpcInterface: DirectVpcNetworkInterface = {
+        network: 'projects/p/global/networks/my-net',
+        subnetwork: 'projects/p/regions/r/subnetworks/my-subnet',
+        tags: ['tag1', 'tag2'],
+      };
+
+      const cf: CloudFunction = {
+        name: 'my-function',
+        environment: Environment.GEN_2,
+        serviceConfig: {
+          ingressSettings: IngressSettings.ALLOW_ALL,
+          directVpcEgress: DirectVpcEgress.VPC_EGRESS_PRIVATE_RANGES_ONLY,
+          directVpcNetworkInterface: [directVpcInterface],
+        },
+      };
+
+      assert.strictEqual(
+        cf.serviceConfig?.directVpcEgress,
+        DirectVpcEgress.VPC_EGRESS_PRIVATE_RANGES_ONLY,
+      );
+      assert.deepStrictEqual(cf.serviceConfig?.directVpcNetworkInterface, [directVpcInterface]);
+    },
+  );
+});
+
+test('#computeUpdateMask', { concurrency: true }, async (suite) => {
+  const client = new CloudFunctionsClient();
+
+  const cases = [
+    {
+      name: 'includes directVpcNetworkInterface and directVpcEgress when set',
+      cf: {
+        name: 'my-func',
+        serviceConfig: {
+          ingressSettings: IngressSettings.ALLOW_ALL,
+          directVpcNetworkInterface: [
+            {
+              network: 'default',
+              subnetwork: 'default',
+            },
+          ],
+          directVpcEgress: DirectVpcEgress.VPC_EGRESS_ALL_TRAFFIC,
+        },
+      } satisfies CloudFunction,
+      expectedPresent: ['serviceConfig.directVpcNetworkInterface', 'serviceConfig.directVpcEgress'],
+      expectedAbsent: [] as string[],
+    },
+    {
+      name: 'omits directVpcNetworkInterface and directVpcEgress when unset',
+      cf: {
+        name: 'my-func',
+        serviceConfig: {
+          ingressSettings: IngressSettings.ALLOW_ALL,
+        },
+      } satisfies CloudFunction,
+      expectedPresent: [] as string[],
+      expectedAbsent: ['serviceConfig.directVpcNetworkInterface', 'serviceConfig.directVpcEgress'],
+    },
+    {
+      name: 'includes only directVpcNetworkInterface when directVpcEgress is unset',
+      cf: {
+        name: 'my-func',
+        serviceConfig: {
+          ingressSettings: IngressSettings.ALLOW_ALL,
+          directVpcNetworkInterface: [
+            {
+              network: 'default',
+            },
+          ],
+        },
+      } satisfies CloudFunction,
+      expectedPresent: ['serviceConfig.directVpcNetworkInterface'],
+      expectedAbsent: ['serviceConfig.directVpcEgress'],
+    },
+    {
+      name: 'includes only directVpcEgress when directVpcNetworkInterface is unset',
+      cf: {
+        name: 'my-func',
+        serviceConfig: {
+          ingressSettings: IngressSettings.ALLOW_ALL,
+          directVpcEgress: DirectVpcEgress.VPC_EGRESS_PRIVATE_RANGES_ONLY,
+        },
+      } satisfies CloudFunction,
+      expectedPresent: ['serviceConfig.directVpcEgress'],
+      expectedAbsent: ['serviceConfig.directVpcNetworkInterface'],
+    },
+  ];
+
+  for await (const tc of cases) {
+    await suite.test(tc.name, () => {
+      const mask = client.computeUpdateMask(tc.cf);
+      const keys = mask.split(',');
+      for (const p of tc.expectedPresent) {
+        assert.ok(keys.includes(p), `updateMask should include '${p}'`);
+      }
+      for (const a of tc.expectedAbsent) {
+        assert.strictEqual(keys.includes(a), false, `updateMask should not include '${a}'`);
       }
     });
   }
